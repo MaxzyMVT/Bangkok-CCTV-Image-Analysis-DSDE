@@ -1,1 +1,11 @@
-/dataset
+dataset/
+discord_sync/
+
+# Python & PyTorch cache
+__pycache__/
+*.pyc
+*.pt
+runs/
+
+# Test output artifacts
+Models/test_annotated_sample.jpg
