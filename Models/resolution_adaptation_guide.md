@@ -83,3 +83,4 @@ yolo detect train \
     project=runs/train \
     name=bkk_cctv_multires
 ```
+
