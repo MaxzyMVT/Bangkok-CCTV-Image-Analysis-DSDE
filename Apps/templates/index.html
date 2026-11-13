@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bangkok CCTV YOLO Analytics & 16-Grid Explorer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #080c14; color: #e2e8f0; }
+    .glass-card { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .accent-gradient { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); }
+    .grid-tile { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .grid-tile:hover { transform: scale(1.02); z-index: 10; border-color: rgba(59, 130, 246, 0.7); }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP NAV -->
+  <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl accent-gradient flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+          <i class="fa-solid fa-video text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+            Bangkok CCTV YOLO Vision Hub
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium border border-blue-500/30">CU DSDE 2110403</span>
+          </h1>
+          <p class="text-xs text-slate-400">100 Cameras • 10-Min Snapshot Timeline • 16-Grid Control Room</p>
+        </div>
+      </div>
+
+      <!-- VIEW MODE SWITCHER -->
+      <div class="flex items-center bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 text-xs">
+        <button id="tabSingleBtn" class="px-3.5 py-1.5 rounded-lg font-medium transition text-white bg-blue-600 shadow-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-magnifying-glass"></i> Single Inspector
+        </button>
+        <button id="tabGridBtn" class="px-3.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-white flex items-center gap-1.5">
+          <i class="fa-solid fa-table-cells"></i> 16-Image Control Grid
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- CAMERA SELECTOR & TIMELINE CONTROLS BAR -->
+    <div class="glass-card rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        
+        <!-- Camera Directory Dropdown (100 Cameras) -->
+        <div class="md:col-span-5">
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+            <span><i class="fa-solid fa-camera text-blue-400 mr-1"></i> Active Camera Folder</span>
+            <span id="camCountBadge" class="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">Loading 100 cams...</span>
+          </label>
+          <select id="cameraSelect" class="w-full bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition">
+            <option value="" disabled selected>Loading BMA CCTV cameras...</option>
+          </select>
+        </div>
+
+        <!-- 10-Min Snapshot Navigation Buttons -->
+        <div class="md:col-span-7 flex flex-wrap items-center justify-between sm:justify-end gap-2">
+          
+          <!-- Cycling Buttons -->
+          <div class="flex items-center space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700">
+            <button id="btnFirst" title="First Snapshot" class="w-8 h-8 rounded-lg hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+              <i class="fa-solid fa-backward-step text-xs"></i>
+            </button>
+            <button id="btnPrev" title="Previous 10-min Snapshot (Left Arrow)" class="px-2.5 h-8 rounded-lg hover:bg-blue-600 text-slate-200 flex items-center gap-1.5 text-xs font-medium transition">
+              <i class="fa-solid fa-arrow-left"></i> <span>-10m</span>
+            </button>
+            <button id="btnPlay" title="Auto-Cycle Slideshow (Spacebar)" class="w-8 h-8 rounded-lg bg-blue-600/80 hover:bg-blue-600 text-white flex items-center justify-center transition">
+              <i id="playIcon" class="fa-solid fa-play text-xs"></i>
+            </button>
+            <button id="btnNext" title="Next 10-min Snapshot (Right Arrow)" class="px-2.5 h-8 rounded-lg hover:bg-blue-600 text-slate-200 flex items-center gap-1.5 text-xs font-medium transition">
+              <span>+10m</span> <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button id="btnLast" title="Last Snapshot" class="w-8 h-8 rounded-lg hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+              <i class="fa-solid fa-forward-step text-xs"></i>
+            </button>
+          </div>
+
+          <!-- Shortcuts Hint -->
+          <div class="hidden xl:flex items-center gap-1 text-[11px] text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded-xl border border-slate-800">
+            <span>Use</span>
+            <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono">←</kbd>
+            <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono">→</kbd>
+            <span>keys to cycle</span>
+          </div>
+
+          <!-- Auto-Detect Toggle Checkbox -->
+          <label class="flex items-center gap-2 text-xs text-slate-300 bg-slate-800/40 px-3 py-2 rounded-xl border border-slate-700/50 cursor-pointer hover:bg-slate-800/80 transition">
+            <input type="checkbox" id="autoDetectCheck" class="accent-blue-500 rounded">
+            <span>Auto-Detect on Cycle</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Timeline Scrubber & Snapshot Info -->
+      <div class="space-y-1.5 pt-1">
+        <div class="flex flex-wrap items-center justify-between text-xs text-slate-300">
+          <span class="flex items-center gap-2 font-mono text-blue-400 font-semibold" id="timelineTimestamp">
+            <i class="fa-regular fa-clock"></i> 2026-08-25 06:10:12
+          </span>
+          <span class="text-slate-400 font-mono" id="timelineIndexLabel">Frame: 0 / 0</span>
+        </div>
+        <input type="range" id="timelineSlider" min="0" max="610" value="0" class="w-full accent-blue-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg">
+      </div>
+    </div>
+
+    <!-- ================= VIEW A: SINGLE INSPECTOR ================= -->
+    <div id="singleViewSection" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- CONTROLS COLUMN (4 cols) -->
+        <div class="glass-card rounded-2xl p-5 space-y-5 lg:col-span-4 shadow-xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h2 class="text-sm font-semibold text-white flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-blue-400"></i> Detection Parameters
+            </h2>
+            <span class="text-xs text-slate-500">YOLOv8</span>
+          </div>
+
+          <!-- Sliders -->
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-xs text-slate-300 mb-1">
+                <span>Confidence Threshold</span>
+                <span id="confVal" class="font-mono text-blue-400 font-semibold">0.25</span>
+              </div>
+              <input type="range" id="confSlider" min="0.10" max="0.90" step="0.05" value="0.25" class="w-full accent-blue-500 cursor-pointer">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs text-slate-300 mb-1">
+                <span>IoU / NMS Threshold</span>
+                <span id="iouVal" class="font-mono text-purple-400 font-semibold">0.45</span>
+              </div>
+              <input type="range" id="iouSlider" min="0.10" max="0.90" step="0.05" value="0.45" class="w-full accent-purple-500 cursor-pointer">
+            </div>
+          </div>
+
+          <!-- Vehicle Toggles -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Target Vehicle Classes</label>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 cursor-pointer">
+                <input type="checkbox" id="clsCar" checked class="accent-orange-500 rounded">
+                <span>🚗 Car</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 cursor-pointer">
+                <input type="checkbox" id="clsMoto" checked class="accent-pink-500 rounded">
+                <span>🏍️ Motorcycle</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 cursor-pointer">
+                <input type="checkbox" id="clsBus" checked class="accent-green-500 rounded">
+                <span>🚌 Bus</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 cursor-pointer">
+                <input type="checkbox" id="clsTruck" checked class="accent-sky-500 rounded">
+                <span>🚛 Truck</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Run Button -->
+          <button id="runBtn" class="w-full py-3 px-4 rounded-xl font-semibold text-white accent-gradient shadow-lg shadow-blue-500/25 hover:opacity-95 transition flex items-center justify-center gap-2 text-sm">
+            <i class="fa-solid fa-play"></i> Run YOLO Detection (R)
+          </button>
+
+          <!-- Custom File Upload Dropzone -->
+          <div class="border-t border-slate-800 pt-3">
+            <span class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Upload Custom Image</span>
+            <div id="dropzone" class="border-2 border-dashed border-slate-700 hover:border-blue-500/60 rounded-xl p-3 text-center cursor-pointer transition bg-slate-900/40">
+              <i class="fa-solid fa-cloud-arrow-up text-xl text-slate-500 mb-1"></i>
+              <p class="text-xs text-slate-400" id="fileLabel">Drop image or click to upload</p>
+              <input type="file" id="fileInput" accept="image/*" class="hidden">
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN INSPECTION VIEWER (8 cols) -->
+        <div class="space-y-4 lg:col-span-8">
+          
+          <!-- SCORECARDS -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div class="glass-card rounded-xl p-3 text-center border-t-2 border-t-blue-500">
+              <span class="text-[11px] text-slate-400 uppercase tracking-wider">Total</span>
+              <div id="statTotal" class="text-2xl font-extrabold text-white font-mono mt-0.5">0</div>
+              <span class="text-[10px] text-slate-500">Vehicles</span>
+            </div>
+            <div class="glass-card rounded-xl p-3 text-center border-t-2 border-t-orange-500">
+              <span class="text-[11px] text-orange-400 uppercase tracking-wider">Cars</span>
+              <div id="statCars" class="text-2xl font-extrabold text-orange-400 font-mono mt-0.5">0</div>
+              <span class="text-[10px] text-slate-500">Automobiles</span>
+            </div>
+            <div class="glass-card rounded-xl p-3 text-center border-t-2 border-t-pink-500">
+              <span class="text-[11px] text-pink-400 uppercase tracking-wider">Motos</span>
+              <div id="statMotos" class="text-2xl font-extrabold text-pink-400 font-mono mt-0.5">0</div>
+              <span class="text-[10px] text-slate-500">Motorcycles</span>
+            </div>
+            <div class="glass-card rounded-xl p-3 text-center border-t-2 border-t-emerald-500">
+              <span class="text-[11px] text-emerald-400 uppercase tracking-wider">Buses</span>
+              <div id="statBuses" class="text-2xl font-extrabold text-emerald-400 font-mono mt-0.5">0</div>
+              <span class="text-[10px] text-slate-500">Public Transit</span>
+            </div>
+            <div class="glass-card rounded-xl p-3 text-center border-t-2 border-t-sky-500 col-span-2 sm:col-span-1">
+              <span class="text-[11px] text-sky-400 uppercase tracking-wider">Trucks</span>
+              <div id="statTrucks" class="text-2xl font-extrabold text-sky-400 font-mono mt-0.5">0</div>
+              <span class="text-[10px] text-slate-500">Heavy Cargo</span>
+            </div>
+          </div>
+
+          <!-- IMAGE DISPLAY -->
+          <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
+            <div class="bg-slate-900/90 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-green-500/80"></span>
+                <span id="currentCamTitle" class="text-xs font-mono text-slate-300 ml-2">Loading...</span>
+              </div>
+              <button id="viewToggleBtn" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-eye"></i> <span id="viewToggleLabel">Toggle Raw / Annotated</span>
+              </button>
+            </div>
+
+            <div class="p-2 sm:p-4 bg-slate-950 flex items-center justify-center min-h-[460px] relative">
+              <img id="mainDisplayImage" src="" alt="CCTV View" class="max-h-[560px] w-auto rounded-lg shadow-lg object-contain">
+              <div id="loadingOverlay" class="hidden absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center text-white space-y-2">
+                <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500"></i>
+                <span class="text-xs font-medium">Running YOLO detection...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DETECTIONS BREAKDOWN TABLE -->
+          <div class="glass-card rounded-2xl p-4 sm:p-5">
+            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-blue-400"></i> Detected Objects List
+            </h3>
+            <div class="max-h-44 overflow-y-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="text-slate-400 bg-slate-900/80 sticky top-0">
+                  <tr>
+                    <th class="py-1.5 px-3">#</th>
+                    <th class="py-1.5 px-3">Class</th>
+                    <th class="py-1.5 px-3">Confidence</th>
+                    <th class="py-1.5 px-3">Box [x1, y1, x2, y2]</th>
+                  </tr>
+                </thead>
+                <tbody id="detectionsTableBody" class="divide-y divide-slate-800 font-mono">
+                  <tr><td colspan="4" class="py-3 text-center text-slate-500 font-sans">No detections yet (Click Run Detection or enable Auto-Detect)</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= VIEW B: 16-IMAGE CONTROL ROOM GRID ================= -->
+    <div id="gridViewSection" class="hidden space-y-5">
+      
+      <!-- GRID HEADER & CONTROLS -->
+      <div class="glass-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-table-cells text-blue-400"></i> 16-Image CCTV Control Wall (4x4 Matrix)
+          </h2>
+          <p class="text-xs text-slate-400" id="gridSubtitle">Showing 16 consecutive 10-minute snapshots for active camera</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Grid Mode Selector -->
+          <div class="flex items-center bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs">
+            <button id="gridModeTime" class="px-3 py-1.5 rounded-lg text-white bg-blue-600 font-medium transition">
+              Time Sequence (Same Cam)
+            </button>
+            <button id="gridModeMulti" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white font-medium transition">
+              City Wide (16 Cameras)
+            </button>
+          </div>
+
+          <!-- Page Stepping -->
+          <div class="flex items-center space-x-1 bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs">
+            <button id="gridPrevBtn" class="px-3 py-1.5 rounded-lg hover:bg-slate-700 text-slate-200 transition">
+              <i class="fa-solid fa-chevron-left mr-1"></i> Prev 16
+            </button>
+            <button id="gridNextBtn" class="px-3 py-1.5 rounded-lg hover:bg-slate-700 text-slate-200 transition">
+              Next 16 <i class="fa-solid fa-chevron-right ml-1"></i>
+            </button>
+          </div>
+
+          <!-- Batch YOLO Button -->
+          <button id="runGridYoloBtn" class="px-4 py-2 rounded-xl accent-gradient text-white text-xs font-bold shadow-lg shadow-blue-500/20 hover:opacity-95 transition flex items-center gap-2">
+            <i class="fa-solid fa-bolt"></i> Run YOLO on All 16
+          </button>
+        </div>
+      </div>
+
+      <!-- 4x4 MATRIX CONTAINER (16 TILES) -->
+      <div id="grid16Container" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    let allCameras = [];
+    let currentCameraId = '1028';
+    let currentImages = [];
+    let currentImageIndex = 0;
+    let currentPrediction = null;
+    let showingAnnotated = false;
+    let isPlaying = false;
+    let playInterval = null;
+
+    // Grid state
+    let gridMode = 'time'; // 'time' or 'multicam'
+    let gridStartIndex = 0;
+    let gridItems = [];
+
+    // DOM Elements
+    const cameraSelect = document.getElementById('cameraSelect');
+    const camCountBadge = document.getElementById('camCountBadge');
+    const timelineSlider = document.getElementById('timelineSlider');
+    const timelineTimestamp = document.getElementById('timelineTimestamp');
+    const timelineIndexLabel = document.getElementById('timelineIndexLabel');
+    const mainImg = document.getElementById('mainDisplayImage');
+    const currentCamTitle = document.getElementById('currentCamTitle');
+    const viewToggleBtn = document.getElementById('viewToggleBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const autoDetectCheck = document.getElementById('autoDetectCheck');
+
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const btnFirst = document.getElementById('btnFirst');
+    const btnLast = document.getElementById('btnLast');
+    const btnPlay = document.getElementById('btnPlay');
+    const playIcon = document.getElementById('playIcon');
+    const runBtn = document.getElementById('runBtn');
+
+    const tabSingleBtn = document.getElementById('tabSingleBtn');
+    const tabGridBtn = document.getElementById('tabGridBtn');
+    const singleViewSection = document.getElementById('singleViewSection');
+    const gridViewSection = document.getElementById('gridViewSection');
+    const grid16Container = document.getElementById('grid16Container');
+    const gridPrevBtn = document.getElementById('gridPrevBtn');
+    const gridNextBtn = document.getElementById('gridNextBtn');
+    const gridModeTime = document.getElementById('gridModeTime');
+    const gridModeMulti = document.getElementById('gridModeMulti');
+    const runGridYoloBtn = document.getElementById('runGridYoloBtn');
+
+    const confSlider = document.getElementById('confSlider');
+    const confVal = document.getElementById('confVal');
+    const iouSlider = document.getElementById('iouSlider');
+    const iouVal = document.getElementById('iouVal');
+
+    confSlider.addEventListener('input', e => confVal.textContent = parseFloat(e.target.value).toFixed(2));
+    iouSlider.addEventListener('input', e => iouVal.textContent = parseFloat(e.target.value).toFixed(2));
+
+    // 1. Initial Load: Fetch All 100 Cameras
+    async function loadAllCameras() {
+      try {
+        const res = await fetch('/api/cameras');
+        const data = await res.json();
+        allCameras = data.cameras || [];
+        camCountBadge.textContent = `${allCameras.length} Cameras Available`;
+
+        cameraSelect.innerHTML = '';
+        allCameras.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.camera_id;
+          opt.textContent = `[${c.camera_id}] ${c.location_en} (${c.total_images} frames)`;
+          if (c.camera_id === currentCameraId) opt.selected = true;
+          cameraSelect.appendChild(opt);
+        });
+
+        // Load images for default camera
+        await loadCameraImages(currentCameraId);
+      } catch (err) {
+        console.error('Error loading cameras:', err);
+      }
+    }
+
+    // 2. Fetch all images for selected camera
+    async function loadCameraImages(cameraId) {
+      currentCameraId = cameraId;
+      try {
+        const res = await fetch(`/api/camera-images?camera_id=${cameraId}`);
+        const data = await res.json();
+        currentImages = data.images || [];
+        currentImageIndex = 0;
+        
+        timelineSlider.max = Math.max(0, currentImages.length - 1);
+        timelineSlider.value = 0;
+
+        displayCurrentImage();
+        if (gridViewSection.classList.contains('hidden') === false) {
+          load16Grid();
+        }
+      } catch (err) {
+        console.error('Error loading camera images:', err);
+      }
+    }
+
+    cameraSelect.addEventListener('change', e => {
+      loadCameraImages(e.target.value);
+    });
+
+    // 3. Display current snapshot in Single View
+    function displayCurrentImage() {
+      if (!currentImages || currentImages.length === 0) return;
+      const imgInfo = currentImages[currentImageIndex];
+      if (!imgInfo) return;
+
+      currentPrediction = null;
+      showingAnnotated = false;
+
+      // Update UI
+      timelineSlider.value = currentImageIndex;
+      timelineTimestamp.innerHTML = `<i class="fa-regular fa-clock"></i> ${imgInfo.timestamp || imgInfo.filename}`;
+      timelineIndexLabel.textContent = `Frame: ${currentImageIndex + 1} / ${currentImages.length}`;
+      currentCamTitle.textContent = `Cam [${currentCameraId}] • ${imgInfo.time} (${imgInfo.date})`;
+
+      // Direct image stream URL (fast load!)
+      mainImg.src = `/api/image?path=${encodeURIComponent(imgInfo.path)}`;
+
+      // Reset scorecards until detected
+      document.getElementById('statTotal').textContent = '-';
+      document.getElementById('statCars').textContent = '-';
+      document.getElementById('statMotos').textContent = '-';
+      document.getElementById('statBuses').textContent = '-';
+      document.getElementById('statTrucks').textContent = '-';
+
+      document.getElementById('detectionsTableBody').innerHTML = 
+        `<tr><td colspan="4" class="py-3 text-center text-slate-500 font-sans">Ready. Press <strong>Run Detection (R)</strong> or cycle to detect.</td></tr>`;
+
+      if (autoDetectCheck.checked) {
+        runDetection();
+      }
+    }
+
+    // Navigation Controls
+    function nextImage() {
+      if (currentImageIndex < currentImages.length - 1) {
+        currentImageIndex++;
+        displayCurrentImage();
+      }
+    }
+
+    function prevImage() {
+      if (currentImageIndex > 0) {
+        currentImageIndex--;
+        displayCurrentImage();
+      }
+    }
+
+    btnNext.addEventListener('click', nextImage);
+    btnPrev.addEventListener('click', prevImage);
+    btnFirst.addEventListener('click', () => { currentImageIndex = 0; displayCurrentImage(); });
+    btnLast.addEventListener('click', () => { currentImageIndex = currentImages.length - 1; displayCurrentImage(); });
+
+    timelineSlider.addEventListener('input', e => {
+      currentImageIndex = parseInt(e.target.value);
+      displayCurrentImage();
+    });
+
+    // Slideshow Timelapse Play/Pause
+    btnPlay.addEventListener('click', togglePlay);
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        playIcon.className = 'fa-solid fa-pause text-xs';
+        playInterval = setInterval(() => {
+          if (currentImageIndex >= currentImages.length - 1) {
+            currentImageIndex = 0;
+          } else {
+            currentImageIndex++;
+          }
+          displayCurrentImage();
+        }, 850);
+      } else {
+        playIcon.className = 'fa-solid fa-play text-xs';
+        clearInterval(playInterval);
+      }
+    }
+
+    // Keyboard Shortcuts (ArrowLeft, ArrowRight, Space, R)
+    window.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        nextImage();
+      } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        prevImage();
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.key === 'r' || e.key === 'R') {
+        runDetection();
+      }
+    });
+
+    // 4. Run YOLO Detection on Active Image
+    async function runDetection() {
+      if (!currentImages || currentImages.length === 0) return;
+      const imgInfo = currentImages[currentImageIndex];
+      loadingOverlay.classList.remove('hidden');
+
+      const payload = {
+        image_path: imgInfo.path,
+        conf: parseFloat(confSlider.value),
+        iou: parseFloat(iouSlider.value),
+        classes: {
+          car: document.getElementById('clsCar').checked,
+          motorcycle: document.getElementById('clsMoto').checked,
+          bus: document.getElementById('clsBus').checked,
+          truck: document.getElementById('clsTruck').checked
+        }
+      };
+
+      try {
+        const res = await fetch('/api/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.error) {
+          alert('Error: ' + data.error);
+        } else {
+          currentPrediction = data;
+          showingAnnotated = true;
+          renderPrediction(data);
+        }
+      } catch (err) {
+        console.error('Inference error:', err);
+      } finally {
+        loadingOverlay.classList.add('hidden');
+      }
+    }
+
+    runBtn.addEventListener('click', runDetection);
+
+    function renderPrediction(data) {
+      if (data.annotated_image_base64) {
+        mainImg.src = 'data:image/jpeg;base64,' + data.annotated_image_base64;
+      }
+      // Update scorecard
+      document.getElementById('statTotal').textContent = data.counts?.total_vehicles || 0;
+      document.getElementById('statCars').textContent = data.counts?.car || 0;
+      document.getElementById('statMotos').textContent = data.counts?.motorcycle || 0;
+      document.getElementById('statBuses').textContent = data.counts?.bus || 0;
+      document.getElementById('statTrucks').textContent = data.counts?.truck || 0;
+
+      // Table
+      const tb = document.getElementById('detectionsTableBody');
+      tb.innerHTML = '';
+      if (data.detections && data.detections.length > 0) {
+        data.detections.forEach((d, idx) => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-800/40';
+          tr.innerHTML = `
+            <td class="py-1.5 px-3 text-slate-500">${idx + 1}</td>
+            <td class="py-1.5 px-3 font-semibold text-slate-200">${d.class_name}</td>
+            <td class="py-1.5 px-3 text-blue-400 font-mono">${(d.confidence * 100).toFixed(1)}%</td>
+            <td class="py-1.5 px-3 text-slate-400 font-mono text-[11px]">[${d.bbox.join(', ')}]</td>
+          `;
+          tb.appendChild(tr);
+        });
+      } else {
+        tb.innerHTML = '<tr><td colspan="4" class="py-3 text-center text-slate-500 font-sans">No target vehicles detected</td></tr>';
+      }
+    }
+
+    viewToggleBtn.addEventListener('click', () => {
+      if (!currentPrediction) return;
+      showingAnnotated = !showingAnnotated;
+      if (showingAnnotated && currentPrediction.annotated_image_base64) {
+        mainImg.src = 'data:image/jpeg;base64,' + currentPrediction.annotated_image_base64;
+      } else {
+        const imgInfo = currentImages[currentImageIndex];
+        mainImg.src = `/api/image?path=${encodeURIComponent(imgInfo.path)}`;
+      }
+    });
+
+    // ================= 16-GRID CONTROL WALL LOGIC =================
+    tabSingleBtn.addEventListener('click', () => {
+      tabSingleBtn.className = 'px-3.5 py-1.5 rounded-lg font-medium transition text-white bg-blue-600 shadow-sm flex items-center gap-1.5';
+      tabGridBtn.className = 'px-3.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-white flex items-center gap-1.5';
+      singleViewSection.classList.remove('hidden');
+      gridViewSection.classList.add('hidden');
+    });
+
+    tabGridBtn.addEventListener('click', () => {
+      tabGridBtn.className = 'px-3.5 py-1.5 rounded-lg font-medium transition text-white bg-blue-600 shadow-sm flex items-center gap-1.5';
+      tabSingleBtn.className = 'px-3.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-white flex items-center gap-1.5';
+      singleViewSection.classList.add('hidden');
+      gridViewSection.classList.remove('hidden');
+      load16Grid();
+    });
+
+    gridModeTime.addEventListener('click', () => {
+      gridMode = 'time';
+      gridModeTime.className = 'px-3 py-1.5 rounded-lg text-white bg-blue-600 font-medium transition';
+      gridModeMulti.className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-white font-medium transition';
+      document.getElementById('gridSubtitle').textContent = `Showing 16 consecutive 10-minute snapshots for camera ${currentCameraId}`;
+      load16Grid();
+    });
+
+    gridModeMulti.addEventListener('click', () => {
+      gridMode = 'multicam';
+      gridModeMulti.className = 'px-3 py-1.5 rounded-lg text-white bg-blue-600 font-medium transition';
+      gridModeTime.className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-white font-medium transition';
+      document.getElementById('gridSubtitle').textContent = `Showing 16 different Bangkok cameras simultaneously`;
+      load16Grid();
+    });
+
+    gridNextBtn.addEventListener('click', () => {
+      gridStartIndex += 16;
+      load16Grid();
+    });
+
+    gridPrevBtn.addEventListener('click', () => {
+      gridStartIndex = Math.max(0, gridStartIndex - 16);
+      load16Grid();
+    });
+
+    async function load16Grid() {
+      try {
+        const url = `/api/grid-16?camera_id=${currentCameraId}&start_index=${gridStartIndex}&mode=${gridMode}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        gridItems = data.items || [];
+        render16Grid(gridItems);
+      } catch (err) {
+        console.error('Error loading grid:', err);
+      }
+    }
+
+    function render16Grid(items) {
+      grid16Container.innerHTML = '';
+      if (items.length === 0) {
+        grid16Container.innerHTML = '<div class="col-span-4 text-center py-12 text-slate-500">No images available for grid.</div>';
+        return;
+      }
+
+      items.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = 'grid-tile glass-card rounded-xl overflow-hidden border border-slate-800 cursor-pointer relative group flex flex-col';
+        card.id = `gridTile_${idx}`;
+
+        card.innerHTML = `
+          <div class="relative bg-slate-950 aspect-[4/3] flex items-center justify-center overflow-hidden">
+            <img src="/api/image?path=${encodeURIComponent(item.path)}" id="gridImg_${idx}" alt="Cam" class="w-full h-full object-cover">
+            
+            <!-- Top Badges Overlay -->
+            <div class="absolute top-1.5 left-1.5 right-1.5 flex justify-between items-center text-[10px]">
+              <span class="px-1.5 py-0.5 rounded bg-slate-900/80 font-mono text-blue-300 font-bold border border-slate-700/60">
+                #${item.camera_id}
+              </span>
+              <span class="px-1.5 py-0.5 rounded bg-slate-900/80 font-mono text-slate-300 border border-slate-700/60">
+                ${item.time || ''}
+              </span>
+            </div>
+
+            <!-- Vehicle Detection Tag (filled on run) -->
+            <div id="gridBadge_${idx}" class="hidden absolute bottom-1.5 left-1.5 right-1.5 bg-slate-900/90 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white flex justify-between border border-blue-500/30">
+              <span class="text-emerald-400 font-bold font-mono">Total: <span id="gridTotal_${idx}">0</span></span>
+              <span class="text-slate-300">🚗 <span id="gridCars_${idx}">0</span> • 🏍️ <span id="gridMotos_${idx}">0</span></span>
+            </div>
+          </div>
+          
+          <div class="p-2 bg-slate-900/60 text-[11px] truncate text-slate-400 flex items-center justify-between">
+            <span class="truncate">${item.location_en || item.filename}</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 group-hover:text-blue-400"></i>
+          </div>
+        `;
+
+        // Click tile to inspect in Single View
+        card.addEventListener('click', () => {
+          if (gridMode === 'time') {
+            currentImageIndex = item.index;
+            tabSingleBtn.click();
+            displayCurrentImage();
+          } else {
+            cameraSelect.value = item.camera_id;
+            loadCameraImages(item.camera_id).then(() => {
+              tabSingleBtn.click();
+            });
+          }
+        });
+
+        grid16Container.appendChild(card);
+      });
+    }
+
+    // 5. Run Batch YOLO Detection across all 16 tiles
+    runGridYoloBtn.addEventListener('click', async () => {
+      if (!gridItems || gridItems.length === 0) return;
+      runGridYoloBtn.disabled = true;
+      runGridYoloBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing 16 Images...';
+
+      const paths = gridItems.map(it => it.path);
+      try {
+        const res = await fetch('/api/predict-grid', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image_paths: paths,
+            conf: parseFloat(confSlider.value),
+            iou: parseFloat(iouSlider.value)
+          })
+        });
+        const data = await res.json();
+        if (data.results) {
+          data.results.forEach((r, idx) => {
+            const imgEl = document.getElementById(`gridImg_${idx}`);
+            const badgeEl = document.getElementById(`gridBadge_${idx}`);
+            const totalEl = document.getElementById(`gridTotal_${idx}`);
+            const carsEl = document.getElementById(`gridCars_${idx}`);
+            const motosEl = document.getElementById(`gridMotos_${idx}`);
+
+            if (imgEl && r.annotated_thumb_b64) {
+              imgEl.src = 'data:image/jpeg;base64,' + r.annotated_thumb_b64;
+            }
+            if (badgeEl && r.counts) {
+              badgeEl.classList.remove('hidden');
+              totalEl.textContent = r.counts.total_vehicles || 0;
+              carsEl.textContent = r.counts.car || 0;
+              motosEl.textContent = r.counts.motorcycle || 0;
+            }
+          });
+        }
+      } catch (err) {
+        alert('Grid detection failed: ' + err.message);
+      } finally {
+        runGridYoloBtn.disabled = false;
+        runGridYoloBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Run YOLO on All 16';
+      }
+    });
+
+    // Custom File Upload
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const fileLabel = document.getElementById('fileLabel');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => {
+      if (e.target.files && e.target.files[0]) {
+        const f = e.target.files[0];
+        fileLabel.textContent = f.name;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          mainImg.src = ev.target.result;
+          currentCamTitle.textContent = `Custom Upload: ${f.name}`;
+          // run inference on base64
+          runCustomBase64(ev.target.result);
+        };
+        reader.readAsDataURL(f);
+      }
+    });
+
+    async function runCustomBase64(b64) {
+      loadingOverlay.classList.remove('hidden');
+      try {
+        const res = await fetch('/api/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image_base64: b64,
+            conf: parseFloat(confSlider.value),
+            iou: parseFloat(iouSlider.value)
+          })
+        });
+        const data = await res.json();
+        currentPrediction = data;
+        showingAnnotated = true;
+        renderPrediction(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        loadingOverlay.classList.add('hidden');
+      }
+    }
+
+    // Startup
+    window.addEventListener('DOMContentLoaded', loadAllCameras);
+  </script>
+</body>
+</html>
