@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 
 # Ensure workspace root and Models are importable
-ROOT_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 sys.path.insert(0, str(ROOT_DIR / "Models"))
 
