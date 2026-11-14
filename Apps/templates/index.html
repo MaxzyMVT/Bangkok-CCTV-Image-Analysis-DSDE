@@ -173,6 +173,19 @@
             </div>
           </div>
 
+          <!-- Quick 3-Sample Preset Thumbnails -->
+          <div class="border-t border-slate-800/80 pt-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-images text-blue-400"></i> Camera Samples
+              </span>
+              <span class="text-[10px] text-slate-500">Instant Test Presets</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2" id="cameraSamplesGrid">
+              <!-- Dynamically populated sample buttons -->
+            </div>
+          </div>
+
           <!-- Run Button -->
           <button id="runBtn" class="w-full py-3 px-4 rounded-xl font-semibold text-white accent-gradient shadow-lg shadow-blue-500/25 hover:opacity-95 transition flex items-center justify-center gap-2 text-sm">
             <i class="fa-solid fa-play"></i> Run YOLO Detection (R)
@@ -370,8 +383,28 @@
     const iouSlider = document.getElementById('iouSlider');
     const iouVal = document.getElementById('iouVal');
 
-    confSlider.addEventListener('input', e => confVal.textContent = parseFloat(e.target.value).toFixed(2));
-    iouSlider.addEventListener('input', e => iouVal.textContent = parseFloat(e.target.value).toFixed(2));
+    confSlider.addEventListener('input', e => {
+      confVal.textContent = parseFloat(e.target.value).toFixed(2);
+      debounceAutoDetect();
+    });
+    iouSlider.addEventListener('input', e => {
+      iouVal.textContent = parseFloat(e.target.value).toFixed(2);
+      debounceAutoDetect();
+    });
+
+    ['clsCar', 'clsMoto', 'clsBus', 'clsTruck'].forEach(clsId => {
+      document.getElementById(clsId).addEventListener('change', () => {
+        debounceAutoDetect();
+      });
+    });
+
+    let debounceTimer = null;
+    function debounceAutoDetect() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        runDetection();
+      }, 250);
+    }
 
     // 1. Initial Load: Fetch All 100 Cameras
     async function loadAllCameras() {
@@ -409,13 +442,58 @@
         timelineSlider.max = Math.max(0, currentImages.length - 1);
         timelineSlider.value = 0;
 
+        renderSamplePresetThumbnails();
         displayCurrentImage();
+        // Immediately run YOLO prediction on first load so user gets instant sample results
+        runDetection();
+
         if (gridViewSection.classList.contains('hidden') === false) {
           load16Grid();
         }
       } catch (err) {
         console.error('Error loading camera images:', err);
       }
+    }
+
+    // Render 3 representative samples for quick switching (Morning, Noon, Evening)
+    function renderSamplePresetThumbnails() {
+      const container = document.getElementById('cameraSamplesGrid');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!currentImages || currentImages.length === 0) return;
+
+      const total = currentImages.length;
+      // Pick 3 representative snapshots: Early (Morning), Mid (Noon), Late (Evening/Night)
+      const sampleIndices = [
+        0,
+        Math.floor(total / 2),
+        Math.max(0, total - 1)
+      ];
+      const labels = ['🌅 Morning', '☀️ Midday', '🌙 Evening'];
+
+      sampleIndices.forEach((idx, sIdx) => {
+        const img = currentImages[idx];
+        const btn = document.createElement('button');
+        btn.className = `p-1.5 rounded-xl border text-left transition flex flex-col items-center gap-1 group ${
+          idx === currentImageIndex 
+            ? 'border-blue-500 bg-blue-500/10 shadow-sm' 
+            : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+        }`;
+        btn.id = `sampleBtn_${idx}`;
+        btn.innerHTML = `
+          <div class="w-full h-14 bg-slate-950 rounded-lg overflow-hidden relative">
+            <img src="/api/image?path=${encodeURIComponent(img.path)}" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy" alt="Sample ${sIdx+1}">
+            <span class="absolute top-1 left-1 text-[9px] font-mono px-1 py-0.5 rounded bg-slate-900/80 text-blue-300 font-semibold">${labels[sIdx]}</span>
+          </div>
+          <span class="text-[10px] font-mono text-slate-400 group-hover:text-slate-200">${img.time || `Frame ${idx+1}`}</span>
+        `;
+        btn.addEventListener('click', () => {
+          currentImageIndex = idx;
+          displayCurrentImage();
+          runDetection();
+        });
+        container.appendChild(btn);
+      });
     }
 
     cameraSelect.addEventListener('change', e => {
@@ -437,7 +515,19 @@
       timelineIndexLabel.textContent = `Frame: ${currentImageIndex + 1} / ${currentImages.length}`;
       currentCamTitle.textContent = `Cam [${currentCameraId}] • ${imgInfo.time} (${imgInfo.date})`;
 
-      // Direct image stream URL (fast load!)
+      // Update active sample button highlight
+      const total = currentImages.length;
+      const sampleIndices = [0, Math.floor(total / 2), Math.max(0, total - 1)];
+      sampleIndices.forEach(idx => {
+        const btn = document.getElementById(`sampleBtn_${idx}`);
+        if (btn) {
+          if (idx === currentImageIndex) {
+            btn.className = 'p-1.5 rounded-xl border text-left transition flex flex-col items-center gap-1 group border-blue-500 bg-blue-500/10 shadow-sm';
+          } else {
+            btn.className = 'p-1.5 rounded-xl border text-left transition flex flex-col items-center gap-1 group border-slate-800 bg-slate-900/60 hover:border-slate-700';
+          }
+        }
+      });
       mainImg.src = `/api/image?path=${encodeURIComponent(imgInfo.path)}`;
 
       // Reset scorecards until detected
