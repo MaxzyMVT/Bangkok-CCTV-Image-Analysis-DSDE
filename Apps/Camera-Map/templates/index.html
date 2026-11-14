@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bangkok CCTV Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.88);
+      --border: rgba(148, 163, 184, 0.25);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #60a5fa;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans Thai", sans-serif; }
+    #map { position: absolute; inset: 0; }
+
+    .title-card {
+      position: absolute; top: 12px; left: 56px; z-index: 1000;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 14px; backdrop-filter: blur(6px); max-width: calc(100% - 120px);
+    }
+    .title-card h1 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.02em; }
+    .title-card p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+
+    .coords {
+      position: absolute; bottom: 24px; left: 12px; z-index: 1000;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+      padding: 4px 10px; font: 12px ui-monospace, Consolas, monospace; color: var(--accent);
+    }
+    .leaflet-control-layers { border-radius: 10px !important; }
+    .tiles-dark { filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9); }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="title-card">
+    <h1>Bangkok CCTV Camera Map</h1>
+    <p>Base map only. Camera pins come next.</p>
+  </div>
+  <div class="coords" id="coords">13.75630, 100.50180</div>
+
+  <script>
+    // Bangkok city center (Democracy Monument area)
+    const BANGKOK_CENTER = [13.7563, 100.5018];
+
+    const map = L.map('map', { zoomControl: true }).setView(BANGKOK_CENTER, 12);
+
+    // Free base layers (no API key needed)
+    const baseLayers = {
+      'Streets (OpenStreetMap)': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }),
+      // Same OSM tiles, darkened with a CSS filter (see .tiles-dark)
+      'Dark (OpenStreetMap)': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, className: 'tiles-dark',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }),
+      'Satellite (Esri)': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
+      })
+    };
+
+    baseLayers['Streets (OpenStreetMap)'].addTo(map);
+    L.control.layers(baseLayers, null, { position: 'topright', collapsed: false }).addTo(map);
+    L.control.scale({ metric: true, imperial: false }).addTo(map);
+
+    // Live cursor coordinates (handy when checking camera lat/lon later)
+    const coordsEl = document.getElementById('coords');
+    map.on('mousemove', e => {
+      coordsEl.textContent = `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+    });
+  </script>
+</body>
+</html>
