@@ -60,7 +60,7 @@
     .brand { display: flex; align-items: center; gap: 10px; }
     .rec {
       width: 10px; height: 10px; border-radius: 50%; background: var(--red);
-      box-shadow: 0 0 12px var(--red); animation: blink 1.6s steps(1) infinite;
+      animation: blink 1.6s steps(1) infinite;
     }
     @keyframes blink { 50% { opacity: 0.25; } }
     .brand h1 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.04em; }
@@ -126,7 +126,7 @@
       font-size: 12px; font-weight: 600; color: var(--muted); transition: all .2s;
     }
     .switcher button:hover { color: var(--text); }
-    .switcher button.on { background: var(--cyan); color: #04121a; box-shadow: 0 0 18px rgba(34, 211, 238, 0.45); }
+    .switcher button.on { background: var(--cyan); color: #04121a; }
 
     /* ---------- Zoom + coords ---------- */
     .zoom { position: absolute; right: 16px; bottom: 28px; z-index: 1000; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; }
@@ -147,10 +147,10 @@
     .leaflet-control-attribution a { color: #94a3b8 !important; }
 
     /* ---------- Pins ---------- */
-    .pin { position: relative; width: 22px; height: 22px; }
+    .pin { position: relative; width: 26px; height: 26px; }
     .pin .core {
-      position: absolute; inset: 6px; border-radius: 50%; background: var(--cyan);
-      border: 2px solid #e0fbff; box-shadow: 0 0 10px var(--cyan), 0 0 22px rgba(34, 211, 238, 0.5);
+      position: absolute; inset: 7px; border-radius: 50%; background: var(--cyan);
+      border: 2px solid #e0fbff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
       transition: transform .2s, background .2s;
     }
     .pin .ring {
@@ -158,7 +158,7 @@
     }
     .pin.no-images .core { background: #64748b; border-color: #cbd5e1; box-shadow: none; }
     .pin:hover .core { transform: scale(1.35); }
-    .pin.active .core { background: var(--amber); border-color: #fff7d6; box-shadow: 0 0 12px var(--amber), 0 0 28px rgba(251, 191, 36, 0.6); transform: scale(1.4); }
+    .pin.active .core { background: var(--amber); border-color: #fff7d6; transform: scale(1.4); }
     .pin.active .ring { border-color: var(--amber); animation: pulse 1.6s ease-out infinite; }
     @keyframes pulse { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(2.4); opacity: 0; } }
 
@@ -190,7 +190,7 @@
     .feed .hud.bottom { bottom: 7px; }
     .feed .tag { background: rgba(0,0,0,.55); padding: 2px 6px; border-radius: 5px; }
     .feed .live { display: inline-flex; align-items: center; gap: 5px; }
-    .feed .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--red); box-shadow: 0 0 8px var(--red); animation: blink 1.6s steps(1) infinite; }
+    .feed .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--red); animation: blink 1.6s steps(1) infinite; }
     .feed .corner { position: absolute; width: 14px; height: 14px; border-color: rgba(255,255,255,.7); border-style: solid; }
     .feed .c1 { top: 4px; left: 4px; border-width: 2px 0 0 2px; }
     .feed .c2 { top: 4px; right: 4px; border-width: 2px 2px 0 0; }
@@ -284,10 +284,10 @@
 
     // ---------- Base layers (free, no API key) ----------
     const layers = {
-      dark: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        { maxZoom: 19, className: 'tiles-dark', attribution: OSM_ATTR }),
       streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         { maxZoom: 19, attribution: OSM_ATTR }),
+      dark: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        { maxZoom: 19, className: 'tiles-dark', attribution: OSM_ATTR }),
       satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         { maxZoom: 19, attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics' })
     };
@@ -335,7 +335,7 @@
     function pinIcon(cam, active) {
       const cls = ['pin', cam.image_count ? '' : 'no-images', active ? 'active' : ''].join(' ');
       return L.divIcon({ className: '', html: `<div class="${cls}"><span class="ring"></span><span class="core"></span></div>`,
-                         iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -10], tooltipAnchor: [0, -10] });
+                         iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -12], tooltipAnchor: [0, -12] });
     }
 
     function popupHtml(cam) {
