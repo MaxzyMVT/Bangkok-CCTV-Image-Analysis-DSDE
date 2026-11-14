@@ -9,3 +9,7 @@ runs/
 
 # Test output artifacts
 Models/test_annotated_sample.jpg
+
+# Labeling workflow (images are reproducible from dataset/)
+labeling_work/
+DataEngineering/test_set/images/
