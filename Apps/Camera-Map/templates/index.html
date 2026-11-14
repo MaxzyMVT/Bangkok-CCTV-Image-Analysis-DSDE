@@ -37,6 +37,32 @@
     }
     .leaflet-control-layers { border-radius: 10px !important; }
     .tiles-dark { filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9); }
+
+    /* Camera popup */
+    .leaflet-popup-content-wrapper { border-radius: 12px; }
+    .leaflet-popup-content { margin: 12px; width: 300px !important; }
+    .cam-popup { font-size: 12px; color: #0f172a; }
+    .cam-popup .cam-id {
+      display: inline-block; font: 600 11px ui-monospace, Consolas, monospace;
+      background: #dbeafe; color: #1d4ed8; border-radius: 6px; padding: 2px 6px;
+    }
+    .cam-popup h2 { margin: 6px 0 2px; font-size: 14px; line-height: 1.3; }
+    .cam-popup .detail { margin: 0 0 8px; color: #475569; line-height: 1.35; }
+    .cam-popup .snapshot {
+      width: 100%; aspect-ratio: 352 / 288; object-fit: cover; display: block;
+      border-radius: 8px; background: #e2e8f0;
+    }
+    .cam-popup .no-image {
+      display: flex; align-items: center; justify-content: center; aspect-ratio: 352 / 288;
+      border-radius: 8px; background: #f1f5f9; color: #64748b;
+    }
+    .cam-popup .meta {
+      display: flex; justify-content: space-between; gap: 8px; margin-top: 6px;
+      color: #64748b; font: 11px ui-monospace, Consolas, monospace;
+    }
+    .cam-tooltip { font-size: 12px; }
+
+    .status-error { color: #fca5a5 !important; }
   </style>
 </head>
 <body>
@@ -44,7 +70,7 @@
 
   <div class="title-card">
     <h1>Bangkok CCTV Camera Map</h1>
-    <p>Base map only. Camera pins come next.</p>
+    <p id="status">Loading cameras…</p>
   </div>
   <div class="coords" id="coords">13.75630, 100.50180</div>
 
@@ -80,6 +106,85 @@
     map.on('mousemove', e => {
       coordsEl.textContent = `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
     });
+
+    // ---------- Camera pins ----------
+    const statusEl = document.getElementById('status');
+    const cameraLayer = L.featureGroup().addTo(map);
+
+    const PIN_STYLE = {
+      radius: 7, weight: 2, color: '#ffffff',
+      fillColor: '#2563eb', fillOpacity: 0.95
+    };
+    const PIN_STYLE_NO_IMAGES = { ...PIN_STYLE, fillColor: '#94a3b8' };
+    const PIN_STYLE_HOVER = { radius: 10 };
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+    }
+
+    // "..._20260831_235012.jpg" -> "2026-08-31 23:50"
+    function timestampFromFilename(name) {
+      const m = /_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})\d{2}\.jpg$/i.exec(name || '');
+      return m ? `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}` : '';
+    }
+
+    function cameraTitle(cam) {
+      return cam.name_en || cam.name_th || `Camera ${cam.camera_id}`;
+    }
+
+    function popupHtml(cam) {
+      const detail = cam.name_en ? cam.detail_en : cam.detail_th;
+      const img = cam.latest_image
+        ? `<img class="snapshot" loading="lazy" alt="Latest snapshot from camera ${escapeHtml(cam.camera_id)}"
+             src="/images/${encodeURIComponent(cam.camera_id)}/${encodeURIComponent(cam.latest_image)}">`
+        : `<div class="no-image">No images for this camera</div>`;
+      return `
+        <div class="cam-popup">
+          <span class="cam-id">CAM ${escapeHtml(cam.camera_id)}</span>
+          <h2>${escapeHtml(cameraTitle(cam))}</h2>
+          ${detail ? `<p class="detail">${escapeHtml(detail)}</p>` : ''}
+          ${img}
+          <div class="meta">
+            <span>${escapeHtml(timestampFromFilename(cam.latest_image) || '—')}</span>
+            <span>${cam.image_count} snapshots</span>
+          </div>
+          <div class="meta">
+            <span>${cam.latitude.toFixed(5)}, ${cam.longitude.toFixed(5)}</span>
+          </div>
+        </div>`;
+    }
+
+    async function loadCameras() {
+      try {
+        const res = await fetch('/api/cameras');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        data.cameras.forEach(cam => {
+          const base = cam.image_count ? PIN_STYLE : PIN_STYLE_NO_IMAGES;
+          const marker = L.circleMarker([cam.latitude, cam.longitude], base)
+            .bindTooltip(`<b>${escapeHtml(cam.camera_id)}</b> · ${escapeHtml(cameraTitle(cam))}`,
+                         { direction: 'top', offset: [0, -8], className: 'cam-tooltip' })
+            .bindPopup(() => popupHtml(cam), { maxWidth: 330, autoPanPadding: [40, 40] });
+          marker.on('mouseover', () => marker.setStyle(PIN_STYLE_HOVER));
+          marker.on('mouseout', () => marker.setStyle({ radius: base.radius }));
+          marker.addTo(cameraLayer);
+        });
+
+        if (data.cameras.length) {
+          map.fitBounds(cameraLayer.getBounds(), { padding: [60, 60] });
+        }
+        statusEl.textContent = `${data.cameras.length} cameras · click a pin to see its latest snapshot`;
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Could not load cameras. Is the server running?';
+        statusEl.classList.add('status-error');
+      }
+    }
+
+    loadCameras();
   </script>
 </body>
 </html>
