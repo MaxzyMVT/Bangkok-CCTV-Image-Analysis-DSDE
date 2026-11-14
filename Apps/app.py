@@ -17,6 +17,12 @@ sys.path.insert(0, str(ROOT_DIR / "Models"))
 from Models.detector import YOLOVehicleDetector, DEFAULT_VEHICLE_CLASSES, imread_unicode, imwrite_unicode
 from Models.pipeline import parse_cctv_filename, load_cctv_metadata
 
+# Dataset auto-download from instructor's Google Drive
+try:
+    from DataEngineering.dataset_downloader import ensure_dataset
+except ImportError:
+    ensure_dataset = lambda: True
+
 # Paths
 DATASET_DIR = ROOT_DIR / "dataset" / "100_cameras" / "cctv_images"
 CCTV_INFO_CSV = ROOT_DIR / "dataset" / "100_cameras" / "cctv_info.csv"
@@ -379,6 +385,12 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
         self.send_error(404, "Endpoint not found")
 
 def start_server(port=8080):
+    global METADATA_LOOKUP
+    # Ensure dataset is downloaded and extracted from instructor's Google Drive if missing
+    ensure_dataset()
+    if not METADATA_LOOKUP and CCTV_INFO_CSV.exists():
+        METADATA_LOOKUP = load_cctv_metadata(CCTV_INFO_CSV)
+
     build_camera_index()
     server_address = ("", port)
     httpd = HTTPServer(server_address, CCTVAnalysisHandler)
