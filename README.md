@@ -17,9 +17,13 @@ Bangkok-CCTV-Image-Analysis-DSDE/
 │   ├── resolution_adaptation_guide.md # In-depth guide on handling various & low resolutions (CIF 352x288)
 │   └── __init__.py
 ├── Apps/
-│   ├── app.py                       # REST API & Web Server (port 8080) with 16-grid & image streamer
-│   └── templates/
-│       └── index.html               # Interactive Tailwind Dashboard (10-min cycler, 16-grid control room)
+│   ├── main.py                      # ONE server for everything: Camera Map at /, Detect at /inspect (port 8080)
+│   ├── Camera-Map/
+│   │   ├── app.py                   # Map data + image routes (/api/map/*, /images/*); can also run map-only
+│   │   └── templates/index.html     # Leaflet map of all 100 cameras with search and frame previews
+│   └── Detection-Classification/
+│       ├── app.py                   # Detect REST API (YOLO, timeline, 16-grid, upload)
+│       └── templates/index.html     # Detect dashboard (10-min cycler, 16-grid control room)
 ├── dataset/
 │   └── 100_cameras/
 │       ├── cctv_info.csv            # Metadata for 100 camera locations (lat, lon, road, intersection)
@@ -34,14 +38,42 @@ Bangkok-CCTV-Image-Analysis-DSDE/
 
 ---
 
-## 🚀 Web Dashboard Features (`Apps/`)
+## 🚀 Web App: Camera Map + Detect (`Apps/`)
 
-Start the interactive dashboard at **[http://localhost:8080](http://localhost:8080)**:
+Run everything with one command, from the repository root:
 ```bash
-python Apps/app.py --port 8080
+python Apps/main.py
 ```
 
-### Highlights:
+| Page | URL |
+|---|---|
+| Camera Map | [http://localhost:8080/](http://localhost:8080/) |
+| Detect (YOLO, timeline, 16-grid, upload) | [http://localhost:8080/inspect](http://localhost:8080/inspect) |
+
+Use `--port 9000` to pick another port. On first start, a missing dataset is downloaded automatically.
+
+### Moving between CCTV frames and camera locations
+
+**Detect → Map**
+* In **Single Inspector**, click the CCTV frame (it shows the label **“ดูตำแหน่งกล้องบนแผนที่”**), or Tab to it and press `Enter`.
+* The map zooms to that camera, highlights its pin and previews the **same frame**, with the camera name, direction and capture time.
+* In the **16-grid**, clicking a tile still opens it in the Inspector; use the **pin icon** on the tile to open that frame on the map instead.
+* Uploaded images have no camera location, so this action is hidden for them. Cameras without coordinates show a notice instead.
+
+**Map → Detect**
+* Search by camera ID or name (press `/` to jump to the search box), or click a pin.
+* The preview shows the camera's **latest** frame, or the frame you came from if you arrived from Detect.
+* Click the preview image or **“เปิดใน Detect”** to open that camera and frame in Detect, with no need to pick it again.
+* The map opens on Bangkok; zoom out to see the cameras in the context of all of Thailand.
+
+**Links, refresh and Back**
+* A frame is identified by camera ID + filename in the URL, e.g.
+  `/inspect?camera=915&frame=915_TF-KS-01-วงเวียนใหญ่_วงเวียนใหญ่_20260831_210006.jpg`
+  (the map uses the same parameters at `/`). Thai filenames work.
+* Refresh, Back and pasted links return to the same frame; the Detect URL follows the timeline as you step through frames.
+* If a frame can't be found, the page says so first and then shows the camera's latest frame. An unknown camera ID shows a notice too.
+
+### Detect highlights:
 1. **10-Minute Snapshot Cycler & Timeline Player:**
    * Step through 10-minute snapshot intervals for **any of the 100 cameras** (~610 images per camera from Aug 25 to Aug 31).
    * **Keyboard Shortcuts:**

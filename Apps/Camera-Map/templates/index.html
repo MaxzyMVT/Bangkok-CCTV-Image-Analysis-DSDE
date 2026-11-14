@@ -207,6 +207,50 @@
       border-radius: 999px; padding: 3px 9px;
     }
     .chip b { color: var(--text); font-weight: 600; }
+    .pop-time { margin-top: 6px; font: 12px var(--mono); color: var(--text); }
+    .pop-time span { color: var(--muted); }
+
+    /* Popup -> Detect links */
+    a.feed-link { display: block; border-radius: 10px; outline: none; color: inherit; text-decoration: none; }
+    a.feed-link:focus-visible { box-shadow: 0 0 0 3px var(--cyan); }
+    .feed .open-hint {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px;
+      background: rgba(4, 10, 20, 0.55); color: #fff; font: 600 12.5px var(--sans);
+      opacity: 0; transition: opacity .15s;
+    }
+    a.feed-link:hover .open-hint, a.feed-link:focus-visible .open-hint { opacity: 1; }
+    .feed .src { color: var(--amber); }
+    .btn-detect {
+      display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+      padding: 9px 12px; border-radius: 10px; background: var(--cyan); color: #04121a !important;
+      font: 600 13px var(--sans); text-decoration: none; transition: filter .15s;
+    }
+    .btn-detect:hover { filter: brightness(1.1); }
+    .btn-detect:focus-visible { outline: 3px solid #e0fbff; outline-offset: 2px; }
+
+    /* Panel link to Detect */
+    .nav-detect {
+      margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
+      border-radius: 10px; border: 1px solid var(--line-strong); color: var(--text); text-decoration: none;
+      font: 600 11.5px var(--sans); white-space: nowrap; transition: border-color .15s, color .15s;
+    }
+    .nav-detect:hover, .nav-detect:focus-visible { border-color: var(--cyan); color: var(--cyan); outline: none; }
+
+    .cam-item .nocoord { font: 10px var(--mono); color: var(--amber); margin-left: 6px; }
+
+    /* ---------- Notices ---------- */
+    .notices {
+      position: absolute; top: 70px; left: 50%; transform: translateX(-50%); z-index: 1100;
+      display: flex; flex-direction: column; gap: 8px; width: min(520px, calc(100% - 32px)); pointer-events: none;
+    }
+    .notice {
+      pointer-events: auto; display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px;
+      border-radius: 12px; font-size: 13px; line-height: 1.45; border-left: 3px solid var(--amber);
+    }
+    .notice.error { border-left-color: var(--red); }
+    .notice .msg { flex: 1; word-break: break-word; }
+    .notice button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+    .notice button:hover { color: var(--text); }
 
     /* ---------- Mobile ---------- */
     .panel-toggle { display: none; }
@@ -231,6 +275,7 @@
       .coords { display: none; }
       .leaflet-control-scale { display: none; }
       .leaflet-popup.cam-popup-wrap .leaflet-popup-content { width: 260px !important; }
+      .notices { top: 64px; }
     }
   </style>
 </head>
@@ -247,6 +292,7 @@
           <h1>BANGKOK CCTV MAP</h1>
           <small>BMA TRAFFIC CAMERAS · AUG 2026</small>
         </div>
+        <a class="nav-detect" href="/inspect" title="Open the Detect page">Detect →</a>
       </div>
       <div class="stats">
         <div class="stat"><b id="statCams">–</b><span>Cameras</span></div>
@@ -276,10 +322,12 @@
   </div>
 
   <div class="coords glass" id="coords">13.75630, 100.50180</div>
+  <div class="notices" id="notices" role="status" aria-live="polite"></div>
 
   <script>
     const BANGKOK_CENTER = [13.7563, 100.5018];
-    const map = L.map('map', { zoomControl: false, attributionControl: true }).setView(BANGKOK_CENTER, 12);
+    // Opens on Bangkok; minZoom 5 still lets you zoom out to see all of Thailand
+    const map = L.map('map', { zoomControl: false, attributionControl: true, minZoom: 5 }).setView(BANGKOK_CENTER, 12);
     const OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
     // ---------- Base layers (free, no API key) ----------
@@ -327,6 +375,36 @@
     const title = cam => cam.name_en || cam.name_th || `Camera ${cam.camera_id}`;
     const subtitle = cam => (cam.name_en ? cam.detail_en : cam.detail_th) || '';
 
+    // Frames are identified by camera_id + filename, in both directions
+    const frameQuery = (cameraId, frame) => {
+      const p = new URLSearchParams({ camera: cameraId });
+      if (frame) p.set('frame', frame);
+      return p.toString();
+    };
+    const detectUrl = (cam, frame) => `/inspect?${frameQuery(cam.camera_id, frame)}`;
+
+    // Frame passed in from Detect, per camera; other cameras preview their latest frame
+    const frameOverride = new Map();
+    const shownFrame = cam => frameOverride.get(cam.camera_id) || cam.latest_image;
+
+    // ---------- Notices ----------
+    const noticesEl = document.getElementById('notices');
+    function notify(message, kind = 'warn', timeoutMs = 9000) {
+      const el = document.createElement('div');
+      el.className = `notice glass ${kind}`;
+      el.innerHTML = `<span class="msg"></span><button aria-label="Dismiss">×</button>`;
+      el.querySelector('.msg').textContent = message;
+      el.querySelector('button').onclick = () => el.remove();
+      noticesEl.appendChild(el);
+      if (timeoutMs) setTimeout(() => el.remove(), timeoutMs);
+    }
+
+    // Keep the address bar on the open camera + frame so refresh/Back/links return here
+    function syncUrl(cam) {
+      const url = cam ? `/?${frameQuery(cam.camera_id, shownFrame(cam))}` : '/';
+      if (location.pathname + location.search !== url) history.replaceState(null, '', url);
+    }
+
     // ---------- Pins ----------
     const cameraLayer = L.featureGroup().addTo(map);
     const markers = new Map();
@@ -339,23 +417,35 @@
     }
 
     function popupHtml(cam) {
-      const stamp = parseStamp(cam.latest_image);
-      const feed = cam.latest_image
-        ? `<img alt="Latest snapshot from camera ${escapeHtml(cam.camera_id)}" src="${imageUrl(cam, cam.latest_image)}">
-           <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
-           <div class="hud top"><span class="tag live"><i></i>CAM ${escapeHtml(cam.camera_id)}</span><span class="tag">BMA</span></div>
-           <div class="hud bottom"><span class="tag">${stamp ? stamp.date : ''}</span><span class="tag">${stamp ? stamp.time : ''}</span></div>`
-        : `<div class="no-feed">NO SIGNAL</div>`;
+      const frame = shownFrame(cam);
+      const fromDetect = frameOverride.has(cam.camera_id);
+      const stamp = parseStamp(frame);
       const sub = subtitle(cam);
+      const href = escapeHtml(detectUrl(cam, frame));
+      const feed = frame
+        ? `<a class="feed-link" href="${href}" title="เปิดเฟรมนี้ในหน้า Detect">
+             <div class="feed">
+               <img alt="Snapshot from camera ${escapeHtml(cam.camera_id)}${stamp ? ` at ${stamp.date} ${stamp.time}` : ''}"
+                    src="${imageUrl(cam, frame)}">
+               <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
+               <div class="hud top"><span class="tag live"><i></i>CAM ${escapeHtml(cam.camera_id)}</span>
+                 <span class="tag ${fromDetect ? 'src' : ''}">${fromDetect ? 'เฟรมจาก Detect' : 'ภาพล่าสุด'}</span></div>
+               <div class="hud bottom"><span class="tag">${stamp ? stamp.date : ''}</span><span class="tag">${stamp ? stamp.time : ''}</span></div>
+               <span class="open-hint">เปิดใน Detect →</span>
+             </div>
+           </a>`
+        : `<div class="feed"><div class="no-feed">NO SIGNAL</div></div>`;
       return `
-        <div class="feed">${feed}</div>
+        ${feed}
         <div class="pop-body">
           <h2>${escapeHtml(title(cam))}</h2>
-          ${sub ? `<p>${escapeHtml(sub)}</p>` : ''}
+          ${sub ? `<p>ทิศทาง: ${escapeHtml(sub)}</p>` : ''}
+          ${stamp ? `<div class="pop-time"><span>ถ่ายเมื่อ</span> ${stamp.date} ${stamp.time}</div>` : ''}
           <div class="chips">
             <span class="chip"><b>${cam.image_count}</b> snapshots</span>
             <span class="chip">${cam.latitude.toFixed(5)}, ${cam.longitude.toFixed(5)}</span>
           </div>
+          ${frame ? `<a class="btn-detect" href="${href}">เปิดใน Detect</a>` : ''}
         </div>`;
     }
 
@@ -387,18 +477,28 @@
     // Pixels the side panel covers on the left (desktop) or bottom (mobile)
     const panelCover = () => isNarrow() ? { left: 0, bottom: 140 } : { left: 356, bottom: 0 };
 
-    function focusCamera(id) {
+    function focusCamera(id, { instant = false } = {}) {
       const entry = markers.get(id);
-      if (!entry) return;
+      if (!entry) {
+        const cam = allCameras.find(c => c.camera_id === id);
+        if (cam) notify(`กล้อง ${id} ไม่มีพิกัด จึงแสดงบนแผนที่ไม่ได้`);
+        return;
+      }
       document.getElementById('panel').classList.remove('open');
       const zoom = Math.max(map.getZoom(), 16);
       // Aim below the visible center (so the popup fits above the pin) and right of the panel
       const cover = panelCover();
       const pt = map.project(entry.marker.getLatLng(), zoom)
         .subtract([cover.left / 2, 150 - cover.bottom / 2]);
+      const target = map.unproject(pt, zoom);
       map.stop(); // cancel any running animation (e.g. the initial fit) so moveend belongs to this fly
       map.closePopup();
-      map.flyTo(map.unproject(pt, zoom), zoom, { duration: 0.9 });
+      if (instant) {
+        map.setView(target, zoom, { animate: false });
+        entry.marker.openPopup();
+        return;
+      }
+      map.flyTo(target, zoom, { duration: 0.9 });
       map.once('moveend', () => entry.marker.openPopup());
     }
 
@@ -434,7 +534,7 @@
             ? `<img class="thumb" loading="lazy" alt="" src="${imageUrl(cam, cam.latest_image)}">`
             : `<span class="thumb"></span>`}
           <span class="info">
-            <span class="id">CAM ${escapeHtml(cam.camera_id)}</span>
+            <span class="id">CAM ${escapeHtml(cam.camera_id)}${cam.has_coords ? '' : '<span class="nocoord">ไม่มีพิกัด</span>'}</span>
             <span class="name">${escapeHtml(title(cam))}</span>
           </span>
         </button>`).join('');
@@ -469,12 +569,13 @@
     // ---------- Load ----------
     async function loadCameras() {
       try {
-        const res = await fetch('/api/cameras');
+        const res = await fetch('/api/map/cameras');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         allCameras = data.cameras.sort((a, b) => title(a).localeCompare(title(b)));
 
         allCameras.forEach(cam => {
+          if (!cam.has_coords) return; // listed in the panel, but no pin
           const marker = L.marker([cam.latitude, cam.longitude], { icon: pinIcon(cam, false), riseOnHover: true })
             .bindTooltip(`<b>${escapeHtml(cam.camera_id)}</b> &nbsp;${escapeHtml(title(cam))}`,
                          { direction: 'top', className: 'cam-tip' })
@@ -487,8 +588,10 @@
             e.popup.options.autoPan = true;
             e.popup._adjustPan();
           });
-          marker.on('popupopen', () => { marker.closeTooltip(); setActive(cam.camera_id); });
-          marker.on('popupclose', () => { if (activeId === cam.camera_id) setActive(null); });
+          marker.on('popupopen', () => { marker.closeTooltip(); setActive(cam.camera_id); syncUrl(cam); });
+          marker.on('popupclose', () => {
+            if (activeId === cam.camera_id) { setActive(null); syncUrl(null); }
+          });
           marker.addTo(cameraLayer);
           markers.set(cam.camera_id, { marker, cam });
         });
@@ -503,11 +606,48 @@
         document.getElementById('statDays').textContent = days || '–';
 
         renderList();
-        map.whenReady(fitAll);
+        await openFromUrl();
       } catch (err) {
         console.error(err);
         listEl.innerHTML = '<div class="empty error">Could not load cameras.<br>Is the server running?</div>';
       }
+    }
+
+    // ---------- Deep link: /?camera=<id>&frame=<filename> ----------
+    async function openFromUrl() {
+      const params = new URLSearchParams(location.search);
+      const cameraId = (params.get('camera') || '').trim();
+      const frame = params.get('frame') || '';
+      if (!cameraId) { map.whenReady(fitAll); return; }
+
+      const cam = allCameras.find(c => c.camera_id === cameraId);
+      if (!cam) {
+        notify(`ไม่พบกล้องรหัส "${cameraId}" — แสดงกล้องทั้งหมดแทน`, 'error');
+        syncUrl(null);
+        map.whenReady(fitAll);
+        return;
+      }
+      if (!cam.has_coords) {
+        notify(`กล้อง ${cameraId} ไม่มีพิกัด จึงแสดงบนแผนที่ไม่ได้`, 'error');
+        map.whenReady(fitAll);
+        return;
+      }
+
+      if (frame) {
+        // Confirm the frame belongs to this camera before showing it; tell the user before falling back
+        let found = false;
+        try {
+          const q = new URLSearchParams({ camera_id: cameraId, filename: frame });
+          const r = await fetch(`/api/map/frame?${q}`);
+          found = r.ok && (await r.json()).found;
+        } catch (e) { console.error(e); }
+        if (found) {
+          frameOverride.set(cameraId, frame);
+        } else {
+          notify(`ไม่พบเฟรม "${frame}" ของกล้อง ${cameraId} — แสดงภาพล่าสุดแทน`);
+        }
+      }
+      map.whenReady(() => focusCamera(cameraId, { instant: true }));
     }
 
     loadCameras();
