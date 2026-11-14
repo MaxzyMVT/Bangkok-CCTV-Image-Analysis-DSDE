@@ -27,7 +27,7 @@ DATASET_DIR = ROOT_DIR / "dataset" / "100_cameras" / "cctv_images"
 CCTV_INFO_CSV = ROOT_DIR / "dataset" / "100_cameras" / "cctv_info.csv"
 
 # Placeholder English names in the scraped data that should fall back to Thai
-PLACEHOLDER_NAMES = {"", "connect bmacctv"}
+PLACEHOLDER_NAMES = {"", "0", "-", "nan", "none", "connect bmacctv"}
 
 
 def _clean(value):
