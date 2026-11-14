@@ -66,6 +66,12 @@ Use `--port 9000` to pick another port. On first start, a missing dataset is dow
 * Click the preview image or **“เปิดใน Detect”** to open that camera and frame in Detect, with no need to pick it again.
 * The map opens on Bangkok; zoom out to see the cameras in the context of all of Thailand.
 
+**ภาพย้อนหลัง (Replay) in the map popup**
+* Under the preview: ⏮ previous / ▶ play–pause / ⏭ next, a frame slider, and the real capture date and time.
+* Pick a day to jump to its first frame. Play steps through the real still frames (~1 s each) and stops at the day's last frame; pressing play there starts the day over.
+* These are still frames roughly every 10 minutes, not video. When frames are missing, the popup shows the real time it jumped from and to.
+* “เปิดเฟรมนี้ใน Detect” (or clicking the image) opens whichever frame is on screen, and the map URL follows the frame, so refresh returns to it.
+
 **Links, refresh and Back**
 * A frame is identified by camera ID + filename in the URL, e.g.
   `/inspect?camera=915&frame=915_TF-KS-01-วงเวียนใหญ่_วงเวียนใหญ่_20260831_210006.jpg`

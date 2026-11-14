@@ -228,6 +228,51 @@
     .btn-detect:hover { filter: brightness(1.1); }
     .btn-detect:focus-visible { outline: 3px solid #e0fbff; outline-offset: 2px; }
 
+    /* ---------- Replay (ภาพย้อนหลัง) ---------- */
+    .rp-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0 2px 6px; }
+    .rp-title { font: 600 12px var(--sans); color: var(--text); }
+    .rp-note { font-size: 10.5px; color: var(--muted); }
+    .rp-state {
+      position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; background: rgba(4, 10, 20, 0.6); color: #fff; font: 600 12px var(--sans); text-align: center; padding: 12px;
+    }
+    .rp-state[hidden] { display: none; }
+    .rp-spinner {
+      width: 22px; height: 22px; border-radius: 50%; border: 3px solid rgba(255,255,255,.25); border-top-color: #fff;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .rp-controls { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .rp-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .rp-day-label { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+    .rp-day {
+      background: rgba(2, 6, 14, 0.7); color: var(--text); border: 1px solid var(--line-strong); border-radius: 8px;
+      padding: 4px 6px; font: 12px var(--sans); max-width: 200px; min-width: 0;
+    }
+    .rp-day:focus-visible, .rp-slider:focus-visible, .rp-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .rp-count { margin-left: auto; font: 11px var(--mono); color: var(--muted); }
+    .rp-slider { width: 100%; margin: 2px 0; accent-color: var(--cyan); cursor: pointer; }
+    .rp-slider:disabled { cursor: default; opacity: .5; }
+    .rp-btn {
+      width: 34px; height: 30px; border-radius: 8px; border: 1px solid var(--line-strong); background: rgba(2, 6, 14, 0.6);
+      color: var(--text); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      transition: background .15s, border-color .15s;
+    }
+    .rp-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+    .rp-btn:disabled { opacity: .4; cursor: default; }
+    .rp-btn.rp-play { width: 42px; background: var(--cyan); color: #04121a; border-color: var(--cyan); }
+    .rp-btn.rp-play:hover:not(:disabled) { color: #04121a; filter: brightness(1.1); }
+    .rp-btn svg { width: 14px; height: 14px; fill: currentColor; pointer-events: none; }
+    .rp-time { margin-left: auto; font: 600 12px var(--mono); color: var(--text); text-align: right; }
+    .rp-time small { display: block; font: 10.5px var(--sans); color: var(--muted); }
+    .rp-gap { font-size: 11px; color: var(--amber); line-height: 1.4; }
+    .rp-gap[hidden], .rp-status:empty { display: none; }
+    .rp-status { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .rp-status.error { color: #fda4af; }
+    .rp-status button {
+      border: 1px solid currentColor; background: none; color: inherit; border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: 11px;
+    }
+
     /* Panel link to Detect */
     .nav-detect {
       margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
@@ -274,8 +319,13 @@
       .zoom { display: none; }
       .coords { display: none; }
       .leaflet-control-scale { display: none; }
-      .leaflet-popup.cam-popup-wrap .leaflet-popup-content { width: 260px !important; }
+      .leaflet-popup.cam-popup-wrap .leaflet-popup-content { width: 268px !important; margin: 8px; }
       .notices { top: 64px; }
+      .rp-note { display: none; }
+      .rp-day-label { flex: 1; min-width: 0; }
+      .rp-day { flex: 1; max-width: none; }
+      .pop-body .chips { display: none; }
+      .btn-detect { margin-top: 8px; padding: 8px 10px; }
     }
   </style>
 </head>
@@ -400,8 +450,8 @@
     }
 
     // Keep the address bar on the open camera + frame so refresh/Back/links return here
-    function syncUrl(cam) {
-      const url = cam ? `/?${frameQuery(cam.camera_id, shownFrame(cam))}` : '/';
+    function syncUrl(cam, frame = null) {
+      const url = cam ? `/?${frameQuery(cam.camera_id, frame || shownFrame(cam))}` : '/';
       if (location.pathname + location.search !== url) history.replaceState(null, '', url);
     }
 
@@ -416,38 +466,326 @@
                          iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -12], tooltipAnchor: [0, -12] });
     }
 
+    const ICON = {
+      prev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>',
+      next: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>',
+      play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
+      pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>'
+    };
+
+    // Popup: replay viewer for the camera's still frames (filled in by Replay after the popup opens)
     function popupHtml(cam) {
       const frame = shownFrame(cam);
-      const fromDetect = frameOverride.has(cam.camera_id);
       const stamp = parseStamp(frame);
       const sub = subtitle(cam);
-      const href = escapeHtml(detectUrl(cam, frame));
-      const feed = frame
-        ? `<a class="feed-link" href="${href}" title="เปิดเฟรมนี้ในหน้า Detect">
+      const href = frame ? escapeHtml(detectUrl(cam, frame)) : '';
+      const viewer = frame
+        ? `<a class="feed-link rp-link" href="${href}" title="เปิดเฟรมนี้ในหน้า Detect">
              <div class="feed">
-               <img alt="Snapshot from camera ${escapeHtml(cam.camera_id)}${stamp ? ` at ${stamp.date} ${stamp.time}` : ''}"
+               <img class="rp-img" alt="ภาพจากกล้อง ${escapeHtml(cam.camera_id)}${stamp ? ` เวลา ${stamp.date} ${stamp.time}` : ''}"
                     src="${imageUrl(cam, frame)}">
                <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
                <div class="hud top"><span class="tag live"><i></i>CAM ${escapeHtml(cam.camera_id)}</span>
-                 <span class="tag ${fromDetect ? 'src' : ''}">${fromDetect ? 'เฟรมจาก Detect' : 'ภาพล่าสุด'}</span></div>
-               <div class="hud bottom"><span class="tag">${stamp ? stamp.date : ''}</span><span class="tag">${stamp ? stamp.time : ''}</span></div>
-               <span class="open-hint">เปิดใน Detect →</span>
+                 <span class="tag rp-src">ภาพย้อนหลัง</span></div>
+               <div class="hud bottom"><span class="tag rp-hud-date">${stamp ? stamp.date : ''}</span>
+                 <span class="tag rp-hud-time">${stamp ? stamp.time : ''}</span></div>
+               <span class="open-hint">เปิดเฟรมนี้ใน Detect →</span>
+               <div class="rp-state" hidden></div>
              </div>
-           </a>`
-        : `<div class="feed"><div class="no-feed">NO SIGNAL</div></div>`;
+           </a>
+           <div class="rp-controls">
+             <div class="rp-row">
+               <label class="rp-day-label">วัน
+                 <select class="rp-day" aria-label="เลือกวันของภาพย้อนหลัง" disabled><option>กำลังโหลด…</option></select>
+               </label>
+               <span class="rp-count" aria-hidden="true"></span>
+             </div>
+             <input type="range" class="rp-slider" min="0" max="0" value="0" step="1" disabled
+                    aria-label="เลื่อนเฟรมภาพย้อนหลังของวันที่เลือก">
+             <div class="rp-row">
+               <button type="button" class="rp-btn rp-prev" aria-label="ภาพก่อนหน้า" disabled>${ICON.prev}</button>
+               <button type="button" class="rp-btn rp-play" aria-label="เล่นภาพย้อนหลัง" disabled>${ICON.play}</button>
+               <button type="button" class="rp-btn rp-next" aria-label="ภาพถัดไป" disabled>${ICON.next}</button>
+               <span class="rp-time" aria-live="polite"><small>เวลาถ่ายจริง</small>${stamp ? `${stamp.date} ${stamp.time}` : '—'}</span>
+             </div>
+             <div class="rp-gap" hidden></div>
+             <div class="rp-status" role="status"></div>
+           </div>`
+        : `<div class="feed"><div class="no-feed">ไม่มีภาพ</div></div>`;
       return `
-        ${feed}
+        <div class="rp" data-camera="${escapeHtml(cam.camera_id)}">
+          <div class="rp-head"><span class="rp-title">ภาพย้อนหลัง</span><span class="rp-note">ภาพนิ่งราว 10 นาทีต่อภาพ ไม่ใช่วิดีโอ</span></div>
+          ${viewer}
+        </div>
         <div class="pop-body">
           <h2>${escapeHtml(title(cam))}</h2>
           ${sub ? `<p>ทิศทาง: ${escapeHtml(sub)}</p>` : ''}
-          ${stamp ? `<div class="pop-time"><span>ถ่ายเมื่อ</span> ${stamp.date} ${stamp.time}</div>` : ''}
           <div class="chips">
             <span class="chip"><b>${cam.image_count}</b> snapshots</span>
             <span class="chip">${cam.latitude.toFixed(5)}, ${cam.longitude.toFixed(5)}</span>
           </div>
-          ${frame ? `<a class="btn-detect" href="${href}">เปิดใน Detect</a>` : ''}
+          ${frame ? `<a class="btn-detect rp-detect" href="${href}">เปิดเฟรมนี้ใน Detect</a>` : ''}
         </div>`;
     }
+
+    // ---------- Replay: step through a camera's real frames, by day, ~1 s per frame ----------
+    const PLAY_MS = 1000;
+    const GAP_MIN = 15;                 // normal spacing is ~10 min; anything longer is a gap
+    const frameListCache = new Map();   // camera_id -> Promise<frames[]>
+
+    function fetchFrameList(cameraId) {
+      if (!frameListCache.has(cameraId)) {
+        const p = fetch(`/api/camera-images?camera_id=${encodeURIComponent(cameraId)}`)
+          .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+          .then(d => (d.images || [])
+            .filter(im => im.filename && im.date && im.time)
+            .map(im => ({ filename: im.filename, date: im.date, time: im.time }))
+            .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)));
+        p.catch(() => frameListCache.delete(cameraId)); // allow a retry after a failure
+        frameListCache.set(cameraId, p);
+      }
+      return frameListCache.get(cameraId);
+    }
+
+    const toMinutes = f => { const [h, m, s] = f.time.split(':').map(Number); return h * 60 + m + s / 60; };
+    function formatGap(mins) {
+      const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+      return h ? `${h} ชม. ${m} นาที` : `${m} นาที`;
+    }
+    const thaiDay = date => new Date(`${date}T00:00:00`).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
+
+    class Replay {
+      constructor(cam, root, startFrame) {
+        this.cam = cam;
+        this.root = root;
+        this.startFrame = startFrame;
+        this.fromDetect = frameOverride.get(cam.camera_id) === startFrame;
+        this.alive = true;
+        this.playing = false;
+        this.loadSeq = 0;      // newest image request; older responses are ignored
+        this.runId = 0;        // current playback loop; bumped on stop
+        this.frames = [];
+        this.days = [];
+        this.idx = -1;
+        const q = s => root.querySelector(s);
+        this.el = {
+          img: q('.rp-img'), link: q('.rp-link'), state: q('.rp-state'), day: q('.rp-day'), count: q('.rp-count'),
+          slider: q('.rp-slider'), prev: q('.rp-prev'), play: q('.rp-play'), next: q('.rp-next'),
+          time: q('.rp-time'), gap: q('.rp-gap'), status: q('.rp-status'), src: q('.rp-src'),
+          hudDate: q('.rp-hud-date'), hudTime: q('.rp-hud-time'),
+          detect: root.parentElement.querySelector('.rp-detect')
+        };
+        if (!this.el.img) return;  // camera with no images: nothing to replay
+        this.bind();
+        this.load();
+      }
+
+      bind() {
+        const { prev, next, play, day, slider } = this.el;
+        // Controls re-render themselves (play icon, retry button). If a clicked node is removed mid-click,
+        // Leaflet can't tell it was inside the popup and closes it, so keep replay clicks away from the map.
+        this.root.addEventListener('click', e => e.stopPropagation());
+        prev.addEventListener('click', () => { this.stop(); this.go(this.idx - 1); });
+        next.addEventListener('click', () => { this.stop(); this.go(this.idx + 1); });
+        play.addEventListener('click', () => this.playing ? this.stop() : this.play());
+        day.addEventListener('change', () => {
+          // New day: stop and open that day's first frame
+          this.stop();
+          const d = this.days.find(x => x.date === day.value);
+          if (d) this.go(d.start, { withinDay: false });
+        });
+        // Dragging updates the label at once; the JPEG loads once the slider settles
+        let dragTimer = null;
+        slider.addEventListener('input', () => {
+          this.stop();
+          const i = this.currentDay().start + Number(slider.value);
+          this.go(i, { deferImage: true });
+          clearTimeout(dragTimer);
+          dragTimer = setTimeout(() => this.alive && this.showImage(), 150);
+        });
+      }
+
+      async load() {
+        this.setStatus('กำลังโหลดรายการภาพ…');
+        let frames;
+        try {
+          frames = await fetchFrameList(this.cam.camera_id);
+        } catch (err) {
+          if (!this.alive) return;
+          console.error(err);
+          this.setStatus('โหลดรายการภาพไม่สำเร็จ', 'error', () => this.load());
+          return;
+        }
+        if (!this.alive) return;
+        if (!frames.length) {
+          this.setStatus('กล้องนี้ไม่มีภาพในชุดข้อมูล', 'error');
+          this.setState('ไม่มีภาพ');
+          return;
+        }
+        this.frames = frames;
+        this.days = [];
+        frames.forEach((f, i) => {
+          const last = this.days[this.days.length - 1];
+          if (last && last.date === f.date) last.end = i;
+          else this.days.push({ date: f.date, start: i, end: i });
+        });
+        this.el.day.innerHTML = this.days.map(d =>
+          `<option value="${d.date}">${thaiDay(d.date)} · ${d.end - d.start + 1} ภาพ</option>`).join('');
+        [this.el.day, this.el.slider, this.el.prev, this.el.play, this.el.next].forEach(e => e.disabled = false);
+        this.setStatus('');
+
+        let start = frames.findIndex(f => f.filename === this.startFrame);
+        if (start < 0) start = frames.length - 1;
+        this.go(start, { keepImage: true, withinDay: false });  // image already shows the start frame
+      }
+
+      currentDay() {
+        return this.days.find(d => this.idx >= d.start && this.idx <= d.end) || this.days[this.days.length - 1];
+      }
+
+      // Move to frame i (kept within the selected day) and update every label, link and the URL
+      // withinDay: prev/next/slider/play never leave the selected day; day changes and the start pass false
+      go(i, { deferImage = false, keepImage = false, withinDay = true } = {}) {
+        if (!this.frames.length) return Promise.resolve(false);
+        const d = withinDay && this.idx >= 0 ? this.currentDay() : null;
+        const lo = d ? d.start : 0, hi = d ? d.end : this.frames.length - 1;
+        this.idx = Math.max(lo, Math.min(hi, i));
+        const f = this.frames[this.idx];
+        const day = this.currentDay();
+        const { el } = this;
+
+        el.day.value = day.date;
+        el.slider.max = String(day.end - day.start);
+        el.slider.value = String(this.idx - day.start);
+        el.slider.setAttribute('aria-valuetext', `${f.date} ${f.time}`);
+        el.count.textContent = `ภาพที่ ${this.idx - day.start + 1} / ${day.end - day.start + 1}`;
+        // Keyboard users keep focus when the button they pressed becomes disabled at the day's edge
+        const focused = document.activeElement;
+        el.prev.disabled = this.idx <= day.start;
+        el.next.disabled = this.idx >= day.end;
+        if ((focused === el.prev || focused === el.next) && focused.disabled) el.play.focus();
+        el.time.innerHTML = `<small>เวลาถ่ายจริง</small>${f.date} ${f.time}`;
+        el.hudDate.textContent = f.date;
+        el.hudTime.textContent = f.time.slice(0, 5);
+        el.img.alt = `ภาพจากกล้อง ${this.cam.camera_id} เวลา ${f.date} ${f.time}`;
+        el.src.textContent = this.fromDetect && f.filename === this.startFrame ? 'เฟรมจาก Detect'
+          : this.idx === this.frames.length - 1 ? 'ภาพล่าสุด' : 'ภาพย้อนหลัง';
+        el.src.classList.toggle('src', el.src.textContent === 'เฟรมจาก Detect');
+
+        // Missing frames: say which real time we jumped from
+        const prevF = this.idx > day.start ? this.frames[this.idx - 1] : null;
+        const gap = prevF ? toMinutes(f) - toMinutes(prevF) : 0;
+        if (gap > GAP_MIN) {
+          el.gap.hidden = false;
+          el.gap.textContent = `ช่วงที่ขาด: ภาพก่อนหน้าคือ ${prevF.time.slice(0, 5)} แล้วกระโดดไป ${f.time.slice(0, 5)} (ห่าง ${formatGap(gap)})`;
+        } else {
+          el.gap.hidden = true;
+        }
+
+        // Detect links + map URL always point at the frame on screen
+        const href = detectUrl(this.cam, f.filename);
+        el.link.href = href;
+        if (el.detect) el.detect.href = href;
+        syncUrl(this.cam, f.filename);
+
+        if (keepImage || deferImage) return Promise.resolve(true);
+        return this.showImage();
+      }
+
+      // Load the current frame's JPEG; show it only if it is still the newest request for this popup
+      showImage() {
+        const f = this.frames[this.idx];
+        if (!f) return Promise.resolve(false);
+        const seq = ++this.loadSeq;
+        const url = imageUrl(this.cam, f.filename);
+        return new Promise(resolve => {
+          const spin = setTimeout(() => {
+            if (this.alive && seq === this.loadSeq) this.setState('loading');
+          }, 250);
+          const pre = new Image();
+          pre.onload = () => {
+            clearTimeout(spin);
+            if (!this.alive || seq !== this.loadSeq) return resolve(false);
+            this.el.img.src = url;
+            this.setState(null);
+            resolve(true);
+          };
+          pre.onerror = () => {
+            clearTimeout(spin);
+            if (!this.alive || seq !== this.loadSeq) return resolve(false);
+            this.setState('โหลดภาพไม่สำเร็จ');
+            resolve(false);
+          };
+          pre.src = url;
+        });
+      }
+
+      async play() {
+        if (this.playing || !this.frames.length) return;
+        const day = this.currentDay();
+        this.playing = true;
+        const run = ++this.runId;
+        this.updatePlayButton();
+        // Pressing play on the day's last frame starts that day over
+        if (this.idx >= day.end) {
+          const ok = await this.go(day.start);
+          if (!ok) return this.stop();
+        }
+        while (this.alive && this.playing && run === this.runId) {
+          await new Promise(r => { this.timer = setTimeout(r, PLAY_MS); });
+          if (!this.alive || !this.playing || run !== this.runId) break;
+          if (this.idx >= day.end) { this.stop(); break; }
+          const ok = await this.go(this.idx + 1);
+          if (!this.alive || run !== this.runId) break;
+          if (!ok || this.idx >= day.end) { this.stop(); break; }  // stop at the day's last frame or on a failed load
+        }
+      }
+
+      stop() {
+        this.playing = false;
+        this.runId++;
+        clearTimeout(this.timer);
+        this.updatePlayButton();
+      }
+
+      updatePlayButton() {
+        const b = this.el.play;
+        if (!b) return;
+        b.innerHTML = this.playing ? ICON.pause : ICON.play;
+        b.setAttribute('aria-label', this.playing ? 'หยุดภาพย้อนหลัง' : 'เล่นภาพย้อนหลัง');
+        b.setAttribute('aria-pressed', String(this.playing));
+      }
+
+      setState(kind) {
+        const s = this.el.state;
+        if (!kind) { s.hidden = true; s.innerHTML = ''; return; }
+        s.hidden = false;
+        s.innerHTML = kind === 'loading'
+          ? '<span class="rp-spinner" aria-hidden="true"></span><span>กำลังโหลดภาพ…</span>'
+          : `<span>${escapeHtml(kind)}</span>`;
+      }
+
+      setStatus(text, kind = '', retry = null) {
+        const s = this.el.status;
+        s.className = `rp-status ${kind}`;
+        s.textContent = text;
+        if (retry) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = 'ลองใหม่';
+          b.onclick = retry;
+          s.appendChild(b);
+        }
+      }
+
+      destroy() {
+        this.stop();
+        this.alive = false;
+        this.loadSeq++;
+      }
+    }
+
+    let replay = null;
 
     function setActive(id) {
       if (activeId && markers.has(activeId)) {
@@ -503,6 +841,9 @@
     }
 
     function fitAll() {
+      // A hidden / zero-size map can't fit bounds (Leaflet computes NaN); fit once it gets a size
+      const size = map.getSize();
+      if (!size.x || !size.y) { map.once('resize', fitAll); return; }
       if (cameraLayer.getLayers().length) {
         const narrow = isNarrow();
         map.flyToBounds(cameraLayer.getBounds(), {
@@ -588,8 +929,18 @@
             e.popup.options.autoPan = true;
             e.popup._adjustPan();
           });
-          marker.on('popupopen', () => { marker.closeTooltip(); setActive(cam.camera_id); syncUrl(cam); });
+          marker.on('popupopen', e => {
+            marker.closeTooltip();
+            setActive(cam.camera_id);
+            syncUrl(cam);
+            // One replay at a time: a new popup always gets a fresh controller bound to its own DOM
+            if (replay) replay.destroy();
+            const root = e.popup.getElement()?.querySelector('.rp');
+            replay = root ? new Replay(cam, root, shownFrame(cam)) : null;
+          });
           marker.on('popupclose', () => {
+            // Stop playback immediately and ignore any image still loading for this camera
+            if (replay && replay.cam.camera_id === cam.camera_id) { replay.destroy(); replay = null; }
             if (activeId === cam.camera_id) { setActive(null); syncUrl(null); }
           });
           marker.addTo(cameraLayer);
@@ -606,10 +957,17 @@
         document.getElementById('statDays').textContent = days || '–';
 
         renderList();
-        await openFromUrl();
       } catch (err) {
         console.error(err);
         listEl.innerHTML = '<div class="empty error">Could not load cameras.<br>Is the server running?</div>';
+        return;
+      }
+      // The camera list is fine even if opening the linked camera fails
+      try {
+        await openFromUrl();
+      } catch (err) {
+        console.error(err);
+        notify('เปิดกล้องจากลิงก์ไม่สำเร็จ', 'error');
       }
     }
 
