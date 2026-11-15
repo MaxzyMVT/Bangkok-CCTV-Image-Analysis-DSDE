@@ -246,27 +246,30 @@
 
           <!-- IMAGE DISPLAY -->
           <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
-            <div class="bg-slate-900/90 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+            <div class="bg-slate-900/90 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center space-x-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-green-500/80"></span>
                 <span id="currentCamTitle" class="text-xs font-mono text-slate-300 ml-2">Loading...</span>
               </div>
-              <button id="viewToggleBtn" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
-                <i class="fa-solid fa-eye"></i> <span id="viewToggleLabel">Toggle Raw / Annotated</span>
-              </button>
+              <div class="flex items-center gap-2">
+                <!-- Map link placed in header bar so it never overlaps the image -->
+                <a id="mapLink" class="hidden text-xs px-2.5 py-1 rounded-lg bg-blue-600/90 hover:bg-blue-600 text-white transition flex items-center gap-1.5 font-medium shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                   target="_blank" title="ดูตำแหน่งกล้องบนแผนที่">
+                  <i class="fa-solid fa-location-dot text-blue-200"></i>
+                  <span id="mapLinkLabel">ดูตำแหน่งกล้องบนแผนที่</span>
+                </a>
+                <button id="viewToggleBtn" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-eye"></i> <span id="viewToggleLabel">Toggle Raw / Annotated</span>
+                </button>
+              </div>
             </div>
 
             <div class="p-2 sm:p-4 bg-slate-950 flex items-center justify-center min-h-[460px] relative">
-              <!-- Clicking the frame opens this camera + frame on the map (hidden for uploads / no coordinates) -->
-              <a id="mapLink" class="group relative block rounded-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500"
-                 title="ดูตำแหน่งกล้องบนแผนที่">
-                <img id="mainDisplayImage" src="" alt="CCTV View" class="max-h-[560px] w-auto rounded-lg shadow-lg object-contain">
-                <span id="mapLinkLabel" class="hidden absolute top-2 left-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900/85 border border-blue-500/40 text-[11px] font-semibold text-white shadow-lg group-hover:bg-blue-600 group-focus-visible:bg-blue-600 transition">
-                  <i class="fa-solid fa-location-dot text-blue-300 group-hover:text-white"></i> ดูตำแหน่งกล้องบนแผนที่
-                </span>
-              </a>
+              <div class="w-full flex items-center justify-center">
+                <img id="mainDisplayImage" src="" alt="CCTV View" class="w-full max-h-[720px] max-w-4xl rounded-lg shadow-xl object-contain">
+              </div>
               <div id="loadingOverlay" class="hidden absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center text-white space-y-2">
                 <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500"></i>
                 <span class="text-xs font-medium">Running YOLO detection...</span>
@@ -436,7 +439,7 @@
     const frameQuery = (cameraId, frame) => new URLSearchParams({ camera: cameraId, frame }).toString();
     const mapUrlFor = (cameraId, frame) => `/?${frameQuery(cameraId, frame)}`;
 
-    // Make the main frame a link to the map, or hide that action (uploads, cameras without coordinates)
+    // Make the header button a link to the map, or hide that action (uploads, cameras without coordinates)
     function updateMapLink() {
       const imgInfo = currentImages[currentImageIndex];
       const canLink = !isCustomUpload && imgInfo && cameraHasCoords(currentCameraId);
@@ -444,14 +447,12 @@
         mapLink.href = mapUrlFor(currentCameraId, imgInfo.filename);
         mapLink.removeAttribute('aria-disabled');
         mapLink.setAttribute('aria-label', `ดูตำแหน่งกล้อง ${currentCameraId} บนแผนที่`);
-        mapLink.classList.add('cursor-pointer');
-        mapLinkLabel.classList.remove('hidden');
+        mapLink.classList.remove('hidden');
       } else {
         mapLink.removeAttribute('href');           // no href = not clickable, not focusable
         mapLink.removeAttribute('aria-label');
         mapLink.setAttribute('aria-disabled', 'true');
-        mapLink.classList.remove('cursor-pointer');
-        mapLinkLabel.classList.add('hidden');
+        mapLink.classList.add('hidden');
       }
       if (!isCustomUpload && imgInfo && !cameraHasCoords(currentCameraId) && !noCoordsWarned.has(currentCameraId)) {
         noCoordsWarned.add(currentCameraId);
