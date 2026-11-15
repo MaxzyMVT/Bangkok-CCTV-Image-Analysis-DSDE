@@ -50,7 +50,8 @@ EVAL_DIR = ROOT_DIR / "runs" / "eval"
 # Augmentation tuned for fixed low-res (352x288) street cameras, day + night.
 AUGMENT = dict(
     hsv_h=0.015, hsv_s=0.6, hsv_v=0.5,   # strong brightness jitter: night, glare, rain
-    degrees=0.0, shear=0.0, perspective=0.0,  # cameras are fixed; keep geometry realistic
+    degrees=0.0,                         # no rotation: horizons stay level on fixed cameras
+    shear=2.0, perspective=0.0005,       # light distortion: camera angle / lens differ a little per site
     translate=0.1, scale=0.5,            # vehicles at many distances
     fliplr=0.5, flipud=0.0,
     mosaic=1.0, close_mosaic=10,         # mosaic early, plain frames for the last 10 epochs

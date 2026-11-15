@@ -45,7 +45,8 @@ Stages can also run on their own: `build`, `train`, `eval`. See `--help` for all
 | `fliplr=0.5` | traffic in both directions |
 | `mosaic=1.0`, `close_mosaic=10`, `mixup=0.1` | more small objects per batch, plain frames at the end |
 | `erasing=0.2` | occlusion by poles, wires, other vehicles |
-| no rotation / shear / perspective | cameras are fixed |
+| `shear=2.0`, `perspective=0.0005` | light distortion: camera angle and lens differ a little between sites |
+| no rotation (`degrees=0`) | horizons stay level on fixed cameras |
 
 * The run's `best.pt` (highest val mAP50-95) is copied to **`Models/weights/best.pt`** with `best.json` (run, metrics, date). The previous model is kept as `best_prev.pt`. Use `--no-promote` for experiments.
 
