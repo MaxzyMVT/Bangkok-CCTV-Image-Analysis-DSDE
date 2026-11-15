@@ -5,7 +5,8 @@ The App and Models/pipeline.py load Models/weights/best.pt automatically once it
 Stages
     build   Sample ~N frames per camera (never test candidates or frames within
             +-20 min of them on the same camera), label them, split train/val by day.
-            Labels come from --labeled-dirs (human-checked) first, the rest are
+            Frames reviewed in the review tool (DataEngineering/reviews/train) use the
+            human labels and are always kept; rejected frames are dropped; the rest are
             pseudo-labeled by a large teacher model (yolo11x).
     train   Fine-tune a pretrained COCO checkpoint with CCTV-oriented augmentation.
             Copies the run's best.pt to Models/weights/best.pt (+ best.json).
@@ -36,6 +37,7 @@ sys.path.insert(0, str(ROOT_DIR / "Models"))
 from common import (CANDIDATES_CSV, COCO_TO_TARGET, METADATA_CSV, TARGET_CLASSES, TEST_SET_DIR,  # noqa: E402
                     find_image, preview_name, resolve_dataset_root)
 from model_registry import BEST_MODEL, BEST_MODEL_INFO, WEIGHTS_DIR  # noqa: E402
+from review_store import ReviewStore  # noqa: E402
 from sample_test_candidates import sample_camera  # noqa: E402
 
 TRAIN_SET_DIR = ROOT_DIR / "DataEngineering" / "train_set"
@@ -72,13 +74,28 @@ def excluded_frames(meta: pd.DataFrame, buffer_min: int) -> set[int]:
     return excluded
 
 
-def load_human_labels(dirs: list[str]) -> dict[str, Path]:
-    """stem -> label .txt from folders laid out as <dir>/labels/<stem>.txt (e.g. reviewed work)."""
-    found = {}
-    for d in dirs:
-        for txt in Path(d).glob("labels/*.txt"):
-            found[txt.stem] = txt
-    return found
+REVIEWED = ("approved", "corrected")
+
+
+def select_frames(picked: pd.DataFrame, pool: pd.DataFrame, statuses: dict[str, str]) -> pd.DataFrame:
+    """Drop rejected frames, force in every reviewed frame (even if re-sampling skipped it),
+    and mark label_source = human for reviewed frames, pseudo for the rest."""
+    if "stem" not in pool.columns:
+        pool = pool.assign(stem=[preview_name(c, i) for c, i in zip(pool["camera_id"], pool["image_id"])])
+    reviewed = {s for s, st in statuses.items() if st in REVIEWED}
+    rejected = {s for s, st in statuses.items() if st == "rejected"}
+    extra = pool[pool["stem"].isin(reviewed - set(picked["stem"]))]
+    out = pd.concat([picked, extra[picked.columns.intersection(extra.columns)]], ignore_index=True)
+    out = out[~out["stem"].isin(rejected)].copy()
+    out["label_source"] = ["human" if s in reviewed else "pseudo" for s in out["stem"]]
+    return out
+
+
+def count_mae(model_counts: list[dict], true_counts: list[dict]) -> dict[str, float]:
+    """Mean absolute count error per class (and total) over frames."""
+    keys = [*TARGET_CLASSES.values(), "total"]
+    n = max(len(true_counts), 1)
+    return {k: round(sum(abs(m[k] - t[k]) for m, t in zip(model_counts, true_counts)) / n, 4) for k in keys}
 
 
 def build(args):
@@ -95,9 +112,10 @@ def build(args):
     picked = pd.concat(sample_camera(g, args.per_camera, rng) for _, g in pool.groupby("camera_id"))
     picked = picked.copy()
     picked["stem"] = [preview_name(c, i) for c, i in zip(picked["camera_id"], picked["image_id"])]
+    store = ReviewStore()
+    picked = select_frames(picked, pool, store.all_status("train"))
     picked["split"] = ["val" if d in args.val_dates else "train" for d in picked["date"]]
 
-    human = load_human_labels(args.labeled_dirs or [])
     teacher = YOLO(args.teacher)
 
     shutil.rmtree(TRAIN_SET_DIR / "images", ignore_errors=True)
@@ -106,24 +124,23 @@ def build(args):
         (TRAIN_SET_DIR / "images" / split).mkdir(parents=True)
         (TRAIN_SET_DIR / "labels" / split).mkdir(parents=True)
 
-    sources, n_boxes = [], []
+    n_boxes = []
     for r in picked.itertuples():
         src = find_image(root, r.relative_path)
         img_dst = TRAIN_SET_DIR / "images" / r.split / f"{r.stem}.jpg"
         lbl_dst = TRAIN_SET_DIR / "labels" / r.split / f"{r.stem}.txt"
         shutil.copy2(src, img_dst)
-        if r.stem in human:
-            shutil.copy2(human[r.stem], lbl_dst)
-            sources.append("human")
+        if r.label_source == "human":
+            lines = [f"{c} {x:.6f} {y:.6f} {w:.6f} {h:.6f}" for c, x, y, w, h in store.read_labels("train", r.stem) or []]
+            lbl_dst.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
         else:
             res = teacher.predict(str(img_dst), conf=args.teacher_conf, iou=0.5, imgsz=640,
                                   classes=list(COCO_TO_TARGET), device=args.device, verbose=False)[0]
             lines = [f"{COCO_TO_TARGET[int(c)]} {x:.6f} {y:.6f} {w:.6f} {h:.6f}"
                      for c, (x, y, w, h) in zip(res.boxes.cls.tolist(), res.boxes.xywhn.tolist())]
             lbl_dst.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
-            sources.append("pseudo")
         n_boxes.append(sum(1 for _ in lbl_dst.read_text(encoding="utf-8").splitlines()))
-    picked["label_source"], picked["n_boxes"] = sources, n_boxes
+    picked["n_boxes"] = n_boxes
 
     with open(TRAIN_SET_DIR / "dataset.yaml", "w", encoding="utf-8") as f:
         yaml.safe_dump({"path": str(TRAIN_SET_DIR.resolve()).replace("\\", "/"),
@@ -212,6 +229,21 @@ def _scores(metrics, names: dict) -> dict:
             "mAP50_95_per_class": per_class}
 
 
+def _frame_counts(model, images: Path, labels: Path, class_map: dict | None, device) -> dict[str, float]:
+    """Count MAE of `model` (conf 0.25) against the label files, per class and total."""
+    from review_store import counts
+    model_counts, true_counts = [], []
+    for img in sorted(images.glob("*.jpg")):
+        res = model.predict(str(img), conf=0.25, device=device, verbose=False,
+                            classes=list(class_map) if class_map else None)[0]
+        cls = [class_map[int(c)] if class_map else int(c) for c in res.boxes.cls.tolist()]
+        model_counts.append(counts([(c,) for c in cls]))
+        lbl = labels / f"{img.stem}.txt"
+        rows = [line.split() for line in lbl.read_text(encoding="utf-8").splitlines()] if lbl.exists() else []
+        true_counts.append(counts([(int(r[0]),) for r in rows if r]))
+    return count_mae(model_counts, true_counts)
+
+
 def evaluate(args):
     from ultralytics import YOLO
 
@@ -234,6 +266,8 @@ def evaluate(args):
     base = YOLO(args.baseline)
     m = base.val(data=str(coco_yaml), split="val", classes=list(COCO_TO_TARGET), name="baseline", **common)
     report["models"][f"pretrained:{args.baseline}"] = _scores(m, base.names)
+    report["models"][f"pretrained:{args.baseline}"]["count_mae"] = _frame_counts(
+        base, images, labels, COCO_TO_TARGET, args.device)
 
     fine_path = args.weights or (str(BEST_MODEL) if BEST_MODEL.exists() else None)
     if fine_path:
@@ -247,6 +281,8 @@ def evaluate(args):
         fine = YOLO(fine_path)
         m = fine.val(data=str(yml), split="val", name="finetuned", **common)
         report["models"][f"finetuned:{Path(fine_path).name}"] = _scores(m, fine.names)
+        report["models"][f"finetuned:{Path(fine_path).name}"]["count_mae"] = _frame_counts(
+            fine, images, labels, None, args.device)
     else:
         print("[!] No fine-tuned weights yet - only the baseline was scored.")
 
@@ -254,6 +290,8 @@ def evaluate(args):
     out.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print("\n" + pd.DataFrame({k: {m: v[m] for m in ("mAP50", "mAP50_95", "precision", "recall")}
                                for k, v in report["models"].items()}).T.to_string())
+    print("\nCount error (mean |model count - label count| per frame):")
+    print(pd.DataFrame({k: v["count_mae"] for k, v in report["models"].items()}).T.to_string())
     print(f"\n[+] Report: {out}")
     if split_name == "val":
         print("[i] Val labels are mostly teacher pseudo-labels; treat these numbers as a sanity check only.")
@@ -272,7 +310,6 @@ def main():
     ap.add_argument("--buffer-min", type=int, default=20, help="Exclude same-camera frames this close to a test candidate.")
     ap.add_argument("--teacher", default="yolo11x.pt", help="Large model that pseudo-labels unlabeled frames.")
     ap.add_argument("--teacher-conf", type=float, default=0.35)
-    ap.add_argument("--labeled-dirs", nargs="*", default=[], help="Folders with labels/<stem>.txt checked by a person.")
     # train
     ap.add_argument("--model", default="yolo11s.pt", help="Pretrained checkpoint to fine-tune.")
     ap.add_argument("--epochs", type=int, default=80)
