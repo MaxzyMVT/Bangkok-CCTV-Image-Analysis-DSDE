@@ -4,7 +4,6 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parents[2]
 METADATA_CSV = ROOT_DIR / "DataEngineering" / "cctv_images_metadata.csv"
 TEST_SET_DIR = ROOT_DIR / "DataEngineering" / "test_set"
-WORK_DIR = ROOT_DIR / "labeling_work"
 DEFAULT_DATASET_ROOT = ROOT_DIR  # folder that contains dataset/100_cameras/...
 
 CANDIDATES_CSV = TEST_SET_DIR / "candidates.csv"
@@ -15,14 +14,6 @@ REVIEWS_DIR = ROOT_DIR / "DataEngineering" / "reviews"
 TARGET_CLASSES = {0: "car", 1: "motorcycle", 2: "bus", 3: "truck"}
 COCO_TO_TARGET = {2: 0, 3: 1, 5: 2, 7: 3}
 
-# BGR colors for review previews
-CLASS_COLORS = {
-    0: (0, 165, 255),    # car - orange
-    1: (255, 80, 200),   # motorcycle - pink
-    2: (60, 220, 60),    # bus - green
-    3: (255, 200, 0),    # truck - cyan/blue
-}
-CLASS_LETTER = {0: "C", 1: "M", 2: "B", 3: "T"}
 
 
 def resolve_dataset_root(arg: str | None) -> Path:
