@@ -11,6 +11,7 @@ import json
 import os
 import re
 import tempfile
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -26,9 +27,21 @@ IOU_MIN = 0.9
 def _atomic_write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
-    with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
-        f.write(text)
-    os.replace(tmp, path)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+        # On Windows, replace fails while another request is reading the target: retry briefly.
+        for attempt in range(5):
+            try:
+                os.replace(tmp, path)
+                return
+            except PermissionError:
+                if attempt == 4:
+                    raise
+                time.sleep(0.05)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
 
 
 def clean_boxes(boxes) -> list[Box]:

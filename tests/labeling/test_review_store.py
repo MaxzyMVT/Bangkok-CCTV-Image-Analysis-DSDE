@@ -102,6 +102,15 @@ class ReviewStoreTest(unittest.TestCase):
             self.store.all_status("test", strict=True)
         self.assertIn(bad.name, str(ctx.exception))
 
+    def test_failed_write_leaves_no_temp_file(self):
+        from unittest import mock
+        self._pre([])
+        with mock.patch("review_store.os.replace", side_effect=PermissionError("file in use")):
+            with self.assertRaises(PermissionError):
+                self.store.save("test", STEM, [], "save")
+        leftovers = list(self.store.set_dir("test").rglob("*.tmp"))
+        self.assertEqual(leftovers, [])
+
     def test_all_status_lists_saved_only(self):
         self._pre([])
         self.store.save("test", STEM, [], "save")

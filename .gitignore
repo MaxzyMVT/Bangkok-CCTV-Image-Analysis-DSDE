@@ -56,3 +56,6 @@ desktop.ini
 # Local design/plan notes (superpowers skills)
 docs/superpowers/
 .superpowers/
+
+# Interrupted atomic writes from the review tool
+*.tmp
