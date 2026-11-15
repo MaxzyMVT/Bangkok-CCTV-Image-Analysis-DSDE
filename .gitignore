@@ -1,20 +1,57 @@
+# ---------------------------------------------------------------------------
+# Data (download from the course Google Drive; never commit images)
+# ---------------------------------------------------------------------------
 dataset/
 discord_sync/
+*.zip
 
-# Python & PyTorch cache
-__pycache__/
-*.pyc
+# ---------------------------------------------------------------------------
+# Models & training outputs (share weights via Drive, not git)
+# ---------------------------------------------------------------------------
 *.pt
+*.pth
+*.onnx
+*.engine
+*.torchscript
 runs/
-
-# Test output artifacts
+Models/weights/
 Models/test_annotated_sample.jpg
 
-# Labeling workflow (images are reproducible from dataset/)
+# Labeling workflow: images/previews are reproducible from dataset/.
+# Text labels in DataEngineering/reviews/ ARE committed.
 labeling_work/
 DataEngineering/test_set/images/
 
-# Training pipeline outputs (rebuilt by Models/training/train_pipeline.py)
+# Training set is rebuilt by Models/training/train_pipeline.py; keep only the manifest
 DataEngineering/train_set/*
 !DataEngineering/train_set/train_manifest.csv
-Models/weights/
+
+# YOLO label caches
+*.cache
+
+# ---------------------------------------------------------------------------
+# Python / environments
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+.env
+.env.*
+*.log
+
+# ---------------------------------------------------------------------------
+# Editors, OS, tools
+# ---------------------------------------------------------------------------
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# Local design/plan notes (superpowers skills)
+docs/superpowers/
