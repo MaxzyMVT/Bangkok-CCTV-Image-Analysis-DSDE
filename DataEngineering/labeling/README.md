@@ -1,52 +1,76 @@
-# Test set labeling (YOLO pre-label → keep fully-correct frames)
+# Review tool: approve or fix YOLO boxes
 
-Goal: a hand-verified **test set** of CCTV frames, built before any train/val split.
-YOLO draws the boxes; a person only judges each frame as **correct** or **wrong**.
-Only frames where YOLO got *everything* right are kept.
+Why: every analysis (rain vs traffic, BTS, bottlenecks) uses **vehicle counts per camera**. YOLO is never exact,
+so people check a sample of frames. That gives us (1) a measured counting error for the report and
+(2) clean labels to train a better model. Nobody draws from scratch: YOLO (`yolo11x`) already drew the boxes.
 
-## Pipeline
+| Set | Frames | Used for |
+|---|---|---|
+| `test` | 1,000 (10 per camera, 2 per time period) | measuring the error — never used for training |
+| `train` | 1,200 (12 per camera) | fine-tuning the model |
 
-| Step | Who | Command | Output |
-|---|---|---|---|
-| 1. Sample + split cameras | once | `python DataEngineering/labeling/sample_test_candidates.py` | `test_set/candidates.csv`, `test_set/camera_assignment.csv` |
-| 2. YOLO pre-label | each member (or once) | `python DataEngineering/labeling/prelabel.py --members member_1` | `labeling_work/member_1/` |
-| 3. Review | each member | sort previews in File Explorer (below) | `review/correct/`, `review/wrong/` |
-| 4. Merge | once, after everyone | `python DataEngineering/labeling/merge_test_set.py` | `test_set/labels/`, `test_manifest.csv`, `review_log.csv`, `dataset.yaml` |
+There is **no per-person split**. Everyone works from the same queue; if several people help, pick different
+cameras with the *Camera* filter. Each frame's result is its own small file, so pushes don't conflict.
 
-* 100 cameras are split into 3 shares (34/33/33) — see `test_set/camera_assignment.csv`.
-* 10 candidates per camera = 2 per `time_period` (Early Morning, Morning Rush, Midday, Evening Rush, Late Evening), spread over different days → 1,000 candidates.
-* Pre-labels use `yolo11x.pt` at `conf=0.30`. Use the same model and conf for everyone so the test set is consistent.
-* `candidates.csv` is fixed (seed 42). Do **not** re-run step 1 with `--force` after reviewing has started.
-* Environment: `conda activate dsde` (has PyTorch CUDA + ultralytics).
+## Start
 
-## How to review (step 3)
+```bash
+conda activate dsde
+git pull
+python DataEngineering/labeling/review_app.py
+```
 
-1. Open `labeling_work/<your_name>/review/` in File Explorer, *View → Large icons* (or open the first image and use arrow keys).
-2. For each preview, move the file into **`correct/`** or **`wrong/`**. Unsorted files block the merge.
-3. Box tags: **C** car (orange), **M** motorcycle (pink), **B** bus (green), **T** truck (blue). The top bar shows counts.
+Open <http://localhost:8090>. You need `dataset/` (the course images) and nothing else: the YOLO boxes are
+already in git under `DataEngineering/reviews/<set>/prelabels/`.
 
-A frame is **correct** only if **all** of these hold:
+When you stop, commit and push your results:
 
-- Every vehicle you can clearly identify as a vehicle has a box (cars, motorcycles, buses, trucks; including parked ones on the road).
-- No box on a non-vehicle (sign, shadow, building, person without motorcycle, reflection).
-- Every class is right. Pickup / van / taxi = **car**. Songthaew, tuk-tuk = **car**. Delivery lorry, 6-wheel+ = **truck**. Van-sized minibus = **car**; full-size bus = **bus**.
-- Boxes roughly fit the vehicle (no box covering two vehicles, no duplicate box on one vehicle).
+```bash
+git add DataEngineering/reviews && git commit -m "data(reviews): review batch" && git push
+```
 
-Ignore (don't count as a miss): vehicles that are only a few pixels at the far end of the road and that you couldn't identify yourself, vehicles cut off more than ~70 % by the frame edge, and blurred blobs you can't call a vehicle.
+## Keys
 
-When in doubt → **wrong**. Black/frozen/camera-offline frames → **wrong**.
+| Key | Action |
+|---|---|
+| click a box | select it |
+| `1` `2` `3` `4` | car / motorcycle / bus / truck — changes the selected box, or the class for new boxes |
+| drag on empty image | draw a new box |
+| drag inside a box / drag a corner | move / resize |
+| `Del` | delete the selected box |
+| `Enter` | save and go to the next frame |
+| `R` | reject the frame (unusable) and go next |
+| `Backspace` | throw away your edits and go back to YOLO's boxes |
+| `←` `→` | previous / next frame without saving |
+| `H` | hide boxes to see the vehicles underneath |
+| `Ctrl+Z` | undo |
 
-## Cross-check
+After `Enter` the frame is **approved** if you changed nothing (YOLO was right) or **corrected** if you did.
+Both count as reviewed. Use *Sort → lowest confidence first* to do the doubtful frames first.
 
-Pick ~15 previews from another member's `correct/` and check them against the same rules. If you disagree on more than 2, agree on the rules again before merging.
+## Rules
 
-## Known bias
+- Box **every vehicle you can recognise**, including parked ones on the road.
+- **car** = sedan, pickup, van, taxi, tuk-tuk, songthaew, minibus. **bus** = full-size bus.
+  **truck** = goods vehicle: lorry, 6-wheel+, box truck, trailer. **motorcycle** = motorbike with or without rider.
+- No box for: bicycles, people on foot, signs, shadows, reflections, a vehicle too small or blurred to tell what it is,
+  a vehicle more than ~70 % outside the frame.
+- One box per vehicle, roughly tight. Two vehicles under one box → split it.
+- **Reject** frames that are black, frozen, camera-offline or too smeared to count.
+- When unsure about the class, pick the closest; when unsure whether it's a vehicle at all, leave it out.
 
-The test set holds only frames that the pretrained YOLO already handles perfectly, so it leans toward easy scenes.
-The pretrained model will score close to 100 % on it. Use it for **regression checks** (a fine-tuned model must not get worse here),
-and use `review_log.csv` (the share of `wrong` per camera / time period) to report where YOLO struggles.
+## After reviewing
 
-## Next (not done yet)
+```bash
+python DataEngineering/labeling/merge_test_set.py          # test set + YOLO count error (count_error.csv)
+python Models/training/train_pipeline.py all --device 0     # rebuild train set with your labels, train, eval
+```
 
-* Exclude test frames — and same-camera frames within ±20 min — from the training pool in `Models/training_prep.py`.
-* Split train/val by camera or by day, not per image.
+`merge_test_set.py` refuses to run while test frames are still pending (add `--allow-unreviewed` for a preview).
+`train_pipeline.py build` always keeps reviewed train frames and drops rejected ones.
+
+## Notes
+
+- Some cameras watch the same road (≈21 camera pairs within 100 m). Review each frame on its own;
+  double counting between cameras is handled later when counts are aggregated per road and direction.
+- Re-running `prelabel.py` never overwrites a reviewed frame.

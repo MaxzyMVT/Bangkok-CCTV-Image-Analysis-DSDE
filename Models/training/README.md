@@ -17,7 +17,8 @@ Stages can also run on their own: `build`, `train`, `eval`. See `--help` for all
 * Samples `--per-camera 12` frames per camera (≈1,200 total; Charlie's target was 500–1,500), spread over the 5 time periods and different days.
 * **No test leakage:** skips all 1,000 test candidates *and* every frame from the same camera within ±20 min of one (`--buffer-min`).
 * Labels:
-  * frames found in `--labeled-dirs <dir> ...` (folders with `labels/<stem>.txt`) use those human-checked labels;
+  * frames reviewed in the review tool (`DataEngineering/reviews/train/`, see `DataEngineering/labeling/README.md`)
+    use the human labels and are always kept, even if re-sampling would skip them; rejected frames are dropped;
   * everything else is **pseudo-labeled** by a large teacher model (`yolo11x.pt`, conf 0.35). The small student then learns Bangkok-camera specifics from the big model.
 * Split by **day**: `2026-08-31` = val (`--val-dates`), the rest = train. Frames from the same day/hour look alike, so a per-image random split would overstate val scores.
 * Output: `DataEngineering/train_set/` (`images/`, `labels/`, `dataset.yaml` are git-ignored; `train_manifest.csv` is committed).
@@ -45,6 +46,12 @@ Scores the pretrained `yolov8n.pt` (the App's previous model, 4 vehicle classes 
 
 * `DataEngineering/test_set/` once `merge_test_set.py` has run (hand-verified);
 * otherwise the val split (pseudo-labels, so only a sanity check).
+
+Two kinds of numbers per model:
+
+* **mAP / precision / recall** — how well the boxes match;
+* **count MAE** — average |model count − true count| per frame, per class and total (conf 0.25).
+  This is the number that matters for the traffic analysis.
 
 Report: `runs/eval/report_<split>_<date>.json`.
 
