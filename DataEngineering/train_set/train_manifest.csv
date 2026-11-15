@@ -1,0 +1,1201 @@
+﻿stem,image_id,camera_id,date,time_period,split,label_source,n_boxes
+cam0011_img00255,255,11,2026-08-28,Early Morning,train,pseudo,11
+cam0011_img00436,436,11,2026-08-30,Early Morning,train,pseudo,3
+cam0011_img00010,10,11,2026-08-25,Morning Rush,train,pseudo,15
+cam0011_img00536,536,11,2026-08-31,Morning Rush,val,pseudo,13
+cam0011_img00133,133,11,2026-08-26,Midday,train,pseudo,11
+cam0011_img00300,300,11,2026-08-28,Midday,train,pseudo,8
+cam0011_img00463,463,11,2026-08-30,Midday,train,pseudo,6
+cam0011_img00161,161,11,2026-08-26,Evening Rush,train,pseudo,13
+cam0011_img00414,414,11,2026-08-29,Evening Rush,train,pseudo,14
+cam0011_img00596,596,11,2026-08-31,Evening Rush,val,pseudo,12
+cam0011_img00084,84,11,2026-08-25,Late Evening,train,pseudo,4
+cam0011_img00251,251,11,2026-08-27,Late Evening,train,pseudo,6
+cam0018_img00705,705,18,2026-08-26,Early Morning,train,pseudo,1
+cam0018_img01049,1049,18,2026-08-30,Early Morning,train,pseudo,2
+cam0018_img00625,625,18,2026-08-25,Morning Rush,train,pseudo,6
+cam0018_img00968,968,18,2026-08-29,Morning Rush,train,pseudo,11
+cam0018_img00642,642,18,2026-08-25,Midday,train,pseudo,11
+cam0018_img00834,834,18,2026-08-27,Midday,train,pseudo,6
+cam0018_img01090,1090,18,2026-08-30,Midday,train,pseudo,4
+cam0018_img00772,772,18,2026-08-26,Evening Rush,train,pseudo,11
+cam0018_img00943,943,18,2026-08-28,Evening Rush,train,pseudo,4
+cam0018_img01125,1125,18,2026-08-30,Evening Rush,train,pseudo,0
+cam0018_img00790,790,18,2026-08-26,Late Evening,train,pseudo,3
+cam0018_img01132,1132,18,2026-08-30,Late Evening,train,pseudo,2
+cam0026_img01569,1569,26,2026-08-29,Early Morning,train,pseudo,5
+cam0026_img01662,1662,26,2026-08-30,Early Morning,train,pseudo,5
+cam0026_img01326,1326,26,2026-08-26,Morning Rush,train,pseudo,0
+cam0026_img01754,1754,26,2026-08-31,Morning Rush,val,pseudo,8
+cam0026_img01355,1355,26,2026-08-26,Midday,train,pseudo,12
+cam0026_img01427,1427,26,2026-08-27,Midday,train,pseudo,10
+cam0026_img01714,1714,26,2026-08-30,Midday,train,pseudo,9
+cam0026_img01297,1297,26,2026-08-25,Evening Rush,train,pseudo,3
+cam0026_img01385,1385,26,2026-08-26,Evening Rush,train,pseudo,12
+cam0026_img01808,1808,26,2026-08-31,Evening Rush,val,pseudo,4
+cam0026_img01399,1399,26,2026-08-26,Late Evening,train,pseudo,5
+cam0026_img01836,1836,26,2026-08-31,Late Evening,val,pseudo,0
+cam0032_img02271,2271,32,2026-08-30,Early Morning,train,pseudo,6
+cam0032_img02362,2362,32,2026-08-31,Early Morning,val,pseudo,2
+cam0032_img02097,2097,32,2026-08-28,Morning Rush,train,pseudo,7
+cam0032_img02188,2188,32,2026-08-29,Morning Rush,train,pseudo,3
+cam0032_img02047,2047,32,2026-08-27,Midday,train,pseudo,8
+cam0032_img02121,2121,32,2026-08-28,Midday,train,pseudo,10
+cam0032_img02204,2204,32,2026-08-29,Midday,train,pseudo,6
+cam0032_img02082,2082,32,2026-08-27,Evening Rush,train,pseudo,10
+cam0032_img02165,2165,32,2026-08-28,Evening Rush,train,pseudo,6
+cam0032_img02336,2336,32,2026-08-30,Evening Rush,train,pseudo,9
+cam0032_img02016,2016,32,2026-08-26,Late Evening,train,pseudo,6
+cam0032_img02265,2265,32,2026-08-29,Late Evening,train,pseudo,4
+cam0036_img02791,2791,36,2026-08-29,Early Morning,train,pseudo,2
+cam0036_img02880,2880,36,2026-08-30,Early Morning,train,pseudo,2
+cam0036_img02630,2630,36,2026-08-27,Morning Rush,train,pseudo,10
+cam0036_img02985,2985,36,2026-08-31,Morning Rush,val,pseudo,11
+cam0036_img02484,2484,36,2026-08-25,Midday,train,pseudo,11
+cam0036_img02816,2816,36,2026-08-29,Midday,train,pseudo,12
+cam0036_img02911,2911,36,2026-08-30,Midday,train,pseudo,8
+cam0036_img02601,2601,36,2026-08-26,Evening Rush,train,pseudo,9
+cam0036_img02780,2780,36,2026-08-28,Evening Rush,train,pseudo,8
+cam0036_img02937,2937,36,2026-08-30,Evening Rush,train,pseudo,5
+cam0036_img02537,2537,36,2026-08-25,Late Evening,train,pseudo,2
+cam0036_img02626,2626,36,2026-08-26,Late Evening,train,pseudo,1
+cam0068_img03405,3405,68,2026-08-29,Early Morning,train,pseudo,7
+cam0068_img03583,3583,68,2026-08-31,Early Morning,val,pseudo,7
+cam0068_img03072,3072,68,2026-08-25,Morning Rush,train,pseudo,12
+cam0068_img03508,3508,68,2026-08-30,Morning Rush,train,pseudo,7
+cam0068_img03104,3104,68,2026-08-25,Midday,train,pseudo,15
+cam0068_img03250,3250,68,2026-08-27,Midday,train,pseudo,5
+cam0068_img03361,3361,68,2026-08-28,Midday,train,pseudo,12
+cam0068_img03390,3390,68,2026-08-28,Evening Rush,train,pseudo,8
+cam0068_img03558,3558,68,2026-08-30,Evening Rush,train,pseudo,12
+cam0068_img03656,3656,68,2026-08-31,Evening Rush,val,pseudo,5
+cam0068_img03232,3232,68,2026-08-26,Late Evening,train,pseudo,7
+cam0068_img03310,3310,68,2026-08-27,Late Evening,train,pseudo,11
+cam0070_img03930,3930,70,2026-08-28,Early Morning,train,pseudo,8
+cam0070_img04110,4110,70,2026-08-30,Early Morning,train,pseudo,4
+cam0070_img03692,3692,70,2026-08-25,Morning Rush,train,pseudo,4
+cam0070_img04202,4202,70,2026-08-31,Morning Rush,val,pseudo,12
+cam0070_img03784,3784,70,2026-08-26,Midday,train,pseudo,3
+cam0070_img04047,4047,70,2026-08-29,Midday,train,pseudo,3
+cam0070_img04138,4138,70,2026-08-30,Midday,train,pseudo,6
+cam0070_img03752,3752,70,2026-08-25,Evening Rush,train,pseudo,7
+cam0070_img03820,3820,70,2026-08-26,Evening Rush,train,pseudo,4
+cam0070_img04076,4076,70,2026-08-29,Evening Rush,train,pseudo,4
+cam0070_img03923,3923,70,2026-08-27,Late Evening,train,pseudo,3
+cam0070_img04014,4014,70,2026-08-28,Late Evening,train,pseudo,3
+cam0075_img04634,4634,75,2026-08-29,Early Morning,train,pseudo,10
+cam0075_img04809,4809,75,2026-08-31,Early Morning,val,pseudo,4
+cam0075_img04651,4651,75,2026-08-29,Morning Rush,train,pseudo,7
+cam0075_img04739,4739,75,2026-08-30,Morning Rush,train,pseudo,9
+cam0075_img04401,4401,75,2026-08-26,Midday,train,pseudo,9
+cam0075_img04564,4564,75,2026-08-28,Midday,train,pseudo,9
+cam0075_img04653,4653,75,2026-08-29,Midday,train,pseudo,10
+cam0075_img04367,4367,75,2026-08-25,Evening Rush,train,pseudo,8
+cam0075_img04621,4621,75,2026-08-28,Evening Rush,train,pseudo,12
+cam0075_img04884,4884,75,2026-08-31,Evening Rush,val,pseudo,12
+cam0075_img04372,4372,75,2026-08-25,Late Evening,train,pseudo,8
+cam0075_img04533,4533,75,2026-08-27,Late Evening,train,pseudo,10
+cam0082_img04991,4991,82,2026-08-26,Early Morning,train,pseudo,2
+cam0082_img05425,5425,82,2026-08-31,Early Morning,val,pseudo,3
+cam0082_img04994,4994,82,2026-08-26,Morning Rush,train,pseudo,1
+cam0082_img05256,5256,82,2026-08-29,Morning Rush,train,pseudo,3
+cam0082_img04957,4957,82,2026-08-25,Midday,train,pseudo,8
+cam0082_img05189,5189,82,2026-08-28,Midday,train,pseudo,5
+cam0082_img05379,5379,82,2026-08-30,Midday,train,pseudo,11
+cam0082_img05139,5139,82,2026-08-27,Evening Rush,train,pseudo,4
+cam0082_img05311,5311,82,2026-08-29,Evening Rush,train,pseudo,11
+cam0082_img05395,5395,82,2026-08-30,Evening Rush,train,pseudo,5
+cam0082_img05078,5078,82,2026-08-26,Late Evening,train,pseudo,4
+cam0082_img05329,5329,82,2026-08-29,Late Evening,train,pseudo,5
+cam0088_img05609,5609,88,2026-08-26,Early Morning,train,pseudo,9
+cam0088_img06032,6032,88,2026-08-31,Early Morning,val,pseudo,3
+cam0088_img05877,5877,88,2026-08-29,Morning Rush,train,pseudo,5
+cam0088_img05959,5959,88,2026-08-30,Morning Rush,train,pseudo,11
+cam0088_img05656,5656,88,2026-08-26,Midday,train,pseudo,4
+cam0088_img05714,5714,88,2026-08-27,Midday,train,pseudo,7
+cam0088_img05972,5972,88,2026-08-30,Midday,train,pseudo,5
+cam0088_img05678,5678,88,2026-08-26,Evening Rush,train,pseudo,8
+cam0088_img05754,5754,88,2026-08-27,Evening Rush,train,pseudo,5
+cam0088_img05933,5933,88,2026-08-29,Evening Rush,train,pseudo,0
+cam0088_img05760,5760,88,2026-08-27,Late Evening,train,pseudo,0
+cam0088_img05942,5942,88,2026-08-29,Late Evening,train,pseudo,3
+cam0112_img06376,6376,112,2026-08-28,Early Morning,train,pseudo,16
+cam0112_img06647,6647,112,2026-08-31,Early Morning,val,pseudo,10
+cam0112_img06223,6223,112,2026-08-26,Morning Rush,train,pseudo,0
+cam0112_img06483,6483,112,2026-08-29,Morning Rush,train,pseudo,12
+cam0112_img06495,6495,112,2026-08-29,Midday,train,pseudo,17
+cam0112_img06592,6592,112,2026-08-30,Midday,train,pseudo,20
+cam0112_img06700,6700,112,2026-08-31,Midday,val,pseudo,15
+cam0112_img06194,6194,112,2026-08-25,Evening Rush,train,pseudo,12
+cam0112_img06620,6620,112,2026-08-30,Evening Rush,train,pseudo,15
+cam0112_img06725,6725,112,2026-08-31,Evening Rush,val,pseudo,9
+cam0112_img06212,6212,112,2026-08-25,Late Evening,train,pseudo,11
+cam0112_img06300,6300,112,2026-08-26,Late Evening,train,pseudo,13
+cam0118_img06996,6996,118,2026-08-28,Early Morning,train,pseudo,4
+cam0118_img07087,7087,118,2026-08-29,Early Morning,train,pseudo,8
+cam0118_img07097,7097,118,2026-08-29,Morning Rush,train,pseudo,10
+cam0118_img07189,7189,118,2026-08-30,Morning Rush,train,pseudo,4
+cam0118_img06855,6855,118,2026-08-26,Midday,train,pseudo,10
+cam0118_img06939,6939,118,2026-08-27,Midday,train,pseudo,6
+cam0118_img07114,7114,118,2026-08-29,Midday,train,pseudo,11
+cam0118_img06898,6898,118,2026-08-26,Evening Rush,train,pseudo,6
+cam0118_img07158,7158,118,2026-08-29,Evening Rush,train,pseudo,4
+cam0118_img07234,7234,118,2026-08-30,Evening Rush,train,pseudo,5
+cam0118_img06916,6916,118,2026-08-26,Late Evening,train,pseudo,4
+cam0118_img07260,7260,118,2026-08-30,Late Evening,train,pseudo,1
+cam0119_img07442,7442,119,2026-08-26,Early Morning,train,pseudo,6
+cam0119_img07693,7693,119,2026-08-29,Early Morning,train,pseudo,3
+cam0119_img07356,7356,119,2026-08-25,Morning Rush,train,pseudo,0
+cam0119_img07536,7536,119,2026-08-27,Morning Rush,train,pseudo,8
+cam0119_img07657,7657,119,2026-08-28,Midday,train,pseudo,7
+cam0119_img07722,7722,119,2026-08-29,Midday,train,pseudo,9
+cam0119_img07916,7916,119,2026-08-31,Midday,val,pseudo,10
+cam0119_img07411,7411,119,2026-08-25,Evening Rush,train,pseudo,7
+cam0119_img07520,7520,119,2026-08-26,Evening Rush,train,pseudo,7
+cam0119_img07755,7755,119,2026-08-29,Evening Rush,train,pseudo,10
+cam0119_img07689,7689,119,2026-08-28,Late Evening,train,pseudo,6
+cam0119_img07867,7867,119,2026-08-30,Late Evening,train,pseudo,5
+cam0120_img08395,8395,120,2026-08-30,Early Morning,train,pseudo,3
+cam0120_img08484,8484,120,2026-08-31,Early Morning,val,pseudo,9
+cam0120_img08140,8140,120,2026-08-27,Morning Rush,train,pseudo,6
+cam0120_img08503,8503,120,2026-08-31,Morning Rush,val,pseudo,8
+cam0120_img08182,8182,120,2026-08-27,Midday,train,pseudo,7
+cam0120_img08243,8243,120,2026-08-28,Midday,train,pseudo,6
+cam0120_img08436,8436,120,2026-08-30,Midday,train,pseudo,9
+cam0120_img08039,8039,120,2026-08-25,Evening Rush,train,pseudo,4
+cam0120_img08381,8381,120,2026-08-29,Evening Rush,train,pseudo,4
+cam0120_img08543,8543,120,2026-08-31,Evening Rush,val,pseudo,8
+cam0120_img08136,8136,120,2026-08-26,Late Evening,train,pseudo,8
+cam0120_img08298,8298,120,2026-08-28,Late Evening,train,pseudo,6
+cam0123_img08915,8915,123,2026-08-29,Early Morning,train,pseudo,9
+cam0123_img09095,9095,123,2026-08-31,Early Morning,val,pseudo,0
+cam0123_img08577,8577,123,2026-08-25,Morning Rush,train,pseudo,0
+cam0123_img09011,9011,123,2026-08-30,Morning Rush,train,pseudo,8
+cam0123_img08950,8950,123,2026-08-29,Midday,train,pseudo,10
+cam0123_img09060,9060,123,2026-08-30,Midday,train,pseudo,6
+cam0123_img09148,9148,123,2026-08-31,Midday,val,pseudo,9
+cam0123_img08896,8896,123,2026-08-28,Evening Rush,train,pseudo,4
+cam0123_img09065,9065,123,2026-08-30,Evening Rush,train,pseudo,10
+cam0123_img09154,9154,123,2026-08-31,Evening Rush,val,pseudo,8
+cam0123_img09002,9002,123,2026-08-29,Late Evening,train,pseudo,4
+cam0123_img09089,9089,123,2026-08-30,Late Evening,train,pseudo,3
+cam0124_img09440,9440,124,2026-08-28,Early Morning,train,pseudo,12
+cam0124_img09620,9620,124,2026-08-30,Early Morning,train,pseudo,11
+cam0124_img09453,9453,124,2026-08-28,Morning Rush,train,pseudo,6
+cam0124_img09632,9632,124,2026-08-30,Morning Rush,train,pseudo,14
+cam0124_img09460,9460,124,2026-08-28,Midday,train,pseudo,14
+cam0124_img09563,9563,124,2026-08-29,Midday,train,pseudo,10
+cam0124_img09652,9652,124,2026-08-30,Midday,train,pseudo,12
+cam0124_img09352,9352,124,2026-08-26,Evening Rush,train,pseudo,9
+cam0124_img09405,9405,124,2026-08-27,Evening Rush,train,pseudo,9
+cam0124_img09517,9517,124,2026-08-28,Evening Rush,train,pseudo,6
+cam0124_img09430,9430,124,2026-08-27,Late Evening,train,pseudo,8
+cam0124_img09614,9614,124,2026-08-29,Late Evening,train,pseudo,5
+cam0125_img10049,10049,125,2026-08-28,Early Morning,train,pseudo,1
+cam0125_img10229,10229,125,2026-08-30,Early Morning,train,pseudo,3
+cam0125_img09810,9810,125,2026-08-25,Morning Rush,train,pseudo,11
+cam0125_img10056,10056,125,2026-08-28,Morning Rush,train,pseudo,9
+cam0125_img09837,9837,125,2026-08-25,Midday,train,pseudo,10
+cam0125_img10013,10013,125,2026-08-27,Midday,train,pseudo,7
+cam0125_img10265,10265,125,2026-08-30,Midday,train,pseudo,11
+cam0125_img09873,9873,125,2026-08-25,Evening Rush,train,pseudo,10
+cam0125_img10115,10115,125,2026-08-28,Evening Rush,train,pseudo,11
+cam0125_img10286,10286,125,2026-08-30,Evening Rush,train,pseudo,11
+cam0125_img10046,10046,125,2026-08-27,Late Evening,train,pseudo,4
+cam0125_img10223,10223,125,2026-08-29,Late Evening,train,pseudo,6
+cam0126_img10407,10407,126,2026-08-25,Early Morning,train,pseudo,3
+cam0126_img10664,10664,126,2026-08-28,Early Morning,train,pseudo,7
+cam0126_img10769,10769,126,2026-08-29,Morning Rush,train,pseudo,6
+cam0126_img10936,10936,126,2026-08-31,Morning Rush,val,pseudo,8
+cam0126_img10465,10465,126,2026-08-25,Midday,train,pseudo,6
+cam0126_img10779,10779,126,2026-08-29,Midday,train,pseudo,6
+cam0126_img10984,10984,126,2026-08-31,Midday,val,pseudo,5
+cam0126_img10732,10732,126,2026-08-28,Evening Rush,train,pseudo,7
+cam0126_img10815,10815,126,2026-08-29,Evening Rush,train,pseudo,1
+cam0126_img11004,11004,126,2026-08-31,Evening Rush,val,pseudo,2
+cam0126_img10656,10656,126,2026-08-27,Late Evening,train,pseudo,0
+cam0126_img10838,10838,126,2026-08-29,Late Evening,train,pseudo,0
+cam0127_img11021,11021,127,2026-08-25,Early Morning,train,pseudo,3
+cam0127_img11547,11547,127,2026-08-31,Early Morning,val,pseudo,0
+cam0127_img11124,11124,127,2026-08-26,Morning Rush,train,pseudo,1
+cam0127_img11553,11553,127,2026-08-31,Morning Rush,val,pseudo,5
+cam0127_img11048,11048,127,2026-08-25,Midday,train,pseudo,1
+cam0127_img11314,11314,127,2026-08-28,Midday,train,pseudo,1
+cam0127_img11418,11418,127,2026-08-29,Midday,train,pseudo,0
+cam0127_img11170,11170,127,2026-08-26,Evening Rush,train,pseudo,0
+cam0127_img11513,11513,127,2026-08-30,Evening Rush,train,pseudo,0
+cam0127_img11625,11625,127,2026-08-31,Evening Rush,val,pseudo,4
+cam0127_img11108,11108,127,2026-08-25,Late Evening,train,pseudo,0
+cam0127_img11633,11633,127,2026-08-31,Late Evening,val,pseudo,0
+cam0135_img11634,11634,135,2026-08-25,Early Morning,train,pseudo,2
+cam0135_img11980,11980,135,2026-08-29,Early Morning,train,pseudo,6
+cam0135_img11734,11734,135,2026-08-26,Morning Rush,train,pseudo,11
+cam0135_img11895,11895,135,2026-08-28,Morning Rush,train,pseudo,9
+cam0135_img11663,11663,135,2026-08-25,Midday,train,pseudo,4
+cam0135_img12026,12026,135,2026-08-29,Midday,train,pseudo,6
+cam0135_img12215,12215,135,2026-08-31,Midday,val,pseudo,6
+cam0135_img11708,11708,135,2026-08-25,Evening Rush,train,pseudo,5
+cam0135_img11803,11803,135,2026-08-26,Evening Rush,train,pseudo,5
+cam0135_img12235,12235,135,2026-08-31,Evening Rush,val,pseudo,4
+cam0135_img11884,11884,135,2026-08-27,Late Evening,train,pseudo,2
+cam0135_img11975,11975,135,2026-08-28,Late Evening,train,pseudo,3
+cam0136_img12249,12249,136,2026-08-25,Early Morning,train,pseudo,5
+cam0136_img12593,12593,136,2026-08-29,Early Morning,train,pseudo,2
+cam0136_img12260,12260,136,2026-08-25,Morning Rush,train,pseudo,7
+cam0136_img12700,12700,136,2026-08-30,Morning Rush,train,pseudo,7
+cam0136_img12463,12463,136,2026-08-27,Midday,train,pseudo,7
+cam0136_img12636,12636,136,2026-08-29,Midday,train,pseudo,7
+cam0136_img12795,12795,136,2026-08-31,Midday,val,pseudo,6
+cam0136_img12416,12416,136,2026-08-26,Evening Rush,train,pseudo,4
+cam0136_img12469,12469,136,2026-08-27,Evening Rush,train,pseudo,6
+cam0136_img12846,12846,136,2026-08-31,Evening Rush,val,pseudo,2
+cam0136_img12589,12589,136,2026-08-28,Late Evening,train,pseudo,3
+cam0136_img12854,12854,136,2026-08-31,Late Evening,val,pseudo,6
+cam0137_img13206,13206,137,2026-08-29,Early Morning,train,pseudo,2
+cam0137_img13383,13383,137,2026-08-31,Early Morning,val,pseudo,0
+cam0137_img12878,12878,137,2026-08-25,Morning Rush,train,pseudo,4
+cam0137_img13392,13392,137,2026-08-31,Morning Rush,val,pseudo,6
+cam0137_img12904,12904,137,2026-08-25,Midday,train,pseudo,8
+cam0137_img13237,13237,137,2026-08-29,Midday,train,pseudo,10
+cam0137_img13438,13438,137,2026-08-31,Midday,val,pseudo,5
+cam0137_img12932,12932,137,2026-08-25,Evening Rush,train,pseudo,8
+cam0137_img13013,13013,137,2026-08-26,Evening Rush,train,pseudo,11
+cam0137_img13088,13088,137,2026-08-27,Evening Rush,train,pseudo,10
+cam0137_img13036,13036,137,2026-08-26,Late Evening,train,pseudo,0
+cam0137_img13106,13106,137,2026-08-27,Late Evening,train,pseudo,3
+cam0139_img13818,13818,139,2026-08-29,Early Morning,train,pseudo,1
+cam0139_img13995,13995,139,2026-08-31,Early Morning,val,pseudo,0
+cam0139_img13731,13731,139,2026-08-28,Morning Rush,train,pseudo,10
+cam0139_img13924,13924,139,2026-08-30,Morning Rush,train,pseudo,7
+cam0139_img13527,13527,139,2026-08-25,Midday,train,pseudo,9
+cam0139_img13601,13601,139,2026-08-26,Midday,train,pseudo,10
+cam0139_img13692,13692,139,2026-08-27,Midday,train,pseudo,6
+cam0139_img13784,13784,139,2026-08-28,Evening Rush,train,pseudo,14
+cam0139_img13885,13885,139,2026-08-29,Evening Rush,train,pseudo,6
+cam0139_img14063,14063,139,2026-08-31,Evening Rush,val,pseudo,14
+cam0139_img13808,13808,139,2026-08-28,Late Evening,train,pseudo,3
+cam0139_img14084,14084,139,2026-08-31,Late Evening,val,pseudo,0
+cam0141_img14085,14085,141,2026-08-25,Early Morning,train,pseudo,1
+cam0141_img14341,14341,141,2026-08-28,Early Morning,train,pseudo,3
+cam0141_img14188,14188,141,2026-08-26,Morning Rush,train,pseudo,6
+cam0141_img14542,14542,141,2026-08-30,Morning Rush,train,pseudo,5
+cam0141_img14210,14210,141,2026-08-26,Midday,train,pseudo,3
+cam0141_img14389,14389,141,2026-08-28,Midday,train,pseudo,7
+cam0141_img14638,14638,141,2026-08-31,Midday,val,pseudo,5
+cam0141_img14152,14152,141,2026-08-25,Evening Rush,train,pseudo,12
+cam0141_img14414,14414,141,2026-08-28,Evening Rush,train,pseudo,10
+cam0141_img14590,14590,141,2026-08-30,Evening Rush,train,pseudo,1
+cam0141_img14332,14332,141,2026-08-27,Late Evening,train,pseudo,4
+cam0141_img14425,14425,141,2026-08-28,Late Evening,train,pseudo,1
+cam0150_img14881,14881,150,2026-08-27,Early Morning,train,pseudo,11
+cam0150_img15062,15062,150,2026-08-29,Early Morning,train,pseudo,4
+cam0150_img14887,14887,150,2026-08-27,Morning Rush,train,pseudo,11
+cam0150_img14987,14987,150,2026-08-28,Morning Rush,train,pseudo,15
+cam0150_img14825,14825,150,2026-08-26,Midday,train,pseudo,11
+cam0150_img14917,14917,150,2026-08-27,Midday,train,pseudo,11
+cam0150_img15173,15173,150,2026-08-30,Midday,train,pseudo,3
+cam0150_img14773,14773,150,2026-08-25,Evening Rush,train,pseudo,8
+cam0150_img15135,15135,150,2026-08-29,Evening Rush,train,pseudo,6
+cam0150_img15302,15302,150,2026-08-31,Evening Rush,val,pseudo,15
+cam0150_img14787,14787,150,2026-08-25,Late Evening,train,pseudo,0
+cam0150_img15058,15058,150,2026-08-28,Late Evening,train,pseudo,2
+cam0158_img15418,15418,158,2026-08-26,Early Morning,train,pseudo,7
+cam0158_img15675,15675,158,2026-08-29,Early Morning,train,pseudo,1
+cam0158_img15509,15509,158,2026-08-27,Morning Rush,train,pseudo,12
+cam0158_img15693,15693,158,2026-08-29,Morning Rush,train,pseudo,1
+cam0158_img15456,15456,158,2026-08-26,Midday,train,pseudo,10
+cam0158_img15536,15536,158,2026-08-27,Midday,train,pseudo,2
+cam0158_img15791,15791,158,2026-08-30,Midday,train,pseudo,2
+cam0158_img15398,15398,158,2026-08-25,Evening Rush,train,pseudo,6
+cam0158_img15479,15479,158,2026-08-26,Evening Rush,train,pseudo,5
+cam0158_img15656,15656,158,2026-08-28,Evening Rush,train,pseudo,3
+cam0158_img15414,15414,158,2026-08-25,Late Evening,train,pseudo,2
+cam0158_img15754,15754,158,2026-08-29,Late Evening,train,pseudo,3
+cam0169_img16280,16280,169,2026-08-29,Early Morning,train,pseudo,0
+cam0169_img16371,16371,169,2026-08-30,Early Morning,train,pseudo,4
+cam0169_img16120,16120,169,2026-08-27,Morning Rush,train,pseudo,5
+cam0169_img16389,16389,169,2026-08-30,Morning Rush,train,pseudo,5
+cam0169_img15970,15970,169,2026-08-25,Midday,train,pseudo,4
+cam0169_img16149,16149,169,2026-08-27,Midday,train,pseudo,7
+cam0169_img16245,16245,169,2026-08-28,Midday,train,pseudo,16
+cam0169_img16094,16094,169,2026-08-26,Evening Rush,train,pseudo,8
+cam0169_img16249,16249,169,2026-08-28,Evening Rush,train,pseudo,13
+cam0169_img16437,16437,169,2026-08-30,Evening Rush,train,pseudo,13
+cam0169_img16026,16026,169,2026-08-25,Late Evening,train,pseudo,3
+cam0169_img16543,16543,169,2026-08-31,Late Evening,val,pseudo,5
+cam0170_img16639,16639,170,2026-08-26,Early Morning,train,pseudo,0
+cam0170_img16897,16897,170,2026-08-29,Early Morning,train,pseudo,0
+cam0170_img16644,16644,170,2026-08-26,Morning Rush,train,pseudo,0
+cam0170_img16908,16908,170,2026-08-29,Morning Rush,train,pseudo,2
+cam0170_img16593,16593,170,2026-08-25,Midday,train,pseudo,1
+cam0170_img16842,16842,170,2026-08-28,Midday,train,pseudo,0
+cam0170_img16925,16925,170,2026-08-29,Midday,train,pseudo,1
+cam0170_img16709,16709,170,2026-08-26,Evening Rush,train,pseudo,0
+cam0170_img16862,16862,170,2026-08-28,Evening Rush,train,pseudo,2
+cam0170_img16966,16966,170,2026-08-29,Evening Rush,train,pseudo,1
+cam0170_img16801,16801,170,2026-08-27,Late Evening,train,pseudo,3
+cam0170_img16891,16891,170,2026-08-28,Late Evening,train,pseudo,0
+cam0176_img17505,17505,176,2026-08-29,Early Morning,train,pseudo,1
+cam0176_img17684,17684,176,2026-08-31,Early Morning,val,pseudo,2
+cam0176_img17180,17180,176,2026-08-25,Morning Rush,train,pseudo,0
+cam0176_img17611,17611,176,2026-08-30,Morning Rush,train,pseudo,1
+cam0176_img17281,17281,176,2026-08-26,Midday,train,pseudo,7
+cam0176_img17554,17554,176,2026-08-29,Midday,train,pseudo,3
+cam0176_img17620,17620,176,2026-08-30,Midday,train,pseudo,4
+cam0176_img17391,17391,176,2026-08-27,Evening Rush,train,pseudo,5
+cam0176_img17574,17574,176,2026-08-29,Evening Rush,train,pseudo,4
+cam0176_img17746,17746,176,2026-08-31,Evening Rush,val,pseudo,1
+cam0176_img17408,17408,176,2026-08-27,Late Evening,train,pseudo,6
+cam0176_img17592,17592,176,2026-08-29,Late Evening,train,pseudo,2
+cam0177_img17869,17869,177,2026-08-26,Early Morning,train,pseudo,6
+cam0177_img18303,18303,177,2026-08-31,Early Morning,val,pseudo,7
+cam0177_img17885,17885,177,2026-08-26,Morning Rush,train,pseudo,6
+cam0177_img18215,18215,177,2026-08-30,Morning Rush,train,pseudo,0
+cam0177_img17914,17914,177,2026-08-26,Midday,train,pseudo,5
+cam0177_img18158,18158,177,2026-08-29,Midday,train,pseudo,4
+cam0177_img18262,18262,177,2026-08-30,Midday,train,pseudo,3
+cam0177_img17846,17846,177,2026-08-25,Evening Rush,train,pseudo,7
+cam0177_img18179,18179,177,2026-08-29,Evening Rush,train,pseudo,6
+cam0177_img18368,18368,177,2026-08-31,Evening Rush,val,pseudo,7
+cam0177_img17948,17948,177,2026-08-26,Late Evening,train,pseudo,5
+cam0177_img18298,18298,177,2026-08-30,Late Evening,train,pseudo,7
+cam0178_img18640,18640,178,2026-08-28,Early Morning,train,pseudo,6
+cam0178_img18824,18824,178,2026-08-30,Early Morning,train,pseudo,0
+cam0178_img18488,18488,178,2026-08-26,Morning Rush,train,pseudo,8
+cam0178_img18750,18750,178,2026-08-29,Morning Rush,train,pseudo,3
+cam0178_img18425,18425,178,2026-08-25,Midday,train,pseudo,5
+cam0178_img18521,18521,178,2026-08-26,Midday,train,pseudo,10
+cam0178_img18675,18675,178,2026-08-28,Midday,train,pseudo,2
+cam0178_img18465,18465,178,2026-08-25,Evening Rush,train,pseudo,4
+cam0178_img18700,18700,178,2026-08-28,Evening Rush,train,pseudo,6
+cam0178_img18889,18889,178,2026-08-30,Evening Rush,train,pseudo,2
+cam0178_img18639,18639,178,2026-08-27,Late Evening,train,pseudo,3
+cam0178_img18905,18905,178,2026-08-30,Late Evening,train,pseudo,5
+cam0179_img19004,19004,179,2026-08-25,Early Morning,train,pseudo,1
+cam0179_img19437,19437,179,2026-08-30,Early Morning,train,pseudo,1
+cam0179_img19186,19186,179,2026-08-27,Morning Rush,train,pseudo,5
+cam0179_img19262,19262,179,2026-08-28,Morning Rush,train,pseudo,4
+cam0179_img19035,19035,179,2026-08-25,Midday,train,pseudo,10
+cam0179_img19387,19387,179,2026-08-29,Midday,train,pseudo,4
+cam0179_img19585,19585,179,2026-08-31,Midday,val,pseudo,1
+cam0179_img19244,19244,179,2026-08-27,Evening Rush,train,pseudo,2
+cam0179_img19332,19332,179,2026-08-28,Evening Rush,train,pseudo,3
+cam0179_img19607,19607,179,2026-08-31,Evening Rush,val,pseudo,0
+cam0179_img19086,19086,179,2026-08-25,Late Evening,train,pseudo,2
+cam0179_img19522,19522,179,2026-08-30,Late Evening,train,pseudo,2
+cam0186_img19618,19618,186,2026-08-25,Early Morning,train,pseudo,7
+cam0186_img19962,19962,186,2026-08-29,Early Morning,train,pseudo,1
+cam0186_img19889,19889,186,2026-08-28,Morning Rush,train,pseudo,3
+cam0186_img19974,19974,186,2026-08-29,Morning Rush,train,pseudo,2
+cam0186_img19833,19833,186,2026-08-27,Midday,train,pseudo,10
+cam0186_img20080,20080,186,2026-08-30,Midday,train,pseudo,7
+cam0186_img20176,20176,186,2026-08-31,Midday,val,pseudo,8
+cam0186_img19781,19781,186,2026-08-26,Evening Rush,train,pseudo,0
+cam0186_img20023,20023,186,2026-08-29,Evening Rush,train,pseudo,8
+cam0186_img20204,20204,186,2026-08-31,Evening Rush,val,pseudo,8
+cam0186_img19866,19866,186,2026-08-27,Late Evening,train,pseudo,0
+cam0186_img20225,20225,186,2026-08-31,Late Evening,val,pseudo,0
+cam0188_img20482,20482,188,2026-08-28,Early Morning,train,pseudo,5
+cam0188_img20754,20754,188,2026-08-31,Early Morning,val,pseudo,7
+cam0188_img20234,20234,188,2026-08-25,Morning Rush,train,pseudo,10
+cam0188_img20584,20584,188,2026-08-29,Morning Rush,train,pseudo,3
+cam0188_img20366,20366,188,2026-08-26,Midday,train,pseudo,8
+cam0188_img20616,20616,188,2026-08-29,Midday,train,pseudo,3
+cam0188_img20695,20695,188,2026-08-30,Midday,train,pseudo,9
+cam0188_img20384,20384,188,2026-08-26,Evening Rush,train,pseudo,11
+cam0188_img20467,20467,188,2026-08-27,Evening Rush,train,pseudo,4
+cam0188_img20817,20817,188,2026-08-31,Evening Rush,val,pseudo,12
+cam0188_img20398,20398,188,2026-08-26,Late Evening,train,pseudo,7
+cam0188_img20742,20742,188,2026-08-30,Late Evening,train,pseudo,4
+cam0194_img20930,20930,194,2026-08-26,Early Morning,train,pseudo,5
+cam0194_img21190,21190,194,2026-08-29,Early Morning,train,pseudo,0
+cam0194_img20945,20945,194,2026-08-26,Morning Rush,train,pseudo,5
+cam0194_img21019,21019,194,2026-08-27,Morning Rush,train,pseudo,0
+cam0194_img20871,20871,194,2026-08-25,Midday,train,pseudo,3
+cam0194_img21233,21233,194,2026-08-29,Midday,train,pseudo,6
+cam0194_img21322,21322,194,2026-08-30,Midday,train,pseudo,12
+cam0194_img20992,20992,194,2026-08-26,Evening Rush,train,pseudo,8
+cam0194_img21176,21176,194,2026-08-28,Evening Rush,train,pseudo,5
+cam0194_img21349,21349,194,2026-08-30,Evening Rush,train,pseudo,2
+cam0194_img21014,21014,194,2026-08-26,Late Evening,train,pseudo,9
+cam0194_img21179,21179,194,2026-08-28,Late Evening,train,pseudo,1
+cam0196_img21546,21546,196,2026-08-26,Early Morning,train,pseudo,0
+cam0196_img21798,21798,196,2026-08-29,Early Morning,train,pseudo,0
+cam0196_img21464,21464,196,2026-08-25,Morning Rush,train,pseudo,0
+cam0196_img21729,21729,196,2026-08-28,Morning Rush,train,pseudo,0
+cam0196_img21645,21645,196,2026-08-27,Midday,train,pseudo,5
+cam0196_img21913,21913,196,2026-08-30,Midday,train,pseudo,2
+cam0196_img22016,22016,196,2026-08-31,Midday,val,pseudo,0
+cam0196_img21533,21533,196,2026-08-25,Evening Rush,train,pseudo,7
+cam0196_img21687,21687,196,2026-08-27,Evening Rush,train,pseudo,12
+cam0196_img21860,21860,196,2026-08-29,Evening Rush,train,pseudo,2
+cam0196_img21627,21627,196,2026-08-26,Late Evening,train,pseudo,1
+cam0196_img22056,22056,196,2026-08-31,Late Evening,val,pseudo,1
+cam0206_img22155,22155,206,2026-08-26,Early Morning,train,pseudo,1
+cam0206_img22586,22586,206,2026-08-31,Early Morning,val,pseudo,3
+cam0206_img22502,22502,206,2026-08-30,Morning Rush,train,pseudo,0
+cam0206_img22594,22594,206,2026-08-31,Morning Rush,val,pseudo,0
+cam0206_img22360,22360,206,2026-08-28,Midday,train,pseudo,6
+cam0206_img22521,22521,206,2026-08-30,Midday,train,pseudo,1
+cam0206_img22632,22632,206,2026-08-31,Midday,val,pseudo,0
+cam0206_img22375,22375,206,2026-08-28,Evening Rush,train,pseudo,0
+cam0206_img22568,22568,206,2026-08-30,Evening Rush,train,pseudo,0
+cam0206_img22654,22654,206,2026-08-31,Evening Rush,val,pseudo,2
+cam0206_img22148,22148,206,2026-08-25,Late Evening,train,pseudo,3
+cam0206_img22238,22238,206,2026-08-26,Late Evening,train,pseudo,0
+cam0211_img22764,22764,211,2026-08-26,Early Morning,train,pseudo,5
+cam0211_img23106,23106,211,2026-08-30,Early Morning,train,pseudo,0
+cam0211_img22778,22778,211,2026-08-26,Morning Rush,train,pseudo,8
+cam0211_img22932,22932,211,2026-08-28,Morning Rush,train,pseudo,4
+cam0211_img22729,22729,211,2026-08-25,Midday,train,pseudo,8
+cam0211_img22810,22810,211,2026-08-26,Midday,train,pseudo,7
+cam0211_img23223,23223,211,2026-08-31,Midday,val,pseudo,8
+cam0211_img22824,22824,211,2026-08-26,Evening Rush,train,pseudo,6
+cam0211_img23000,23000,211,2026-08-28,Evening Rush,train,pseudo,6
+cam0211_img23180,23180,211,2026-08-30,Evening Rush,train,pseudo,10
+cam0211_img23011,23011,211,2026-08-28,Late Evening,train,pseudo,8
+cam0211_img23192,23192,211,2026-08-30,Late Evening,train,pseudo,4
+cam0212_img23633,23633,212,2026-08-29,Early Morning,train,pseudo,3
+cam0212_img23719,23719,212,2026-08-30,Early Morning,train,pseudo,0
+cam0212_img23561,23561,212,2026-08-28,Morning Rush,train,pseudo,0
+cam0212_img23826,23826,212,2026-08-31,Morning Rush,val,pseudo,1
+cam0212_img23577,23577,212,2026-08-28,Midday,train,pseudo,1
+cam0212_img23665,23665,212,2026-08-29,Midday,train,pseudo,9
+cam0212_img23854,23854,212,2026-08-31,Midday,val,pseudo,5
+cam0212_img23365,23365,212,2026-08-25,Evening Rush,train,pseudo,1
+cam0212_img23687,23687,212,2026-08-29,Evening Rush,train,pseudo,0
+cam0212_img23880,23880,212,2026-08-31,Evening Rush,val,pseudo,7
+cam0212_img23802,23802,212,2026-08-30,Late Evening,train,pseudo,0
+cam0212_img23892,23892,212,2026-08-31,Late Evening,val,pseudo,0
+cam0215_img23988,23988,215,2026-08-26,Early Morning,train,pseudo,0
+cam0215_img24337,24337,215,2026-08-30,Early Morning,train,pseudo,2
+cam0215_img24081,24081,215,2026-08-27,Morning Rush,train,pseudo,4
+cam0215_img24259,24259,215,2026-08-29,Morning Rush,train,pseudo,7
+cam0215_img23925,23925,215,2026-08-25,Midday,train,pseudo,8
+cam0215_img24185,24185,215,2026-08-28,Midday,train,pseudo,4
+cam0215_img24387,24387,215,2026-08-30,Midday,train,pseudo,0
+cam0215_img24059,24059,215,2026-08-26,Evening Rush,train,pseudo,5
+cam0215_img24220,24220,215,2026-08-28,Evening Rush,train,pseudo,6
+cam0215_img24497,24497,215,2026-08-31,Evening Rush,val,pseudo,8
+cam0215_img23983,23983,215,2026-08-25,Late Evening,train,pseudo,3
+cam0215_img24151,24151,215,2026-08-27,Late Evening,train,pseudo,4
+cam0219_img24604,24604,219,2026-08-26,Early Morning,train,pseudo,6
+cam0219_img24858,24858,219,2026-08-29,Early Morning,train,pseudo,0
+cam0219_img24618,24618,219,2026-08-26,Morning Rush,train,pseudo,8
+cam0219_img25043,25043,219,2026-08-31,Morning Rush,val,pseudo,10
+cam0219_img24705,24705,219,2026-08-27,Midday,train,pseudo,2
+cam0219_img24906,24906,219,2026-08-29,Midday,train,pseudo,9
+cam0219_img25089,25089,219,2026-08-31,Midday,val,pseudo,5
+cam0219_img24585,24585,219,2026-08-25,Evening Rush,train,pseudo,10
+cam0219_img24739,24739,219,2026-08-27,Evening Rush,train,pseudo,8
+cam0219_img25026,25026,219,2026-08-30,Evening Rush,train,pseudo,5
+cam0219_img24849,24849,219,2026-08-28,Late Evening,train,pseudo,4
+cam0219_img25034,25034,219,2026-08-30,Late Evening,train,pseudo,0
+cam0224_img25216,25216,224,2026-08-26,Early Morning,train,pseudo,3
+cam0224_img25647,25647,224,2026-08-31,Early Morning,val,pseudo,5
+cam0224_img25233,25233,224,2026-08-26,Morning Rush,train,pseudo,8
+cam0224_img25474,25474,224,2026-08-29,Morning Rush,train,pseudo,3
+cam0224_img25159,25159,224,2026-08-25,Midday,train,pseudo,8
+cam0224_img25498,25498,224,2026-08-29,Midday,train,pseudo,8
+cam0224_img25603,25603,224,2026-08-30,Midday,train,pseudo,12
+cam0224_img25295,25295,224,2026-08-26,Evening Rush,train,pseudo,4
+cam0224_img25367,25367,224,2026-08-27,Evening Rush,train,pseudo,4
+cam0224_img25729,25729,224,2026-08-31,Evening Rush,val,pseudo,10
+cam0224_img25372,25372,224,2026-08-27,Late Evening,train,pseudo,6
+cam0224_img25551,25551,224,2026-08-29,Late Evening,train,pseudo,8
+cam0225_img25990,25990,225,2026-08-28,Early Morning,train,pseudo,2
+cam0225_img26172,26172,225,2026-08-30,Early Morning,train,pseudo,1
+cam0225_img25998,25998,225,2026-08-28,Morning Rush,train,pseudo,6
+cam0225_img26094,26094,225,2026-08-29,Morning Rush,train,pseudo,1
+cam0225_img25767,25767,225,2026-08-25,Midday,train,pseudo,4
+cam0225_img26034,26034,225,2026-08-28,Midday,train,pseudo,6
+cam0225_img26306,26306,225,2026-08-31,Midday,val,pseudo,2
+cam0225_img25798,25798,225,2026-08-25,Evening Rush,train,pseudo,0
+cam0225_img25889,25889,225,2026-08-26,Evening Rush,train,pseudo,1
+cam0225_img26248,26248,225,2026-08-30,Evening Rush,train,pseudo,0
+cam0225_img26072,26072,225,2026-08-28,Late Evening,train,pseudo,1
+cam0225_img26345,26345,225,2026-08-31,Late Evening,val,pseudo,0
+cam0228_img26348,26348,228,2026-08-25,Early Morning,train,pseudo,2
+cam0228_img26871,26871,228,2026-08-31,Early Morning,val,pseudo,2
+cam0228_img26452,26452,228,2026-08-26,Morning Rush,train,pseudo,7
+cam0228_img26708,26708,228,2026-08-29,Morning Rush,train,pseudo,5
+cam0228_img26376,26376,228,2026-08-25,Midday,train,pseudo,6
+cam0228_img26747,26747,228,2026-08-29,Midday,train,pseudo,1
+cam0228_img26905,26905,228,2026-08-31,Midday,val,pseudo,0
+cam0228_img26419,26419,228,2026-08-25,Evening Rush,train,pseudo,2
+cam0228_img26578,26578,228,2026-08-27,Evening Rush,train,pseudo,6
+cam0228_img26768,26768,228,2026-08-29,Evening Rush,train,pseudo,3
+cam0228_img26598,26598,228,2026-08-27,Late Evening,train,pseudo,3
+cam0228_img26864,26864,228,2026-08-30,Late Evening,train,pseudo,0
+cam0230_img27215,27215,230,2026-08-28,Early Morning,train,pseudo,0
+cam0230_img27393,27393,230,2026-08-30,Early Morning,train,pseudo,0
+cam0230_img27067,27067,230,2026-08-26,Morning Rush,train,pseudo,6
+cam0230_img27416,27416,230,2026-08-30,Morning Rush,train,pseudo,4
+cam0230_img26994,26994,230,2026-08-25,Midday,train,pseudo,3
+cam0230_img27426,27426,230,2026-08-30,Midday,train,pseudo,5
+cam0230_img27525,27525,230,2026-08-31,Midday,val,pseudo,7
+cam0230_img27117,27117,230,2026-08-26,Evening Rush,train,pseudo,9
+cam0230_img27186,27186,230,2026-08-27,Evening Rush,train,pseudo,10
+cam0230_img27380,27380,230,2026-08-29,Evening Rush,train,pseudo,3
+cam0230_img27478,27478,230,2026-08-30,Late Evening,train,pseudo,3
+cam0230_img27566,27566,230,2026-08-31,Late Evening,val,pseudo,2
+cam0233_img28009,28009,233,2026-08-30,Early Morning,train,pseudo,0
+cam0233_img28096,28096,233,2026-08-31,Early Morning,val,pseudo,1
+cam0233_img27589,27589,233,2026-08-25,Morning Rush,train,pseudo,2
+cam0233_img27682,27682,233,2026-08-26,Morning Rush,train,pseudo,0
+cam0233_img27705,27705,233,2026-08-26,Midday,train,pseudo,3
+cam0233_img27867,27867,233,2026-08-28,Midday,train,pseudo,4
+cam0233_img28049,28049,233,2026-08-30,Midday,train,pseudo,0
+cam0233_img27984,27984,233,2026-08-29,Evening Rush,train,pseudo,0
+cam0233_img28068,28068,233,2026-08-30,Evening Rush,train,pseudo,1
+cam0233_img28158,28158,233,2026-08-31,Evening Rush,val,pseudo,4
+cam0233_img27657,27657,233,2026-08-25,Late Evening,train,pseudo,0
+cam0233_img28093,28093,233,2026-08-30,Late Evening,train,pseudo,0
+cam0239_img28190,28190,239,2026-08-25,Early Morning,train,pseudo,3
+cam0239_img28620,28620,239,2026-08-30,Early Morning,train,pseudo,1
+cam0239_img28294,28294,239,2026-08-26,Morning Rush,train,pseudo,0
+cam0239_img28632,28632,239,2026-08-30,Morning Rush,train,pseudo,12
+cam0239_img28234,28234,239,2026-08-25,Midday,train,pseudo,6
+cam0239_img28304,28304,239,2026-08-26,Midday,train,pseudo,1
+cam0239_img28571,28571,239,2026-08-29,Midday,train,pseudo,5
+cam0239_img28339,28339,239,2026-08-26,Evening Rush,train,pseudo,8
+cam0239_img28599,28599,239,2026-08-29,Evening Rush,train,pseudo,1
+cam0239_img28686,28686,239,2026-08-30,Evening Rush,train,pseudo,3
+cam0239_img28435,28435,239,2026-08-27,Late Evening,train,pseudo,1
+cam0239_img28617,28617,239,2026-08-29,Late Evening,train,pseudo,4
+cam0250_img28802,28802,250,2026-08-25,Early Morning,train,pseudo,4
+cam0250_img29146,29146,250,2026-08-29,Early Morning,train,pseudo,1
+cam0250_img29160,29160,250,2026-08-29,Morning Rush,train,pseudo,8
+cam0250_img29250,29250,250,2026-08-30,Morning Rush,train,pseudo,7
+cam0250_img29003,29003,250,2026-08-27,Midday,train,pseudo,9
+cam0250_img29270,29270,250,2026-08-30,Midday,train,pseudo,4
+cam0250_img29367,29367,250,2026-08-31,Midday,val,pseudo,13
+cam0250_img29114,29114,250,2026-08-28,Evening Rush,train,pseudo,12
+cam0250_img29204,29204,250,2026-08-29,Evening Rush,train,pseudo,5
+cam0250_img29310,29310,250,2026-08-30,Evening Rush,train,pseudo,6
+cam0250_img29143,29143,250,2026-08-28,Late Evening,train,pseudo,8
+cam0250_img29407,29407,250,2026-08-31,Late Evening,val,pseudo,6
+cam0251_img29852,29852,251,2026-08-30,Early Morning,train,pseudo,3
+cam0251_img29939,29939,251,2026-08-31,Early Morning,val,pseudo,5
+cam0251_img29419,29419,251,2026-08-25,Morning Rush,train,pseudo,10
+cam0251_img29599,29599,251,2026-08-27,Morning Rush,train,pseudo,3
+cam0251_img29810,29810,251,2026-08-29,Midday,train,pseudo,1
+cam0251_img29895,29895,251,2026-08-30,Midday,train,pseudo,8
+cam0251_img29987,29987,251,2026-08-31,Midday,val,pseudo,16
+cam0251_img29640,29640,251,2026-08-27,Evening Rush,train,pseudo,8
+cam0251_img29735,29735,251,2026-08-28,Evening Rush,train,pseudo,10
+cam0251_img29999,29999,251,2026-08-31,Evening Rush,val,pseudo,5
+cam0251_img29498,29498,251,2026-08-25,Late Evening,train,pseudo,2
+cam0251_img29665,29665,251,2026-08-27,Late Evening,train,pseudo,5
+cam0256_img30122,30122,256,2026-08-26,Early Morning,train,pseudo,2
+cam0256_img30552,30552,256,2026-08-31,Early Morning,val,pseudo,11
+cam0256_img30039,30039,256,2026-08-25,Morning Rush,train,pseudo,11
+cam0256_img30211,30211,256,2026-08-27,Morning Rush,train,pseudo,11
+cam0256_img30163,30163,256,2026-08-26,Midday,train,pseudo,12
+cam0256_img30410,30410,256,2026-08-29,Midday,train,pseudo,13
+cam0256_img30501,30501,256,2026-08-30,Midday,train,pseudo,11
+cam0256_img30194,30194,256,2026-08-26,Evening Rush,train,pseudo,4
+cam0256_img30265,30265,256,2026-08-27,Evening Rush,train,pseudo,18
+cam0256_img30443,30443,256,2026-08-29,Evening Rush,train,pseudo,7
+cam0256_img30113,30113,256,2026-08-25,Late Evening,train,pseudo,6
+cam0256_img30550,30550,256,2026-08-30,Late Evening,train,pseudo,8
+cam0277_img30646,30646,277,2026-08-25,Early Morning,train,pseudo,10
+cam0277_img30732,30732,277,2026-08-26,Early Morning,train,pseudo,12
+cam0277_img30821,30821,277,2026-08-27,Morning Rush,train,pseudo,0
+cam0277_img31085,31085,277,2026-08-30,Morning Rush,train,pseudo,8
+cam0277_img30933,30933,277,2026-08-28,Midday,train,pseudo,15
+cam0277_img31035,31035,277,2026-08-29,Midday,train,pseudo,13
+cam0277_img31111,31111,277,2026-08-30,Midday,train,pseudo,13
+cam0277_img30878,30878,277,2026-08-27,Evening Rush,train,pseudo,13
+cam0277_img31050,31050,277,2026-08-29,Evening Rush,train,pseudo,12
+cam0277_img31151,31151,277,2026-08-30,Evening Rush,train,pseudo,3
+cam0277_img30814,30814,277,2026-08-26,Late Evening,train,pseudo,7
+cam0277_img30894,30894,277,2026-08-27,Late Evening,train,pseudo,18
+cam0301_img31344,31344,301,2026-08-26,Early Morning,train,pseudo,4
+cam0301_img31511,31511,301,2026-08-28,Early Morning,train,pseudo,9
+cam0301_img31436,31436,301,2026-08-27,Morning Rush,train,pseudo,6
+cam0301_img31788,31788,301,2026-08-31,Morning Rush,val,pseudo,9
+cam0301_img31311,31311,301,2026-08-25,Midday,train,pseudo,8
+cam0301_img31468,31468,301,2026-08-27,Midday,train,pseudo,6
+cam0301_img31833,31833,301,2026-08-31,Midday,val,pseudo,9
+cam0301_img31324,31324,301,2026-08-25,Evening Rush,train,pseudo,2
+cam0301_img31420,31420,301,2026-08-26,Evening Rush,train,pseudo,1
+cam0301_img31571,31571,301,2026-08-28,Evening Rush,train,pseudo,5
+cam0301_img31340,31340,301,2026-08-25,Late Evening,train,pseudo,1
+cam0301_img31771,31771,301,2026-08-30,Late Evening,train,pseudo,2
+cam0332_img32125,32125,332,2026-08-28,Early Morning,train,pseudo,11
+cam0332_img32307,32307,332,2026-08-30,Early Morning,train,pseudo,0
+cam0332_img32310,32310,332,2026-08-30,Morning Rush,train,pseudo,3
+cam0332_img32404,32404,332,2026-08-31,Morning Rush,val,pseudo,6
+cam0332_img31891,31891,332,2026-08-25,Midday,train,pseudo,6
+cam0332_img32001,32001,332,2026-08-26,Midday,train,pseudo,4
+cam0332_img32064,32064,332,2026-08-27,Midday,train,pseudo,6
+cam0332_img31947,31947,332,2026-08-25,Evening Rush,train,pseudo,5
+cam0332_img32017,32017,332,2026-08-26,Evening Rush,train,pseudo,6
+cam0332_img32454,32454,332,2026-08-31,Evening Rush,val,pseudo,12
+cam0332_img31954,31954,332,2026-08-25,Late Evening,train,pseudo,3
+cam0332_img32391,32391,332,2026-08-30,Late Evening,train,pseudo,2
+cam0363_img32827,32827,363,2026-08-29,Early Morning,train,pseudo,6
+cam0363_img33007,33007,363,2026-08-31,Early Morning,val,pseudo,8
+cam0363_img32932,32932,363,2026-08-30,Morning Rush,train,pseudo,4
+cam0363_img33022,33022,363,2026-08-31,Morning Rush,val,pseudo,7
+cam0363_img32512,32512,363,2026-08-25,Midday,train,pseudo,9
+cam0363_img32762,32762,363,2026-08-28,Midday,train,pseudo,5
+cam0363_img33037,33037,363,2026-08-31,Midday,val,pseudo,5
+cam0363_img32555,32555,363,2026-08-25,Evening Rush,train,pseudo,12
+cam0363_img32642,32642,363,2026-08-26,Evening Rush,train,pseudo,8
+cam0363_img33081,33081,363,2026-08-31,Evening Rush,val,pseudo,8
+cam0363_img32661,32661,363,2026-08-26,Late Evening,train,pseudo,4
+cam0363_img32910,32910,363,2026-08-29,Late Evening,train,pseudo,2
+cam0370_img33186,33186,370,2026-08-26,Early Morning,train,pseudo,2
+cam0370_img33349,33349,370,2026-08-28,Early Morning,train,pseudo,5
+cam0370_img33550,33550,370,2026-08-30,Morning Rush,train,pseudo,1
+cam0370_img33640,33640,370,2026-08-31,Morning Rush,val,pseudo,5
+cam0370_img33223,33223,370,2026-08-26,Midday,train,pseudo,1
+cam0370_img33392,33392,370,2026-08-28,Midday,train,pseudo,1
+cam0370_img33552,33552,370,2026-08-30,Midday,train,pseudo,0
+cam0370_img33513,33513,370,2026-08-29,Evening Rush,train,pseudo,1
+cam0370_img33605,33605,370,2026-08-30,Evening Rush,train,pseudo,0
+cam0370_img33680,33680,370,2026-08-31,Evening Rush,val,pseudo,5
+cam0370_img33343,33343,370,2026-08-27,Late Evening,train,pseudo,0
+cam0370_img33612,33612,370,2026-08-30,Late Evening,train,pseudo,2
+cam0371_img33708,33708,371,2026-08-25,Early Morning,train,pseudo,2
+cam0371_img34051,34051,371,2026-08-29,Early Morning,train,pseudo,1
+cam0371_img33811,33811,371,2026-08-26,Morning Rush,train,pseudo,8
+cam0371_img34248,34248,371,2026-08-31,Morning Rush,val,pseudo,9
+cam0371_img33766,33766,371,2026-08-25,Midday,train,pseudo,6
+cam0371_img33910,33910,371,2026-08-27,Midday,train,pseudo,0
+cam0371_img34074,34074,371,2026-08-29,Midday,train,pseudo,1
+cam0371_img33859,33859,371,2026-08-26,Evening Rush,train,pseudo,0
+cam0371_img34039,34039,371,2026-08-28,Evening Rush,train,pseudo,0
+cam0371_img34292,34292,371,2026-08-31,Evening Rush,val,pseudo,1
+cam0371_img34048,34048,371,2026-08-28,Late Evening,train,pseudo,0
+cam0371_img34135,34135,371,2026-08-29,Late Evening,train,pseudo,1
+cam0395_img34416,34416,395,2026-08-26,Early Morning,train,pseudo,7
+cam0395_img34850,34850,395,2026-08-31,Early Morning,val,pseudo,7
+cam0395_img34419,34419,395,2026-08-26,Morning Rush,train,pseudo,6
+cam0395_img34767,34767,395,2026-08-30,Morning Rush,train,pseudo,4
+cam0395_img34348,34348,395,2026-08-25,Midday,train,pseudo,11
+cam0395_img34706,34706,395,2026-08-29,Midday,train,pseudo,6
+cam0395_img34779,34779,395,2026-08-30,Midday,train,pseudo,5
+cam0395_img34381,34381,395,2026-08-25,Evening Rush,train,pseudo,2
+cam0395_img34492,34492,395,2026-08-26,Evening Rush,train,pseudo,6
+cam0395_img34642,34642,395,2026-08-28,Evening Rush,train,pseudo,10
+cam0395_img34407,34407,395,2026-08-25,Late Evening,train,pseudo,4
+cam0395_img34574,34574,395,2026-08-27,Late Evening,train,pseudo,4
+cam0411_img34938,34938,411,2026-08-25,Early Morning,train,pseudo,2
+cam0411_img35463,35463,411,2026-08-31,Early Morning,val,pseudo,4
+cam0411_img35120,35120,411,2026-08-27,Morning Rush,train,pseudo,2
+cam0411_img35287,35287,411,2026-08-29,Morning Rush,train,pseudo,4
+cam0411_img34965,34965,411,2026-08-25,Midday,train,pseudo,6
+cam0411_img35142,35142,411,2026-08-27,Midday,train,pseudo,3
+cam0411_img35489,35489,411,2026-08-31,Midday,val,pseudo,7
+cam0411_img34999,34999,411,2026-08-25,Evening Rush,train,pseudo,7
+cam0411_img35175,35175,411,2026-08-27,Evening Rush,train,pseudo,3
+cam0411_img35353,35353,411,2026-08-29,Evening Rush,train,pseudo,4
+cam0411_img35022,35022,411,2026-08-25,Late Evening,train,pseudo,4
+cam0411_img35546,35546,411,2026-08-31,Late Evening,val,pseudo,1
+cam0412_img35893,35893,412,2026-08-29,Early Morning,train,pseudo,3
+cam0412_img35985,35985,412,2026-08-30,Early Morning,train,pseudo,4
+cam0412_img35808,35808,412,2026-08-28,Morning Rush,train,pseudo,7
+cam0412_img35915,35915,412,2026-08-29,Morning Rush,train,pseudo,6
+cam0412_img35587,35587,412,2026-08-25,Midday,train,pseudo,8
+cam0412_img35746,35746,412,2026-08-27,Midday,train,pseudo,9
+cam0412_img35948,35948,412,2026-08-29,Midday,train,pseudo,5
+cam0412_img35711,35711,412,2026-08-26,Evening Rush,train,pseudo,6
+cam0412_img36047,36047,412,2026-08-30,Evening Rush,train,pseudo,3
+cam0412_img36144,36144,412,2026-08-31,Evening Rush,val,pseudo,3
+cam0412_img35632,35632,412,2026-08-25,Late Evening,train,pseudo,1
+cam0412_img36156,36156,412,2026-08-31,Late Evening,val,pseudo,2
+cam0413_img36258,36258,413,2026-08-26,Early Morning,train,pseudo,2
+cam0413_img36417,36417,413,2026-08-28,Early Morning,train,pseudo,0
+cam0413_img36181,36181,413,2026-08-25,Morning Rush,train,pseudo,1
+cam0413_img36518,36518,413,2026-08-29,Morning Rush,train,pseudo,0
+cam0413_img36383,36383,413,2026-08-27,Midday,train,pseudo,3
+cam0413_img36443,36443,413,2026-08-28,Midday,train,pseudo,3
+cam0413_img36715,36715,413,2026-08-31,Midday,val,pseudo,1
+cam0413_img36407,36407,413,2026-08-27,Evening Rush,train,pseudo,1
+cam0413_img36567,36567,413,2026-08-29,Evening Rush,train,pseudo,4
+cam0413_img36667,36667,413,2026-08-30,Evening Rush,train,pseudo,2
+cam0413_img36250,36250,413,2026-08-25,Late Evening,train,pseudo,1
+cam0413_img36506,36506,413,2026-08-28,Late Evening,train,pseudo,0
+cam0414_img37121,37121,414,2026-08-29,Early Morning,train,pseudo,2
+cam0414_img37215,37215,414,2026-08-30,Early Morning,train,pseudo,1
+cam0414_img36785,36785,414,2026-08-25,Morning Rush,train,pseudo,8
+cam0414_img37315,37315,414,2026-08-31,Morning Rush,val,pseudo,5
+cam0414_img36830,36830,414,2026-08-25,Midday,train,pseudo,8
+cam0414_img36916,36916,414,2026-08-26,Midday,train,pseudo,5
+cam0414_img37087,37087,414,2026-08-28,Midday,train,pseudo,6
+cam0414_img36853,36853,414,2026-08-25,Evening Rush,train,pseudo,4
+cam0414_img37098,37098,414,2026-08-28,Evening Rush,train,pseudo,5
+cam0414_img37366,37366,414,2026-08-31,Evening Rush,val,pseudo,1
+cam0414_img36863,36863,414,2026-08-25,Late Evening,train,pseudo,2
+cam0414_img37027,37027,414,2026-08-27,Late Evening,train,pseudo,3
+cam0432_img37482,37482,432,2026-08-26,Early Morning,train,pseudo,9
+cam0432_img37928,37928,432,2026-08-31,Early Morning,val,pseudo,5
+cam0432_img37682,37682,432,2026-08-28,Morning Rush,train,pseudo,11
+cam0432_img37763,37763,432,2026-08-29,Morning Rush,train,pseudo,7
+cam0432_img37593,37593,432,2026-08-27,Midday,train,pseudo,14
+cam0432_img37706,37706,432,2026-08-28,Midday,train,pseudo,14
+cam0432_img37879,37879,432,2026-08-30,Midday,train,pseudo,11
+cam0432_img37552,37552,432,2026-08-26,Evening Rush,train,pseudo,10
+cam0432_img37641,37641,432,2026-08-27,Evening Rush,train,pseudo,8
+cam0432_img37726,37726,432,2026-08-28,Evening Rush,train,pseudo,9
+cam0432_img37568,37568,432,2026-08-26,Late Evening,train,pseudo,7
+cam0432_img37922,37922,432,2026-08-30,Late Evening,train,pseudo,6
+cam0500_img38363,38363,500,2026-08-29,Early Morning,train,pseudo,7
+cam0500_img38457,38457,500,2026-08-30,Early Morning,train,pseudo,5
+cam0500_img38384,38384,500,2026-08-29,Morning Rush,train,pseudo,5
+cam0500_img38462,38462,500,2026-08-30,Morning Rush,train,pseudo,8
+cam0500_img38045,38045,500,2026-08-25,Midday,train,pseudo,4
+cam0500_img38132,38132,500,2026-08-26,Midday,train,pseudo,3
+cam0500_img38233,38233,500,2026-08-27,Midday,train,pseudo,6
+cam0500_img38265,38265,500,2026-08-27,Evening Rush,train,pseudo,1
+cam0500_img38342,38342,500,2026-08-28,Evening Rush,train,pseudo,4
+cam0500_img38621,38621,500,2026-08-31,Evening Rush,val,pseudo,3
+cam0500_img38268,38268,500,2026-08-27,Late Evening,train,pseudo,4
+cam0500_img38361,38361,500,2026-08-28,Late Evening,train,pseudo,1
+cam0529_img38633,38633,529,2026-08-25,Early Morning,train,pseudo,2
+cam0529_img39067,39067,529,2026-08-30,Early Morning,train,pseudo,1
+cam0529_img38995,38995,529,2026-08-29,Morning Rush,train,pseudo,7
+cam0529_img39085,39085,529,2026-08-30,Morning Rush,train,pseudo,8
+cam0529_img38665,38665,529,2026-08-25,Midday,train,pseudo,4
+cam0529_img38829,38829,529,2026-08-27,Midday,train,pseudo,6
+cam0529_img39022,39022,529,2026-08-29,Midday,train,pseudo,3
+cam0529_img38789,38789,529,2026-08-26,Evening Rush,train,pseudo,5
+cam0529_img39038,39038,529,2026-08-29,Evening Rush,train,pseudo,3
+cam0529_img39223,39223,529,2026-08-31,Evening Rush,val,pseudo,9
+cam0529_img38808,38808,529,2026-08-26,Late Evening,train,pseudo,2
+cam0529_img39242,39242,529,2026-08-31,Late Evening,val,pseudo,0
+cam0542_img39500,39500,542,2026-08-28,Early Morning,train,pseudo,4
+cam0542_img39678,39678,542,2026-08-30,Early Morning,train,pseudo,3
+cam0542_img39600,39600,542,2026-08-29,Morning Rush,train,pseudo,11
+cam0542_img39776,39776,542,2026-08-31,Morning Rush,val,pseudo,6
+cam0542_img39384,39384,542,2026-08-26,Midday,train,pseudo,4
+cam0542_img39458,39458,542,2026-08-27,Midday,train,pseudo,7
+cam0542_img39619,39619,542,2026-08-29,Midday,train,pseudo,8
+cam0542_img39310,39310,542,2026-08-25,Evening Rush,train,pseudo,9
+cam0542_img39489,39489,542,2026-08-27,Evening Rush,train,pseudo,6
+cam0542_img39849,39849,542,2026-08-31,Evening Rush,val,pseudo,9
+cam0542_img39492,39492,542,2026-08-27,Late Evening,train,pseudo,10
+cam0542_img39768,39768,542,2026-08-30,Late Evening,train,pseudo,3
+cam0546_img39949,39949,546,2026-08-26,Early Morning,train,pseudo,6
+cam0546_img40389,40389,546,2026-08-31,Early Morning,val,pseudo,7
+cam0546_img40129,40129,546,2026-08-28,Morning Rush,train,pseudo,3
+cam0546_img40390,40390,546,2026-08-31,Morning Rush,val,pseudo,1
+cam0546_img40165,40165,546,2026-08-28,Midday,train,pseudo,5
+cam0546_img40241,40241,546,2026-08-29,Midday,train,pseudo,2
+cam0546_img40334,40334,546,2026-08-30,Midday,train,pseudo,3
+cam0546_img39931,39931,546,2026-08-25,Evening Rush,train,pseudo,3
+cam0546_img40010,40010,546,2026-08-26,Evening Rush,train,pseudo,1
+cam0546_img40458,40458,546,2026-08-31,Evening Rush,val,pseudo,5
+cam0546_img39942,39942,546,2026-08-25,Late Evening,train,pseudo,2
+cam0546_img40036,40036,546,2026-08-26,Late Evening,train,pseudo,0
+cam0556_img40911,40911,556,2026-08-30,Early Morning,train,pseudo,0
+cam0556_img40998,40998,556,2026-08-31,Early Morning,val,pseudo,0
+cam0556_img40585,40585,556,2026-08-26,Morning Rush,train,pseudo,4
+cam0556_img40921,40921,556,2026-08-30,Morning Rush,train,pseudo,1
+cam0556_img40530,40530,556,2026-08-25,Midday,train,pseudo,1
+cam0556_img40609,40609,556,2026-08-26,Midday,train,pseudo,2
+cam0556_img41053,41053,556,2026-08-31,Midday,val,pseudo,1
+cam0556_img40697,40697,556,2026-08-27,Evening Rush,train,pseudo,3
+cam0556_img40988,40988,556,2026-08-30,Evening Rush,train,pseudo,1
+cam0556_img41064,41064,556,2026-08-31,Evening Rush,val,pseudo,9
+cam0556_img40725,40725,556,2026-08-27,Late Evening,train,pseudo,0
+cam0556_img41087,41087,556,2026-08-31,Late Evening,val,pseudo,0
+cam0569_img41179,41179,569,2026-08-26,Early Morning,train,pseudo,5
+cam0569_img41341,41341,569,2026-08-28,Early Morning,train,pseudo,3
+cam0569_img41093,41093,569,2026-08-25,Morning Rush,train,pseudo,2
+cam0569_img41445,41445,569,2026-08-29,Morning Rush,train,pseudo,5
+cam0569_img41113,41113,569,2026-08-25,Midday,train,pseudo,7
+cam0569_img41235,41235,569,2026-08-26,Midday,train,pseudo,11
+cam0569_img41486,41486,569,2026-08-29,Midday,train,pseudo,2
+cam0569_img41168,41168,569,2026-08-25,Evening Rush,train,pseudo,12
+cam0569_img41325,41325,569,2026-08-27,Evening Rush,train,pseudo,5
+cam0569_img41696,41696,569,2026-08-31,Evening Rush,val,pseudo,8
+cam0569_img41521,41521,569,2026-08-29,Late Evening,train,pseudo,1
+cam0569_img41608,41608,569,2026-08-30,Late Evening,train,pseudo,7
+cam0572_img41706,41706,572,2026-08-25,Early Morning,train,pseudo,11
+cam0572_img42141,42141,572,2026-08-30,Early Morning,train,pseudo,3
+cam0572_img42060,42060,572,2026-08-29,Morning Rush,train,pseudo,9
+cam0572_img42160,42160,572,2026-08-30,Morning Rush,train,pseudo,3
+cam0572_img41736,41736,572,2026-08-25,Midday,train,pseudo,0
+cam0572_img42176,42176,572,2026-08-30,Midday,train,pseudo,8
+cam0572_img42271,42271,572,2026-08-31,Midday,val,pseudo,6
+cam0572_img41782,41782,572,2026-08-25,Evening Rush,train,pseudo,1
+cam0572_img42031,42031,572,2026-08-28,Evening Rush,train,pseudo,0
+cam0572_img42203,42203,572,2026-08-30,Evening Rush,train,pseudo,3
+cam0572_img41787,41787,572,2026-08-25,Late Evening,train,pseudo,0
+cam0572_img42316,42316,572,2026-08-31,Late Evening,val,pseudo,0
+cam0576_img42319,42319,576,2026-08-25,Early Morning,train,pseudo,4
+cam0576_img42575,42575,576,2026-08-28,Early Morning,train,pseudo,0
+cam0576_img42420,42420,576,2026-08-26,Morning Rush,train,pseudo,3
+cam0576_img42671,42671,576,2026-08-29,Morning Rush,train,pseudo,0
+cam0576_img42461,42461,576,2026-08-26,Midday,train,pseudo,7
+cam0576_img42529,42529,576,2026-08-27,Midday,train,pseudo,10
+cam0576_img42805,42805,576,2026-08-30,Midday,train,pseudo,2
+cam0576_img42476,42476,576,2026-08-26,Evening Rush,train,pseudo,6
+cam0576_img42728,42728,576,2026-08-29,Evening Rush,train,pseudo,2
+cam0576_img42906,42906,576,2026-08-31,Evening Rush,val,pseudo,8
+cam0576_img42406,42406,576,2026-08-25,Late Evening,train,pseudo,4
+cam0576_img42565,42565,576,2026-08-27,Late Evening,train,pseudo,0
+cam0595_img43274,43274,595,2026-08-29,Early Morning,train,pseudo,7
+cam0595_img43457,43457,595,2026-08-31,Early Morning,val,pseudo,9
+cam0595_img42938,42938,595,2026-08-25,Morning Rush,train,pseudo,7
+cam0595_img43034,43034,595,2026-08-26,Morning Rush,train,pseudo,15
+cam0595_img43052,43052,595,2026-08-26,Midday,train,pseudo,12
+cam0595_img43236,43236,595,2026-08-28,Midday,train,pseudo,8
+cam0595_img43331,43331,595,2026-08-29,Midday,train,pseudo,11
+cam0595_img42996,42996,595,2026-08-25,Evening Rush,train,pseudo,9
+cam0595_img43251,43251,595,2026-08-28,Evening Rush,train,pseudo,11
+cam0595_img43441,43441,595,2026-08-30,Evening Rush,train,pseudo,0
+cam0595_img43020,43020,595,2026-08-25,Late Evening,train,pseudo,4
+cam0595_img43362,43362,595,2026-08-29,Late Evening,train,pseudo,13
+cam0599_img43977,43977,599,2026-08-30,Early Morning,train,pseudo,0
+cam0599_img44069,44069,599,2026-08-31,Early Morning,val,pseudo,4
+cam0599_img43646,43646,599,2026-08-26,Morning Rush,train,pseudo,10
+cam0599_img43987,43987,599,2026-08-30,Morning Rush,train,pseudo,9
+cam0599_img43656,43656,599,2026-08-26,Midday,train,pseudo,9
+cam0599_img43834,43834,599,2026-08-28,Midday,train,pseudo,11
+cam0599_img44101,44101,599,2026-08-31,Midday,val,pseudo,12
+cam0599_img43707,43707,599,2026-08-26,Evening Rush,train,pseudo,14
+cam0599_img43783,43783,599,2026-08-27,Evening Rush,train,pseudo,10
+cam0599_img44133,44133,599,2026-08-31,Evening Rush,val,pseudo,10
+cam0599_img43632,43632,599,2026-08-25,Late Evening,train,pseudo,4
+cam0599_img44062,44062,599,2026-08-30,Late Evening,train,pseudo,5
+cam0603_img44504,44504,603,2026-08-29,Early Morning,train,pseudo,2
+cam0603_img44594,44594,603,2026-08-30,Early Morning,train,pseudo,2
+cam0603_img44263,44263,603,2026-08-26,Morning Rush,train,pseudo,9
+cam0603_img44434,44434,603,2026-08-28,Morning Rush,train,pseudo,3
+cam0603_img44353,44353,603,2026-08-27,Midday,train,pseudo,5
+cam0603_img44558,44558,603,2026-08-29,Midday,train,pseudo,5
+cam0603_img44648,44648,603,2026-08-30,Midday,train,pseudo,4
+cam0603_img44241,44241,603,2026-08-25,Evening Rush,train,pseudo,7
+cam0603_img44386,44386,603,2026-08-27,Evening Rush,train,pseudo,5
+cam0603_img44564,44564,603,2026-08-29,Evening Rush,train,pseudo,3
+cam0603_img44245,44245,603,2026-08-25,Late Evening,train,pseudo,5
+cam0603_img44332,44332,603,2026-08-26,Late Evening,train,pseudo,2
+cam0604_img44771,44771,604,2026-08-25,Early Morning,train,pseudo,14
+cam0604_img45209,45209,604,2026-08-30,Early Morning,train,pseudo,5
+cam0604_img44878,44878,604,2026-08-26,Morning Rush,train,pseudo,10
+cam0604_img45303,45303,604,2026-08-31,Morning Rush,val,pseudo,13
+cam0604_img44886,44886,604,2026-08-26,Midday,train,pseudo,5
+cam0604_img44969,44969,604,2026-08-27,Midday,train,pseudo,12
+cam0604_img45244,45244,604,2026-08-30,Midday,train,pseudo,13
+cam0604_img45012,45012,604,2026-08-27,Evening Rush,train,pseudo,7
+cam0604_img45180,45180,604,2026-08-29,Evening Rush,train,pseudo,11
+cam0604_img45280,45280,604,2026-08-30,Evening Rush,train,pseudo,8
+cam0604_img45019,45019,604,2026-08-27,Late Evening,train,pseudo,13
+cam0604_img45292,45292,604,2026-08-30,Late Evening,train,pseudo,4
+cam0619_img45385,45385,619,2026-08-25,Early Morning,train,pseudo,1
+cam0619_img45914,45914,619,2026-08-31,Early Morning,val,pseudo,1
+cam0619_img45565,45565,619,2026-08-27,Morning Rush,train,pseudo,0
+cam0619_img45831,45831,619,2026-08-30,Morning Rush,train,pseudo,0
+cam0619_img45442,45442,619,2026-08-25,Midday,train,pseudo,0
+cam0619_img45587,45587,619,2026-08-27,Midday,train,pseudo,2
+cam0619_img45858,45858,619,2026-08-30,Midday,train,pseudo,6
+cam0619_img45555,45555,619,2026-08-26,Evening Rush,train,pseudo,0
+cam0619_img45722,45722,619,2026-08-28,Evening Rush,train,pseudo,3
+cam0619_img45992,45992,619,2026-08-31,Evening Rush,val,pseudo,12
+cam0619_img45727,45727,619,2026-08-28,Late Evening,train,pseudo,2
+cam0619_img45997,45997,619,2026-08-31,Late Evening,val,pseudo,1
+cam0630_img46252,46252,630,2026-08-28,Early Morning,train,pseudo,6
+cam0630_img46341,46341,630,2026-08-29,Early Morning,train,pseudo,0
+cam0630_img46012,46012,630,2026-08-25,Morning Rush,train,pseudo,8
+cam0630_img46352,46352,630,2026-08-29,Morning Rush,train,pseudo,0
+cam0630_img46129,46129,630,2026-08-26,Midday,train,pseudo,8
+cam0630_img46308,46308,630,2026-08-28,Midday,train,pseudo,11
+cam0630_img46396,46396,630,2026-08-29,Midday,train,pseudo,11
+cam0630_img46067,46067,630,2026-08-25,Evening Rush,train,pseudo,8
+cam0630_img46161,46161,630,2026-08-26,Evening Rush,train,pseudo,6
+cam0630_img46222,46222,630,2026-08-27,Evening Rush,train,pseudo,0
+cam0630_img46084,46084,630,2026-08-25,Late Evening,train,pseudo,0
+cam0630_img46336,46336,630,2026-08-28,Late Evening,train,pseudo,1
+cam0913_img46611,46611,913,2026-08-25,Early Morning,train,pseudo,1
+cam0913_img46863,46863,913,2026-08-28,Early Morning,train,pseudo,1
+cam0913_img46796,46796,913,2026-08-27,Morning Rush,train,pseudo,6
+cam0913_img47146,47146,913,2026-08-31,Morning Rush,val,pseudo,9
+cam0913_img46756,46756,913,2026-08-26,Midday,train,pseudo,3
+cam0913_img46889,46889,913,2026-08-28,Midday,train,pseudo,11
+cam0913_img47170,47170,913,2026-08-31,Midday,val,pseudo,10
+cam0913_img46767,46767,913,2026-08-26,Evening Rush,train,pseudo,7
+cam0913_img46855,46855,913,2026-08-27,Evening Rush,train,pseudo,3
+cam0913_img46945,46945,913,2026-08-28,Evening Rush,train,pseudo,2
+cam0913_img46862,46862,913,2026-08-27,Late Evening,train,pseudo,2
+cam0913_img47220,47220,913,2026-08-31,Late Evening,val,pseudo,6
+cam0915_img47311,47311,915,2026-08-26,Early Morning,train,pseudo,4
+cam0915_img47563,47563,915,2026-08-29,Early Morning,train,pseudo,8
+cam0915_img47228,47228,915,2026-08-25,Morning Rush,train,pseudo,2
+cam0915_img47484,47484,915,2026-08-28,Morning Rush,train,pseudo,0
+cam0915_img47349,47349,915,2026-08-26,Midday,train,pseudo,7
+cam0915_img47515,47515,915,2026-08-28,Midday,train,pseudo,4
+cam0915_img47610,47610,915,2026-08-29,Midday,train,pseudo,7
+cam0915_img47454,47454,915,2026-08-27,Evening Rush,train,pseudo,7
+cam0915_img47633,47633,915,2026-08-29,Evening Rush,train,pseudo,3
+cam0915_img47811,47811,915,2026-08-31,Evening Rush,val,pseudo,8
+cam0915_img47467,47467,915,2026-08-27,Late Evening,train,pseudo,4
+cam0915_img47647,47647,915,2026-08-29,Late Evening,train,pseudo,7
+cam0938_img47836,47836,938,2026-08-25,Early Morning,train,pseudo,4
+cam0938_img48180,48180,938,2026-08-29,Early Morning,train,pseudo,2
+cam0938_img47944,47944,938,2026-08-26,Morning Rush,train,pseudo,6
+cam0938_img48282,48282,938,2026-08-30,Morning Rush,train,pseudo,0
+cam0938_img47874,47874,938,2026-08-25,Midday,train,pseudo,6
+cam0938_img47974,47974,938,2026-08-26,Midday,train,pseudo,6
+cam0938_img48027,48027,938,2026-08-27,Midday,train,pseudo,9
+cam0938_img47893,47893,938,2026-08-25,Evening Rush,train,pseudo,6
+cam0938_img48151,48151,938,2026-08-28,Evening Rush,train,pseudo,12
+cam0938_img48430,48430,938,2026-08-31,Evening Rush,val,pseudo,10
+cam0938_img48010,48010,938,2026-08-26,Late Evening,train,pseudo,1
+cam0938_img48264,48264,938,2026-08-29,Late Evening,train,pseudo,6
+cam0939_img48697,48697,939,2026-08-28,Early Morning,train,pseudo,0
+cam0939_img48884,48884,939,2026-08-30,Early Morning,train,pseudo,0
+cam0939_img48455,48455,939,2026-08-25,Morning Rush,train,pseudo,0
+cam0939_img48810,48810,939,2026-08-29,Morning Rush,train,pseudo,1
+cam0939_img48475,48475,939,2026-08-25,Midday,train,pseudo,0
+cam0939_img48631,48631,939,2026-08-27,Midday,train,pseudo,0
+cam0939_img48923,48923,939,2026-08-30,Midday,train,pseudo,1
+cam0939_img48616,48616,939,2026-08-26,Evening Rush,train,pseudo,1
+cam0939_img48767,48767,939,2026-08-28,Evening Rush,train,pseudo,0
+cam0939_img49048,49048,939,2026-08-31,Evening Rush,val,pseudo,0
+cam0939_img48529,48529,939,2026-08-25,Late Evening,train,pseudo,0
+cam0939_img48872,48872,939,2026-08-29,Late Evening,train,pseudo,0
+cam1028_img49151,49151,1028,2026-08-26,Early Morning,train,pseudo,2
+cam1028_img49315,49315,1028,2026-08-28,Early Morning,train,pseudo,3
+cam1028_img49156,49156,1028,2026-08-26,Morning Rush,train,pseudo,7
+cam1028_img49500,49500,1028,2026-08-30,Morning Rush,train,pseudo,4
+cam1028_img49189,49189,1028,2026-08-26,Midday,train,pseudo,4
+cam1028_img49251,49251,1028,2026-08-27,Midday,train,pseudo,3
+cam1028_img49607,49607,1028,2026-08-31,Midday,val,pseudo,4
+cam1028_img49134,49134,1028,2026-08-25,Evening Rush,train,pseudo,4
+cam1028_img49392,49392,1028,2026-08-28,Evening Rush,train,pseudo,4
+cam1028_img49643,49643,1028,2026-08-31,Evening Rush,val,pseudo,5
+cam1028_img49231,49231,1028,2026-08-26,Late Evening,train,pseudo,1
+cam1028_img49489,49489,1028,2026-08-29,Late Evening,train,pseudo,2
+cam1039_img50108,50108,1039,2026-08-30,Early Morning,train,pseudo,0
+cam1039_img50200,50200,1039,2026-08-31,Early Morning,val,pseudo,2
+cam1039_img49675,49675,1039,2026-08-25,Morning Rush,train,pseudo,4
+cam1039_img50113,50113,1039,2026-08-30,Morning Rush,train,pseudo,4
+cam1039_img49952,49952,1039,2026-08-28,Midday,train,pseudo,3
+cam1039_img50070,50070,1039,2026-08-29,Midday,train,pseudo,4
+cam1039_img50147,50147,1039,2026-08-30,Midday,train,pseudo,2
+cam1039_img49825,49825,1039,2026-08-26,Evening Rush,train,pseudo,9
+cam1039_img50004,50004,1039,2026-08-28,Evening Rush,train,pseudo,7
+cam1039_img50258,50258,1039,2026-08-31,Evening Rush,val,pseudo,6
+cam1039_img49758,49758,1039,2026-08-25,Late Evening,train,pseudo,0
+cam1039_img49918,49918,1039,2026-08-27,Late Evening,train,pseudo,0
+cam1060_img50373,50373,1060,2026-08-26,Early Morning,train,pseudo,3
+cam1060_img50809,50809,1060,2026-08-31,Early Morning,val,pseudo,0
+cam1060_img50386,50386,1060,2026-08-26,Morning Rush,train,pseudo,4
+cam1060_img50737,50737,1060,2026-08-30,Morning Rush,train,pseudo,2
+cam1060_img50321,50321,1060,2026-08-25,Midday,train,pseudo,4
+cam1060_img50422,50422,1060,2026-08-26,Midday,train,pseudo,9
+cam1060_img50833,50833,1060,2026-08-31,Midday,val,pseudo,5
+cam1060_img50365,50365,1060,2026-08-25,Evening Rush,train,pseudo,2
+cam1060_img50443,50443,1060,2026-08-26,Evening Rush,train,pseudo,4
+cam1060_img50606,50606,1060,2026-08-28,Evening Rush,train,pseudo,4
+cam1060_img50371,50371,1060,2026-08-25,Late Evening,train,pseudo,3
+cam1060_img50893,50893,1060,2026-08-31,Late Evening,val,pseudo,0
+cam1063_img50899,50899,1063,2026-08-25,Early Morning,train,pseudo,0
+cam1063_img50989,50989,1063,2026-08-26,Early Morning,train,pseudo,1
+cam1063_img51085,51085,1063,2026-08-27,Morning Rush,train,pseudo,1
+cam1063_img51438,51438,1063,2026-08-31,Morning Rush,val,pseudo,1
+cam1063_img51097,51097,1063,2026-08-27,Midday,train,pseudo,4
+cam1063_img51355,51355,1063,2026-08-30,Midday,train,pseudo,1
+cam1063_img51474,51474,1063,2026-08-31,Midday,val,pseudo,2
+cam1063_img51142,51142,1063,2026-08-27,Evening Rush,train,pseudo,2
+cam1063_img51213,51213,1063,2026-08-28,Evening Rush,train,pseudo,2
+cam1063_img51414,51414,1063,2026-08-30,Evening Rush,train,pseudo,0
+cam1063_img50984,50984,1063,2026-08-25,Late Evening,train,pseudo,0
+cam1063_img51075,51075,1063,2026-08-26,Late Evening,train,pseudo,1
+cam1070_img51601,51601,1070,2026-08-26,Early Morning,train,pseudo,4
+cam1070_img51947,51947,1070,2026-08-30,Early Morning,train,pseudo,1
+cam1070_img51519,51519,1070,2026-08-25,Morning Rush,train,pseudo,9
+cam1070_img51952,51952,1070,2026-08-30,Morning Rush,train,pseudo,5
+cam1070_img51649,51649,1070,2026-08-26,Midday,train,pseudo,8
+cam1070_img51987,51987,1070,2026-08-30,Midday,train,pseudo,4
+cam1070_img52094,52094,1070,2026-08-31,Midday,val,pseudo,4
+cam1070_img51672,51672,1070,2026-08-26,Evening Rush,train,pseudo,6
+cam1070_img52013,52013,1070,2026-08-30,Evening Rush,train,pseudo,6
+cam1070_img52116,52116,1070,2026-08-31,Evening Rush,val,pseudo,9
+cam1070_img51596,51596,1070,2026-08-25,Late Evening,train,pseudo,1
+cam1070_img51944,51944,1070,2026-08-29,Late Evening,train,pseudo,3
+cam1071_img52471,52471,1071,2026-08-29,Early Morning,train,pseudo,4
+cam1071_img52650,52650,1071,2026-08-31,Early Morning,val,pseudo,2
+cam1071_img52384,52384,1071,2026-08-28,Morning Rush,train,pseudo,5
+cam1071_img52487,52487,1071,2026-08-29,Morning Rush,train,pseudo,2
+cam1071_img52162,52162,1071,2026-08-25,Midday,train,pseudo,5
+cam1071_img52502,52502,1071,2026-08-29,Midday,train,pseudo,3
+cam1071_img52675,52675,1071,2026-08-31,Midday,val,pseudo,5
+cam1071_img52360,52360,1071,2026-08-27,Evening Rush,train,pseudo,8
+cam1071_img52532,52532,1071,2026-08-29,Evening Rush,train,pseudo,2
+cam1071_img52717,52717,1071,2026-08-31,Evening Rush,val,pseudo,2
+cam1071_img52298,52298,1071,2026-08-26,Late Evening,train,pseudo,3
+cam1071_img52643,52643,1071,2026-08-30,Late Evening,train,pseudo,5
+cam1076_img52828,52828,1076,2026-08-26,Early Morning,train,pseudo,1
+cam1076_img53169,53169,1076,2026-08-30,Early Morning,train,pseudo,0
+cam1076_img53085,53085,1076,2026-08-29,Morning Rush,train,pseudo,0
+cam1076_img53171,53171,1076,2026-08-30,Morning Rush,train,pseudo,0
+cam1076_img52783,52783,1076,2026-08-25,Midday,train,pseudo,4
+cam1076_img53035,53035,1076,2026-08-28,Midday,train,pseudo,5
+cam1076_img53113,53113,1076,2026-08-29,Midday,train,pseudo,6
+cam1076_img52893,52893,1076,2026-08-26,Evening Rush,train,pseudo,12
+cam1076_img52961,52961,1076,2026-08-27,Evening Rush,train,pseudo,4
+cam1076_img53232,53232,1076,2026-08-30,Evening Rush,train,pseudo,3
+cam1076_img52909,52909,1076,2026-08-26,Late Evening,train,pseudo,5
+cam1076_img52985,52985,1076,2026-08-27,Late Evening,train,pseudo,4
+cam1078_img53599,53599,1078,2026-08-28,Early Morning,train,pseudo,10
+cam1078_img53684,53684,1078,2026-08-29,Early Morning,train,pseudo,2
+cam1078_img53453,53453,1078,2026-08-26,Morning Rush,train,pseudo,12
+cam1078_img53527,53527,1078,2026-08-27,Morning Rush,train,pseudo,8
+cam1078_img53489,53489,1078,2026-08-26,Midday,train,pseudo,6
+cam1078_img53541,53541,1078,2026-08-27,Midday,train,pseudo,11
+cam1078_img53803,53803,1078,2026-08-30,Midday,train,pseudo,9
+cam1078_img53408,53408,1078,2026-08-25,Evening Rush,train,pseudo,5
+cam1078_img53765,53765,1078,2026-08-29,Evening Rush,train,pseudo,6
+cam1078_img53850,53850,1078,2026-08-30,Evening Rush,train,pseudo,3
+cam1078_img53520,53520,1078,2026-08-26,Late Evening,train,pseudo,2
+cam1078_img53947,53947,1078,2026-08-31,Late Evening,val,pseudo,0
+cam1103_img53949,53949,1103,2026-08-25,Early Morning,train,pseudo,2
+cam1103_img54206,54206,1103,2026-08-28,Early Morning,train,pseudo,5
+cam1103_img53966,53966,1103,2026-08-25,Morning Rush,train,pseudo,14
+cam1103_img54493,54493,1103,2026-08-31,Morning Rush,val,pseudo,12
+cam1103_img54076,54076,1103,2026-08-26,Midday,train,pseudo,11
+cam1103_img54246,54246,1103,2026-08-28,Midday,train,pseudo,3
+cam1103_img54523,54523,1103,2026-08-31,Midday,val,pseudo,3
+cam1103_img54185,54185,1103,2026-08-27,Evening Rush,train,pseudo,9
+cam1103_img54371,54371,1103,2026-08-29,Evening Rush,train,pseudo,9
+cam1103_img54445,54445,1103,2026-08-30,Evening Rush,train,pseudo,2
+cam1103_img54291,54291,1103,2026-08-28,Late Evening,train,pseudo,6
+cam1103_img54380,54380,1103,2026-08-29,Late Evening,train,pseudo,9
+cam1112_img54905,54905,1112,2026-08-29,Early Morning,train,pseudo,5
+cam1112_img54998,54998,1112,2026-08-30,Early Morning,train,pseudo,3
+cam1112_img54913,54913,1112,2026-08-29,Morning Rush,train,pseudo,9
+cam1112_img55097,55097,1112,2026-08-31,Morning Rush,val,pseudo,13
+cam1112_img54586,54586,1112,2026-08-25,Midday,train,pseudo,11
+cam1112_img54698,54698,1112,2026-08-26,Midday,train,pseudo,8
+cam1112_img55030,55030,1112,2026-08-30,Midday,train,pseudo,12
+cam1112_img54628,54628,1112,2026-08-25,Evening Rush,train,pseudo,11
+cam1112_img54732,54732,1112,2026-08-26,Evening Rush,train,pseudo,6
+cam1112_img55053,55053,1112,2026-08-30,Evening Rush,train,pseudo,12
+cam1112_img54739,54739,1112,2026-08-26,Late Evening,train,pseudo,5
+cam1112_img54987,54987,1112,2026-08-29,Late Evening,train,pseudo,2
+cam1132_img55173,55173,1132,2026-08-25,Early Morning,train,pseudo,1
+cam1132_img55516,55516,1132,2026-08-29,Early Morning,train,pseudo,1
+cam1132_img55353,55353,1132,2026-08-27,Morning Rush,train,pseudo,7
+cam1132_img55432,55432,1132,2026-08-28,Morning Rush,train,pseudo,7
+cam1132_img55383,55383,1132,2026-08-27,Midday,train,pseudo,11
+cam1132_img55461,55461,1132,2026-08-28,Midday,train,pseudo,4
+cam1132_img55643,55643,1132,2026-08-30,Midday,train,pseudo,5
+cam1132_img55409,55409,1132,2026-08-27,Evening Rush,train,pseudo,9
+cam1132_img55496,55496,1132,2026-08-28,Evening Rush,train,pseudo,11
+cam1132_img55775,55775,1132,2026-08-31,Evening Rush,val,pseudo,3
+cam1132_img55604,55604,1132,2026-08-29,Late Evening,train,pseudo,6
+cam1132_img55779,55779,1132,2026-08-31,Late Evening,val,pseudo,4
+cam1188_img56224,56224,1188,2026-08-30,Early Morning,train,pseudo,0
+cam1188_img56314,56314,1188,2026-08-31,Early Morning,val,pseudo,1
+cam1188_img55970,55970,1188,2026-08-27,Morning Rush,train,pseudo,4
+cam1188_img56149,56149,1188,2026-08-29,Morning Rush,train,pseudo,4
+cam1188_img55819,55819,1188,2026-08-25,Midday,train,pseudo,3
+cam1188_img56082,56082,1188,2026-08-28,Midday,train,pseudo,0
+cam1188_img56153,56153,1188,2026-08-29,Midday,train,pseudo,2
+cam1188_img56109,56109,1188,2026-08-28,Evening Rush,train,pseudo,12
+cam1188_img56207,56207,1188,2026-08-29,Evening Rush,train,pseudo,2
+cam1188_img56385,56385,1188,2026-08-31,Evening Rush,val,pseudo,1
+cam1188_img55872,55872,1188,2026-08-25,Late Evening,train,pseudo,0
+cam1188_img56034,56034,1188,2026-08-27,Late Evening,train,pseudo,0
+cam1195_img56402,56402,1195,2026-08-25,Early Morning,train,pseudo,11
+cam1195_img56493,56493,1195,2026-08-26,Early Morning,train,pseudo,15
+cam1195_img56577,56577,1195,2026-08-27,Morning Rush,train,pseudo,0
+cam1195_img56851,56851,1195,2026-08-30,Morning Rush,train,pseudo,8
+cam1195_img56536,56536,1195,2026-08-26,Midday,train,pseudo,12
+cam1195_img56586,56586,1195,2026-08-27,Midday,train,pseudo,11
+cam1195_img56885,56885,1195,2026-08-30,Midday,train,pseudo,8
+cam1195_img56475,56475,1195,2026-08-25,Evening Rush,train,pseudo,7
+cam1195_img56570,56570,1195,2026-08-26,Evening Rush,train,pseudo,7
+cam1195_img56904,56904,1195,2026-08-30,Evening Rush,train,pseudo,9
+cam1195_img56735,56735,1195,2026-08-28,Late Evening,train,pseudo,7
+cam1195_img56917,56917,1195,2026-08-30,Late Evening,train,pseudo,7
+cam1361_img57263,57263,1361,2026-08-28,Early Morning,train,pseudo,0
+cam1361_img57537,57537,1361,2026-08-31,Early Morning,val,pseudo,3
+cam1361_img57021,57021,1361,2026-08-25,Morning Rush,train,pseudo,7
+cam1361_img57368,57368,1361,2026-08-29,Morning Rush,train,pseudo,1
+cam1361_img57056,57056,1361,2026-08-25,Midday,train,pseudo,0
+cam1361_img57500,57500,1361,2026-08-30,Midday,train,pseudo,2
+cam1361_img57572,57572,1361,2026-08-31,Midday,val,pseudo,8
+cam1361_img57160,57160,1361,2026-08-26,Evening Rush,train,pseudo,8
+cam1361_img57251,57251,1361,2026-08-27,Evening Rush,train,pseudo,4
+cam1361_img57324,57324,1361,2026-08-28,Evening Rush,train,pseudo,5
+cam1361_img57435,57435,1361,2026-08-29,Late Evening,train,pseudo,1
+cam1361_img57530,57530,1361,2026-08-30,Late Evening,train,pseudo,2
+cam1362_img57716,57716,1362,2026-08-26,Early Morning,train,pseudo,4
+cam1362_img57875,57875,1362,2026-08-28,Early Morning,train,pseudo,6
+cam1362_img57718,57718,1362,2026-08-26,Morning Rush,train,pseudo,2
+cam1362_img57892,57892,1362,2026-08-28,Morning Rush,train,pseudo,2
+cam1362_img57735,57735,1362,2026-08-26,Midday,train,pseudo,1
+cam1362_img57922,57922,1362,2026-08-28,Midday,train,pseudo,6
+cam1362_img58180,58180,1362,2026-08-31,Midday,val,pseudo,0
+cam1362_img57694,57694,1362,2026-08-25,Evening Rush,train,pseudo,4
+cam1362_img57773,57773,1362,2026-08-26,Evening Rush,train,pseudo,1
+cam1362_img57852,57852,1362,2026-08-27,Evening Rush,train,pseudo,7
+cam1362_img57795,57795,1362,2026-08-26,Late Evening,train,pseudo,0
+cam1362_img57874,57874,1362,2026-08-27,Late Evening,train,pseudo,0
+cam1368_img58674,58674,1368,2026-08-30,Early Morning,train,pseudo,1
+cam1368_img58764,58764,1368,2026-08-31,Early Morning,val,pseudo,9
+cam1368_img58345,58345,1368,2026-08-26,Morning Rush,train,pseudo,5
+cam1368_img58589,58589,1368,2026-08-29,Morning Rush,train,pseudo,4
+cam1368_img58287,58287,1368,2026-08-25,Midday,train,pseudo,3
+cam1368_img58637,58637,1368,2026-08-29,Midday,train,pseudo,7
+cam1368_img58811,58811,1368,2026-08-31,Midday,val,pseudo,1
+cam1368_img58562,58562,1368,2026-08-28,Evening Rush,train,pseudo,9
+cam1368_img58642,58642,1368,2026-08-29,Evening Rush,train,pseudo,7
+cam1368_img58750,58750,1368,2026-08-30,Evening Rush,train,pseudo,5
+cam1368_img58754,58754,1368,2026-08-30,Late Evening,train,pseudo,2
+cam1368_img58846,58846,1368,2026-08-31,Late Evening,val,pseudo,7
+cam1408_img59196,59196,1408,2026-08-29,Early Morning,train,pseudo,4
+cam1408_img59283,59283,1408,2026-08-30,Early Morning,train,pseudo,4
+cam1408_img58945,58945,1408,2026-08-26,Morning Rush,train,pseudo,7
+cam1408_img59391,59391,1408,2026-08-31,Morning Rush,val,pseudo,5
+cam1408_img58969,58969,1408,2026-08-26,Midday,train,pseudo,6
+cam1408_img59046,59046,1408,2026-08-27,Midday,train,pseudo,6
+cam1408_img59399,59399,1408,2026-08-31,Midday,val,pseudo,8
+cam1408_img59091,59091,1408,2026-08-27,Evening Rush,train,pseudo,4
+cam1408_img59254,59254,1408,2026-08-29,Evening Rush,train,pseudo,2
+cam1408_img59441,59441,1408,2026-08-31,Evening Rush,val,pseudo,3
+cam1408_img59189,59189,1408,2026-08-28,Late Evening,train,pseudo,2
+cam1408_img59369,59369,1408,2026-08-30,Late Evening,train,pseudo,3
+cam1589_img59465,59465,1589,2026-08-25,Early Morning,train,pseudo,7
+cam1589_img59557,59557,1589,2026-08-26,Early Morning,train,pseudo,10
+cam1589_img59826,59826,1589,2026-08-29,Morning Rush,train,pseudo,9
+cam1589_img60006,60006,1589,2026-08-31,Morning Rush,val,pseudo,12
+cam1589_img59598,59598,1589,2026-08-26,Midday,train,pseudo,7
+cam1589_img59841,59841,1589,2026-08-29,Midday,train,pseudo,8
+cam1589_img60013,60013,1589,2026-08-31,Midday,val,pseudo,5
+cam1589_img59524,59524,1589,2026-08-25,Evening Rush,train,pseudo,6
+cam1589_img59699,59699,1589,2026-08-27,Evening Rush,train,pseudo,9
+cam1589_img59970,59970,1589,2026-08-30,Evening Rush,train,pseudo,2
+cam1589_img59804,59804,1589,2026-08-28,Late Evening,train,pseudo,0
+cam1589_img59983,59983,1589,2026-08-30,Late Evening,train,pseudo,2
+cam1804_img60080,60080,1804,2026-08-25,Early Morning,train,pseudo,6
+cam1804_img60170,60170,1804,2026-08-26,Early Morning,train,pseudo,13
+cam1804_img60446,60446,1804,2026-08-29,Morning Rush,train,pseudo,2
+cam1804_img60543,60543,1804,2026-08-30,Morning Rush,train,pseudo,6
+cam1804_img60487,60487,1804,2026-08-29,Midday,train,pseudo,11
+cam1804_img60575,60575,1804,2026-08-30,Midday,train,pseudo,7
+cam1804_img60672,60672,1804,2026-08-31,Midday,val,pseudo,11
+cam1804_img60139,60139,1804,2026-08-25,Evening Rush,train,pseudo,6
+cam1804_img60429,60429,1804,2026-08-28,Evening Rush,train,pseudo,2
+cam1804_img60602,60602,1804,2026-08-30,Evening Rush,train,pseudo,0
+cam1804_img60343,60343,1804,2026-08-27,Late Evening,train,pseudo,1
+cam1804_img60523,60523,1804,2026-08-29,Late Evening,train,pseudo,2
+cam1815_img60959,60959,1815,2026-08-28,Early Morning,train,pseudo,2
+cam1815_img61053,61053,1815,2026-08-29,Early Morning,train,pseudo,1
+cam1815_img60975,60975,1815,2026-08-28,Morning Rush,train,pseudo,5
+cam1815_img61066,61066,1815,2026-08-29,Morning Rush,train,pseudo,2
+cam1815_img60731,60731,1815,2026-08-25,Midday,train,pseudo,3
+cam1815_img60835,60835,1815,2026-08-26,Midday,train,pseudo,1
+cam1815_img61007,61007,1815,2026-08-28,Midday,train,pseudo,1
+cam1815_img60872,60872,1815,2026-08-26,Evening Rush,train,pseudo,1
+cam1815_img60933,60933,1815,2026-08-27,Evening Rush,train,pseudo,5
+cam1815_img61291,61291,1815,2026-08-31,Evening Rush,val,pseudo,1
+cam1815_img60791,60791,1815,2026-08-25,Late Evening,train,pseudo,4
+cam1815_img61046,61046,1815,2026-08-28,Late Evening,train,pseudo,2
