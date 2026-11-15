@@ -11,6 +11,10 @@ try:
     from .detector import YOLOVehicleDetector, DEFAULT_VEHICLE_CLASSES, imread_unicode, imwrite_unicode
 except ImportError:
     from detector import YOLOVehicleDetector, DEFAULT_VEHICLE_CLASSES, imread_unicode, imwrite_unicode
+try:
+    from .model_registry import resolve_model
+except ImportError:
+    from model_registry import resolve_model
 
 FILENAME_PATTERN = re.compile(r'^(\d+)_(.+)_(\d{8})_(\d{6})\.jpe?g$', re.IGNORECASE)
 
@@ -153,7 +157,7 @@ if __name__ == "__main__":
     parser.add_argument("--save-annotated", type=str, default="", help="Directory to save annotated images (optional)")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of images to process")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
-    parser.add_argument("--model", type=str, default="yolov8n.pt", help="YOLO model weights")
+    parser.add_argument("--model", type=str, default=None, help="YOLO weights (default: Models/weights/best.pt if present, else yolov8n.pt)")
     args = parser.parse_args()
 
     ann_dir = Path(args.save_annotated) if args.save_annotated else None
@@ -164,5 +168,5 @@ if __name__ == "__main__":
         annotated_output_dir=ann_dir,
         limit=args.limit,
         conf_threshold=args.conf,
-        model_name=args.model
+        model_name=resolve_model(args.model)
     )

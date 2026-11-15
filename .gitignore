@@ -13,3 +13,8 @@ Models/test_annotated_sample.jpg
 # Labeling workflow (images are reproducible from dataset/)
 labeling_work/
 DataEngineering/test_set/images/
+
+# Training pipeline outputs (rebuilt by Models/training/train_pipeline.py)
+DataEngineering/train_set/*
+!DataEngineering/train_set/train_manifest.csv
+Models/weights/
