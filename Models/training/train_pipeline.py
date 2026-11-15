@@ -8,6 +8,9 @@ Stages
             Frames reviewed in the review tool (DataEngineering/reviews/train) use the
             human labels and are always kept; rejected frames are dropped; the rest are
             pseudo-labeled by a large teacher model (yolo11x).
+            Train split only: every image also gets one horizontally stretched/squeezed
+            copy (--stretch), and frames with a bus are listed --oversample-bus times in
+            train.txt. Trucks are NOT up-weighted until the pickup (= car) labels are reviewed.
     train   Fine-tune a pretrained COCO checkpoint with CCTV-oriented augmentation.
             Copies the run's best.pt to Models/weights/best.pt (+ best.json).
     eval    Compare the pretrained COCO model with the fine-tuned one on the
@@ -91,6 +94,29 @@ def select_frames(picked: pd.DataFrame, pool: pd.DataFrame, statuses: dict[str, 
     return out
 
 
+BUS = 2  # target class id (common.TARGET_CLASSES)
+STRETCH_RANGE = (0.8, 1.2)
+
+
+def build_image_list(entries: list[tuple[str, str]], oversample_bus: int) -> list[str]:
+    """Train image list: (image path, label text) pairs -> paths, with frames whose label
+    contains a bus listed oversample_bus times (Ultralytics keeps duplicate lines)."""
+    out = []
+    for path, label in entries:
+        has_bus = any(line.split()[0] == str(BUS) for line in label.splitlines() if line.strip())
+        out += [path] * (max(oversample_bus, 1) if has_bus else 1)
+    return out
+
+
+def stretch_copy(img_src: Path, lbl_src: Path, img_dst: Path, lbl_dst: Path, factor: float):
+    """Save img_src resized to width*factor (height unchanged). YOLO coords are normalized,
+    so the label file is copied as-is."""
+    from PIL import Image
+    with Image.open(img_src) as im:
+        im.resize((round(im.width * factor), im.height), Image.BILINEAR).save(img_dst, quality=95)
+    shutil.copy2(lbl_src, lbl_dst)
+
+
 def count_mae(model_counts: list[dict], true_counts: list[dict]) -> dict[str, float]:
     """Mean absolute count error per class (and total) over frames."""
     keys = [*TARGET_CLASSES.values(), "total"]
@@ -142,9 +168,25 @@ def build(args):
         n_boxes.append(sum(1 for _ in lbl_dst.read_text(encoding="utf-8").splitlines()))
     picked["n_boxes"] = n_boxes
 
+    # train-split augmentation on disk: stretched copies + bus oversampling. Val is untouched.
+    train_imgs, train_lbls = TRAIN_SET_DIR / "images" / "train", TRAIN_SET_DIR / "labels" / "train"
+    originals = sorted(train_imgs.glob("*.jpg"))
+    if args.stretch:
+        srng = random.Random(args.seed)
+        for img in originals:
+            factor = srng.uniform(*STRETCH_RANGE)
+            stretch_copy(img, train_lbls / f"{img.stem}.txt", train_imgs / f"{img.stem}_stretch.jpg",
+                         train_lbls / f"{img.stem}_stretch.txt", factor)
+    entries = [(f"./images/train/{img.name}", (train_lbls / f"{img.stem}.txt").read_text(encoding="utf-8"))
+               for img in sorted(train_imgs.glob("*.jpg"))]
+    image_list = build_image_list(entries, args.oversample_bus)
+    (TRAIN_SET_DIR / "train.txt").write_text("\n".join(image_list) + "\n", encoding="utf-8")
+    print(f"[*] train.txt: {len(originals)} frames, {len(entries) - len(originals)} stretched copies, "
+          f"{len(image_list)} lines (bus frames x{args.oversample_bus})")
+
     with open(TRAIN_SET_DIR / "dataset.yaml", "w", encoding="utf-8") as f:
         yaml.safe_dump({"path": str(TRAIN_SET_DIR.resolve()).replace("\\", "/"),
-                        "train": "images/train", "val": "images/val", "names": TARGET_CLASSES},
+                        "train": "train.txt", "val": "images/val", "names": TARGET_CLASSES},
                        f, sort_keys=False)
     picked[["stem", "image_id", "camera_id", "date", "time_period", "split", "label_source", "n_boxes"]] \
         .to_csv(TRAIN_SET_DIR / "train_manifest.csv", index=False, encoding="utf-8-sig")
@@ -310,6 +352,10 @@ def main():
     ap.add_argument("--buffer-min", type=int, default=20, help="Exclude same-camera frames this close to a test candidate.")
     ap.add_argument("--teacher", default="yolo11x.pt", help="Large model that pseudo-labels unlabeled frames.")
     ap.add_argument("--teacher-conf", type=float, default=0.35)
+    ap.add_argument("--oversample-bus", type=int, default=2,
+                    help="List train frames that contain a bus this many times in train.txt (1 = off).")
+    ap.add_argument("--stretch", action=argparse.BooleanOptionalAction, default=True,
+                    help="Add one horizontally stretched/squeezed copy (x0.8-1.2) of each train image.")
     # train
     ap.add_argument("--model", default="yolo11s.pt", help="Pretrained checkpoint to fine-tune.")
     ap.add_argument("--epochs", type=int, default=80)
