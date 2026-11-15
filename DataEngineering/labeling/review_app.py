@@ -21,6 +21,7 @@ from review_store import VALID_SETS, ReviewStore, counts  # noqa: E402
 
 TEMPLATE = Path(__file__).resolve().parent / "templates" / "review.html"
 META_COLS = ["camera_id", "timestamp", "time_period", "location_en"]
+BUS, TRUCK = 2, 3  # target class ids (common.TARGET_CLASSES)
 
 
 class NotFound(Exception):
@@ -61,7 +62,9 @@ class ReviewApp:
             out.append({"stem": stem, "camera_id": int(r["camera_id"]), "timestamp": r["timestamp"],
                         "time_period": r["time_period"], "status": statuses.get(stem, "pending"),
                         "n_boxes": len(self.store.current_boxes(set_name, stem)),
-                        "min_conf": round(min((b[5] for b in pre), default=1.0), 4)})
+                        "min_conf": round(min((b[5] for b in pre), default=1.0), 4),
+                        "has_bus": any(int(b[0]) == BUS for b in pre),
+                        "has_truck": any(int(b[0]) == TRUCK for b in pre)})
         return {"items": out}
 
     def item(self, set_name, stem):

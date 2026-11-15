@@ -54,7 +54,7 @@
   <label>Show <select id="filter">
     <option value="pending">pending</option><option value="all">all</option><option value="approved">approved</option>
     <option value="corrected">corrected</option><option value="rejected">rejected</option></select></label>
-  <label>Sort <select id="sort"><option value="time">camera / time</option><option value="conf">lowest confidence first</option></select></label>
+  <label>Sort <select id="sort"><option value="time">camera / time</option><option value="conf">lowest confidence first</option><option value="bustruck">bus/truck first</option></select></label>
   <div class="progress"><div class="bar" id="bar"></div><span id="progressText">–</span></div>
 </header>
 <main>
@@ -151,6 +151,8 @@ function applyView(keepStem) {
   const f = $("filter").value;
   view = queue.filter(i => f === "all" || i.status === f);
   if ($("sort").value === "conf") view.sort((a, b) => a.min_conf - b.min_conf);
+  // frames whose pre-label has a bus or truck first (stable: camera / time order kept within each group)
+  if ($("sort").value === "bustruck") view.sort((a, b) => (b.has_bus || b.has_truck) - (a.has_bus || a.has_truck));
   const k = keepStem ? view.findIndex(i => i.stem === keepStem) : -1;
   show(k >= 0 ? k : 0);
 }
@@ -399,7 +401,8 @@ for (const id of ["set", "camera", "filter", "sort"]) {
   $(id).addEventListener("change", () => {
     store.set(id, $(id).value);
     if (id === "set") { store.set("camera", ""); $("camera").value = ""; }
-    if (id === "set" || id === "camera") loadQueue(); else applyView(item && item.stem);
+    if (id === "set" || id === "camera") loadQueue();
+    else applyView(id === "sort" ? null : item && item.stem);  // new order -> start at its top
     $(id).blur();
   });
 }

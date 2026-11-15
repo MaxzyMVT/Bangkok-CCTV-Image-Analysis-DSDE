@@ -77,6 +77,22 @@ class ReviewAppTest(unittest.TestCase):
         self.assertAlmostEqual(first["min_conf"], 0.44)
         self.assertIn(first["status"], ("pending", "approved", "corrected", "rejected"))
 
+    def test_queue_flags_bus_and_truck_from_prelabel(self):
+        stem_bus = load_items("test")["stem"].iloc[2]
+        self.store.write_prelabel("test", stem_bus, [(2, .5, .5, .2, .2, .8), (0, .2, .2, .1, .1, .9)], overwrite=True)
+        try:
+            items = {i["stem"]: i for i in self._json("/api/queue?set=test")["items"]}
+            self.assertTrue(items[stem_bus]["has_bus"])
+            self.assertFalse(items[stem_bus]["has_truck"])
+            self.assertFalse(items[self.stem]["has_bus"])
+            self.assertFalse(items[self.stem]["has_truck"])
+            self.store.write_prelabel("test", stem_bus, [(3, .5, .5, .2, .2, .8)], overwrite=True)
+            items = {i["stem"]: i for i in self._json("/api/queue?set=test")["items"]}
+            self.assertFalse(items[stem_bus]["has_bus"])
+            self.assertTrue(items[stem_bus]["has_truck"])
+        finally:
+            self.store.write_prelabel("test", stem_bus, [], overwrite=True)
+
     def test_item_returns_prelabel_and_counts(self):
         it = self._json(f"/api/item?set=test&stem={self.stem}")
         self.assertEqual(len(it["prelabel"]), 2)
