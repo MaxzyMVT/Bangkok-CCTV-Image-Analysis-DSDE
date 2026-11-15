@@ -40,6 +40,8 @@ git add DataEngineering/reviews && git commit -m "data(reviews): review batch" &
 | `Del` (or `Backspace` / Mac delete with a box selected) | delete the selected box |
 | `Enter` | save and go to the next frame (only once the image has loaded) |
 | `R` | reject the frame (unusable) and go next |
+| `U` / **↶ Undo last decision** | pressed Enter or R by mistake? puts that frame back exactly as before and reopens it (repeat to go further back) |
+| click a row in **Recent decisions** | reopen a frame you just decided, to check or change it |
 | `Backspace` with nothing selected | go back to YOLO's boxes — on a saved frame it asks first, then **deletes that saved review** |
 | `←` `→` | previous / next frame without saving |
 | `H` | hide boxes to see the vehicles underneath |

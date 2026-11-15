@@ -38,6 +38,9 @@
   .counts { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
   .counts .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
   .draw-class { font-weight: 600; }
+  .recent { font-size: 12px; }
+  .recent-row { padding: 3px 4px; border-radius: 4px; cursor: pointer; font-family: ui-monospace, monospace; }
+  .recent-row:hover { background: #262d3a; }
   .keys { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; font-size: 12px; color: var(--muted); }
   kbd { background: #2a303c; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; color: var(--text); font: 12px ui-monospace, monospace; }
   .msg { min-height: 18px; color: var(--fix); font-size: 12px; margin-top: 6px; }
@@ -60,6 +63,7 @@
     <div class="actions">
       <button class="primary" id="btnSave">Save / Approve <kbd>Enter</kbd></button>
       <button class="danger" id="btnReject">Reject frame <kbd>R</kbd></button>
+      <button id="btnUndo">↶ Undo last decision <kbd>U</kbd></button>
       <button id="btnReset">Reset to YOLO <kbd>Backspace</kbd></button>
       <button id="btnPrev">← Prev</button><button id="btnNext">Next →</button>
       <button id="btnHide">Hide boxes <kbd>H</kbd></button>
@@ -72,6 +76,8 @@
     <div style="margin-top:6px">Status: <span class="badge s-pending" id="status">pending</span> <span id="pos" style="color:var(--muted)"></span></div>
     <h2>Counts</h2>
     <div class="counts" id="counts"></div>
+    <h2>Recent decisions <span style="text-transform:none;font-weight:400">(click to reopen)</span></h2>
+    <div id="recent" class="recent"></div>
     <h2>New box class</h2>
     <div class="draw-class" id="drawClass"></div>
     <h2>Shortcuts</h2>
@@ -82,6 +88,7 @@
       <kbd>Del</kbd><span>delete selected box</span>
       <kbd>Enter</kbd><span>save (approved if unchanged) + next</span>
       <kbd>R</kbd><span>reject unusable frame + next</span>
+      <kbd>U</kbd><span>undo the last approve / reject and reopen that frame</span>
       <kbd>Backspace</kbd><span>reset to YOLO boxes</span>
       <kbd>← →</kbd><span>previous / next without saving</span>
       <kbd>H</kbd><span>hide boxes</span>
@@ -109,6 +116,8 @@ const store = {
 
 let queue = [], view = [], pos = -1, item = null, boxes = [], img = null;
 let selected = -1, drawClass = 0, hidden = false, undo = [], drag = null, busy = false;
+// Decisions made in this browser tab, newest last: {set, stem, prevStatus, prevBoxes, newStatus}
+const decisions = [];
 
 const api = async (path, body) => {
   const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" },
@@ -273,18 +282,64 @@ async function save(action) {
   if (action === "reset" && item.status !== "pending" &&
       !confirm(`Delete the saved review of ${item.stem} and go back to YOLO's boxes?`)) return;
   busy = true;
-  const stem = item.stem, p = pos;
+  const stem = item.stem, p = pos, prev = { status: item.status, boxes: item.boxes.map(b => b.slice()) };
   try {
     const res = await api("/api/save", { set: setName(), stem, boxes, action });
-    if (view[p] && view[p].stem === stem) view[p].status = res.status;
-    const q = queue.find(i => i.stem === stem); if (q) { q.status = res.status; q.n_boxes = res.counts.total; }
-    refreshStats();
+    markStatus(stem, res.status, res.counts.total);
+    if (action !== "reset") {
+      decisions.push({ set: setName(), stem, prevStatus: prev.status, prevBoxes: prev.boxes, newStatus: res.status });
+      if (decisions.length > 50) decisions.shift();
+      renderRecent();
+    }
     msg(action === "reset" ? "Reset to YOLO boxes." : `${stem}: ${res.status}`);
     const next = action === "reset" ? p : p + 1;
     if (next < view.length) await load(next);
     else { setStatus(res.status); msg("End of this list — change the filter or set."); }
   } catch (err) { msg("Save failed: " + err.message); }
   finally { busy = false; }
+}
+
+function markStatus(stem, status, nBoxes) {
+  for (const list of [view, queue]) {
+    const it = list.find(i => i.stem === stem);
+    if (it) { it.status = status; if (nBoxes !== undefined) it.n_boxes = nBoxes; }
+  }
+  refreshStats();
+}
+
+// Put the most recent decision back the way it was, then open that frame to decide again.
+async function undoDecision() {
+  if (busy) return;
+  const d = decisions[decisions.length - 1];
+  if (!d) { msg("Nothing to undo yet."); return; }
+  if (d.set !== setName()) { msg(`Last decision was in the ${d.set} set — switch Set to undo it.`); return; }
+  busy = true;
+  try {
+    const action = d.prevStatus === "pending" ? "reset" : d.prevStatus === "rejected" ? "reject" : "save";
+    const res = await api("/api/save", { set: d.set, stem: d.stem, boxes: d.prevBoxes, action });
+    decisions.pop(); renderRecent();
+    markStatus(d.stem, res.status);
+    const i = view.findIndex(v => v.stem === d.stem);
+    if (i >= 0) await load(i);
+    msg(`Undid ${d.newStatus} on ${d.stem} → back to ${res.status}. Decide again.`);
+  } catch (err) { msg("Undo failed: " + err.message); }
+  finally { busy = false; }
+}
+
+function renderRecent() {
+  const el = $("recent");
+  const last = decisions.slice(-6).reverse();
+  el.innerHTML = last.length ? last.map(d =>
+    `<div class="recent-row" data-stem="${d.stem}" data-set="${d.set}"><span class="badge s-${d.newStatus}">${d.newStatus}</span> ${d.stem}</div>`).join("")
+    : '<div style="color:var(--muted)">No decisions yet in this tab.</div>';
+}
+
+async function openStem(stem, set) {
+  if (busy || set !== setName()) return;
+  const i = view.findIndex(v => v.stem === stem);
+  if (i < 0) { msg(`${stem} is not in the current filter — set Show to "all".`); return; }
+  busy = true;
+  try { await load(i); } finally { busy = false; }
 }
 
 async function refreshStats() {
@@ -309,7 +364,7 @@ document.addEventListener("keydown", e => {
     return;
   }
   // Held keys must not save/reject/reset a stream of frames.
-  if (e.repeat && ["Enter", "r", "R", "Backspace", "Delete"].includes(e.key)) { e.preventDefault(); return; }
+  if (e.repeat && ["Enter", "r", "R", "u", "U", "Backspace", "Delete"].includes(e.key)) { e.preventDefault(); return; }
   if (e.key >= "1" && e.key <= "4") {
     const c = Number(e.key) - 1;
     if (selected >= 0) { snapshot(); boxes[selected][0] = c; } else drawClass = c;
@@ -320,6 +375,7 @@ document.addEventListener("keydown", e => {
   } else if (e.key === "Enter") { save("save"); }
   else if (e.key === "r" || e.key === "R") { save("reject"); }
   else if (e.key === "Backspace") { save("reset"); }
+  else if (e.key === "u" || e.key === "U") { undoDecision(); }
   else if (e.key === "ArrowRight") { show(pos + 1); }
   else if (e.key === "ArrowLeft") { show(pos - 1); }
   else if (e.key === "h" || e.key === "H") { hidden = !hidden; $("btnHide").textContent = hidden ? "Show boxes" : "Hide boxes"; draw(); }
@@ -331,6 +387,11 @@ document.addEventListener("keydown", e => {
 $("btnSave").onclick = () => save("save");
 $("btnReject").onclick = () => save("reject");
 $("btnReset").onclick = () => save("reset");
+$("btnUndo").onclick = () => undoDecision();
+$("recent").addEventListener("click", e => {
+  const row = e.target.closest(".recent-row"); if (row) openStem(row.dataset.stem, row.dataset.set);
+});
+renderRecent();
 $("btnPrev").onclick = () => show(pos - 1);
 $("btnNext").onclick = () => show(pos + 1);
 $("btnHide").onclick = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "h" }));
