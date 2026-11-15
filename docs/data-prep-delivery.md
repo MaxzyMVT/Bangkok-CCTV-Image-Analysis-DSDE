@@ -52,6 +52,11 @@ python Models/training/train_pipeline.py all --device 0    # train ใหม่�
 
 - **ยังไม่มีใครตรวจภาพ** (0/2,200) — ตัวเลข error จริงยังไม่มี
 - `best.pt` ยังนับ **กระบะเป็น truck** (ติดมาจาก COCO) → จะหายเมื่อ train ใหม่ด้วย label ที่ตรวจแล้ว
+- **bus/truck มีน้อย + truck ปนกระบะ**: pre-label ชุด train มี bus แค่ 3 % ของภาพ (171 ภาพ) แต่ truck 16 % (592 ภาพ) ซึ่งสูงเกินจริง เพราะ yolo11x เรียกกระบะว่า truck
+  - review tool มี Sort **"bus/truck first"** → ตรวจภาพที่มี bus/truck ก่อน (กระบะ = car)
+  - `build` ซ้ำภาพที่มี bus ใน train 2 เท่า (`--oversample-bus 2`) และเพิ่มภาพยืด/บีบแนวนอน ×0.8–1.2 ภาพละ 1 ใบ (`--stretch`) — val ไม่ถูกแตะ
+  - **ยังไม่เพิ่มน้ำหนัก truck** จนกว่าจะตรวจ truck เสร็จ
+  - val ยังเป็น pseudo-label ของ yolo11x → วัดว่า bus/truck ดีขึ้นจริงไหมได้หลังตรวจ test set 1,000 ภาพแล้วเท่านั้น
 - ไฟล์โมเดล (`*.pt`) ไม่อยู่ใน git → แชร์ `Models/weights/best.pt` + `best.json` ผ่าน Drive หรือ train เอง (~40 นาที GPU)
 - **กล้องซ้อนกัน**: 21 คู่ห่างกัน < 100 ม. (ส่วนใหญ่คนละทิศ) → ตอนรวมยอดต้องจัดกลุ่มตาม ถนน + ทิศ ไม่บวกกล้องตรง ๆ (งานถัดไป)
 - **ชนกับ branch `feat/interactive-camera-map`**: branch นั้นย้าย `Apps/app.py` → `Apps/Detection-Classification/app.py` ต้องย้ายการแก้ `resolve_model()` ไปไฟล์ใหม่ตอน merge

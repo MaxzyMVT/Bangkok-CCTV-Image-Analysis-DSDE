@@ -21,7 +21,16 @@ Stages can also run on their own: `build`, `train`, `eval`. See `--help` for all
     use the human labels and are always kept, even if re-sampling would skip them; rejected frames are dropped;
   * everything else is **pseudo-labeled** by a large teacher model (`yolo11x.pt`, conf 0.35). The small student then learns Bangkok-camera specifics from the big model.
 * Split by **day**: `2026-08-31` = val (`--val-dates`), the rest = train. Frames from the same day/hour look alike, so a per-image random split would overstate val scores.
-* Output: `DataEngineering/train_set/` (`images/`, `labels/`, `dataset.yaml` are git-ignored; `train_manifest.csv` is committed).
+* Train split only (val is never touched, so val scores stay comparable):
+  * **Stretch / squeeze** (`--stretch`, on by default; `--no-stretch` to skip): each train image gets one extra copy
+    `<stem>_stretch.jpg`, resized horizontally by a seeded random factor in 0.8–1.2 (height unchanged).
+    The label is copied as-is, since YOLO coordinates are normalized. Mimics cameras with different aspect ratios / lenses.
+  * **Bus oversampling** (`--oversample-bus 2`; `1` = off): frames whose label contains a bus (class 2) are listed
+    N times in `train.txt`. Buses are only ~3 % of frames, so the model sees too few of them otherwise.
+  * **Trucks are not up-weighted yet.** Many yolo11x "truck" boxes are pickups (team rule: pickup = car);
+    up-weighting them would teach the wrong class. Revisit after the truck frames are human-reviewed.
+* Output: `DataEngineering/train_set/` (`images/`, `labels/`, `train.txt`, `dataset.yaml` are git-ignored; `train_manifest.csv` is committed).
+  `dataset.yaml` points `train:` at `train.txt` (an image list; Ultralytics keeps duplicate lines) and `val:` at `images/val`.
 
 ## 2. train: fine-tune + augmentation
 

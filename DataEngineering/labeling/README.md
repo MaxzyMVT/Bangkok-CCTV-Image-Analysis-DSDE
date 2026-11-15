@@ -48,7 +48,8 @@ git add DataEngineering/reviews && git commit -m "data(reviews): review batch" &
 | `Ctrl+Z` | undo |
 
 After `Enter` the frame is **approved** if you changed nothing (YOLO was right) or **corrected** if you did.
-Both count as reviewed. Use *Sort → lowest confidence first* to do the doubtful frames first.
+Both count as reviewed. Use *Sort → lowest confidence first* to do the doubtful frames first, or
+*Sort → bus/truck first* to do the frames whose pre-label has a bus or truck first (rare classes; many "trucks" are pickups = car).
 
 ## Rules
 
