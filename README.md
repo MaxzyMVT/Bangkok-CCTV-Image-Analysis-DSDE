@@ -72,7 +72,7 @@ Use `--port 9000` to pick another port. On first start, a missing dataset is dow
 * Camera pins stay on top of the rail layer, and switching styles or the rail layer keeps the view, the open camera and its Replay frame.
 * Rail lines and stations come from OpenStreetMap (© OpenStreetMap contributors, ODbL) and are stored in `Apps/Camera-Map/static/bangkok_rail.geojson`. To refresh them:
   ```bash
-  python DataEngineering/build_rail_geojson.py
+  python DataEngineering/WebScraping/build_rail_geojson.py
   ```
 * Minimal basemap: [OpenFreeMap](https://openfreemap.org) (no API key) © OpenMapTiles, data from OpenStreetMap.
 

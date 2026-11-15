@@ -206,29 +206,118 @@
     }
     .leaflet-control-attribution a { color: #94a3b8 !important; }
 
-    /* ---------- Pins ---------- */
-    .pin { position: relative; width: 26px; height: 26px; }
-    .pin .core {
-      position: absolute; inset: 7px; border-radius: 50%; background: var(--cyan);
-      border: 2px solid #e0fbff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-      transition: transform .2s, background .2s;
+    /* ---------- CCTV Camera Pins (High-Visibility on Any Basemap) ---------- */
+    .pin {
+      position: relative;
+      width: 32px;
+      height: 40px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.75));
+      transition: transform .2s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .pin .ring {
-      position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--cyan); opacity: 0;
+    .pin .pin-head {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 0 2px #070c18, 0 0 12px rgba(6, 182, 212, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      transition: background .2s, box-shadow .2s, transform .2s;
+      z-index: 2;
     }
-    .pin.no-images .core { background: #64748b; border-color: #cbd5e1; box-shadow: none; }
-    .pin:hover .core { transform: scale(1.35); }
-    .pin.active .core { background: var(--amber); border-color: #fff7d6; transform: scale(1.4); }
-    .pin.active .ring { border-color: var(--amber); animation: pulse 1.6s ease-out infinite; }
-    /* Light maps (Streets / Minimal): cyan disappears on a pale background, so use a dark pin with a white ring */
-    body.light-tiles .pin .core {
-      inset: 6px; background: #111827; border: 2.5px solid #ffffff;
-      box-shadow: 0 0 0 1.5px rgba(17, 24, 39, 0.55), 0 2px 5px rgba(0, 0, 0, 0.45);
+    .pin .pin-stem {
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 8px solid #0284c7;
+      margin-top: -1px;
+      filter: drop-shadow(0 1.5px 1px #070c18);
+      transition: border-top-color .2s;
+      z-index: 1;
     }
-    body.light-tiles .pin.no-images .core { background: #9ca3af; }
-    body.light-tiles .pin.active .core { background: var(--amber); border-color: #ffffff; }
-    body.light-tiles .pin.active .ring { border-color: #b45309; }
-    @keyframes pulse { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(2.4); opacity: 0; } }
+    .pin .pin-cam-icon {
+      width: 16px;
+      height: 16px;
+      display: block;
+      filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35));
+    }
+    .pin .pin-pulse {
+      position: absolute;
+      bottom: 1px;
+      left: 50%;
+      transform: translate(-50%, 50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Hover & Active */
+    .pin:hover {
+      transform: translateY(-3px) scale(1.15);
+      z-index: 1000 !important;
+    }
+    .pin:hover .pin-head {
+      box-shadow: 0 0 0 2px #ffffff, 0 0 16px rgba(6, 182, 212, 0.95);
+    }
+
+    .pin.active {
+      transform: translateY(-4px) scale(1.22);
+      z-index: 1001 !important;
+    }
+    .pin.active .pin-head {
+      background: linear-gradient(135deg, #fbbf24 0%, #ea580c 100%);
+      border-color: #fffbeb;
+      box-shadow: 0 0 0 2.5px #ffffff, 0 0 20px rgba(245, 158, 11, 0.95);
+    }
+    .pin.active .pin-stem {
+      border-top-color: #ea580c;
+    }
+    .pin.active .pin-pulse {
+      border-color: var(--amber);
+      animation: pinPulse 1.6s ease-out infinite;
+    }
+
+    /* No-images camera */
+    .pin.no-images .pin-head {
+      background: linear-gradient(135deg, #94a3b8 0%, #475569 100%);
+      border-color: #e2e8f0;
+      box-shadow: 0 0 0 1.5px #0f172a, 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    .pin.no-images .pin-stem {
+      border-top-color: #475569;
+    }
+    .pin.no-images .pin-cam-icon {
+      color: #e2e8f0;
+      opacity: 0.85;
+    }
+
+    /* Light maps (Streets / Minimal): extra crisp perimeter so it pops against white/gray roads */
+    body.light-tiles .pin .pin-head {
+      box-shadow: 0 0 0 2.5px #0f172a, 0 3px 8px rgba(0, 0, 0, 0.45), 0 0 12px rgba(2, 132, 199, 0.6);
+    }
+    body.light-tiles .pin.active .pin-head {
+      box-shadow: 0 0 0 2.5px #0f172a, 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 16px rgba(245, 158, 11, 0.85);
+    }
+    body.light-tiles .pin.active .pin-pulse {
+      border-color: #b45309;
+    }
+
+    @keyframes pinPulse {
+      0% { transform: translate(-50%, 50%) scale(0.6); opacity: 0.95; }
+      100% { transform: translate(-50%, 50%) scale(3.2); opacity: 0; }
+    }
 
     .leaflet-tooltip.cam-tip {
       background: var(--glass-strong); color: var(--text); border: 1px solid var(--line-strong);
@@ -547,7 +636,7 @@
       if (btn) setBaseMode(btn.dataset.layer);
     });
 
-    // ---------- BTS / MRT layer (OpenStreetMap data, built by DataEngineering/build_rail_geojson.py) ----------
+    // ---------- BTS / MRT layer (OpenStreetMap data, built by DataEngineering/WebScraping/build_rail_geojson.py) ----------
     // Lines sit below the camera pins and never take clicks; stations sit below pins too, so a camera on
     // top of a rail line or station still opens its Replay popup.
     map.createPane('railLines').style.zIndex = 380;    // tiles 200 < rail lines < overlays 400
@@ -720,8 +809,21 @@
 
     function pinIcon(cam, active) {
       const cls = ['pin', cam.image_count ? '' : 'no-images', active ? 'active' : ''].join(' ');
-      return L.divIcon({ className: '', html: `<div class="${cls}"><span class="ring"></span><span class="core"></span></div>`,
-                         iconSize: [26, 26], iconAnchor: [13, 13], popupAnchor: [0, -12], tooltipAnchor: [0, -12] });
+      const slash = cam.image_count ? '' : '<line x1="3" y1="21" x2="21" y2="3" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round"/>';
+      const lensColor = active ? '#451a03' : (cam.image_count ? '#082f49' : '#1e293b');
+      const html = `<div class="${cls}">` +
+        `<span class="pin-pulse"></span>` +
+        `<div class="pin-head">` +
+          `<svg class="pin-cam-icon" viewBox="0 0 24 24" fill="none">` +
+            `<path d="M4 6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2l4.5-2.8A1 1 0 0 1 22 6v12a1 1 0 0 1-1.5.85L16 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z" fill="currentColor"/>` +
+            `<circle cx="10" cy="12" r="2.2" fill="${lensColor}"/>` +
+            slash +
+          `</svg>` +
+        `</div>` +
+        `<div class="pin-stem"></div>` +
+      `</div>`;
+      return L.divIcon({ className: '', html,
+                         iconSize: [32, 40], iconAnchor: [16, 39], popupAnchor: [0, -38], tooltipAnchor: [0, -38] });
     }
 
     const ICON = {

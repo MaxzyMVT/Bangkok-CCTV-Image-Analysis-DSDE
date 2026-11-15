@@ -184,7 +184,7 @@ def handle_map_get(handler, path, query, map_template=TEMPLATE_FILE):
             ctype = mimetypes.guess_type(full.name)[0] or "image/jpeg"
             _send(handler, full.read_bytes(), ctype, cache=True)
     elif path.startswith("/static/map/"):
-        # Map data files such as bangkok_rail.geojson (built by DataEngineering/build_rail_geojson.py)
+        # Map data files such as bangkok_rail.geojson (built by DataEngineering/WebScraping/build_rail_geojson.py)
         full = _resolve_static(path[len("/static/map/"):])
         if full is None:
             handler.send_error(404, "File not found")
