@@ -15,6 +15,7 @@ Uses only the Python standard library.
 """
 import re
 import csv
+import sys
 import json
 import math
 import argparse
@@ -23,10 +24,25 @@ import urllib.parse
 from pathlib import Path
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
+# Startup messages include symbols; don't crash on a cp1252 Windows console
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 TEMPLATE_FILE = Path(__file__).resolve().parent / "templates" / "index.html"
 DATASET_DIR = ROOT_DIR / "dataset" / "100_cameras" / "cctv_images"
 CCTV_INFO_CSV = ROOT_DIR / "dataset" / "100_cameras" / "cctv_info.csv"
+
+# Dataset auto-download from instructor's Google Drive
+try:
+    if str(ROOT_DIR) not in sys.path:
+        sys.path.insert(0, str(ROOT_DIR))
+    from DataEngineering.dataset_downloader import ensure_dataset
+except ImportError:
+    ensure_dataset = lambda: True
 
 # Same format as Models/pipeline.py: <camera_id>_<description>_<YYYYMMDD>_<HHMMSS>.jpg
 FILENAME_PATTERN = re.compile(r"^(\d+)_(.+)_(\d{8})_(\d{6})\.jpe?g$", re.IGNORECASE)
@@ -89,33 +105,44 @@ def load_cameras():
     if not CCTV_INFO_CSV.exists():
         print(f"[!] Camera metadata not found: {CCTV_INFO_CSV}")
     else:
-        with open(CCTV_INFO_CSV, encoding="utf-8-sig", newline="") as f:
-            for row in csv.DictReader(f):
-                cam_id = (row.get("camera_id") or "").strip()
-                if not cam_id:
-                    continue
-                cam_dir = DATASET_DIR / cam_id
-                images = sorted(p.name for p in cam_dir.glob("*.jpg")) if cam_dir.is_dir() else []
-                files_by_cam[cam_id] = set(images)
+        rows = []
+        for encoding, errors in (("utf-8-sig", "strict"), ("cp874", "replace"), ("utf-8", "replace")):
+            try:
+                with open(CCTV_INFO_CSV, encoding=encoding, errors=errors, newline="") as f:
+                    rows = list(csv.DictReader(f))
+                break
+            except UnicodeDecodeError:
+                continue
+            except Exception as e:
+                print(f"[!] Failed loading {CCTV_INFO_CSV} with {encoding}: {e}")
+                continue
 
-                # Bangkok sits around 13.7N, 100.5E; accept anything plausible for Thailand
-                lat = _coord(row.get("latitude"), 5.0, 21.0)
-                lon = _coord(row.get("longitude"), 97.0, 106.0)
-                has_coords = lat is not None and lon is not None
+        for row in rows:
+            cam_id = (row.get("camera_id") or "").strip()
+            if not cam_id:
+                continue
+            cam_dir = DATASET_DIR / cam_id
+            images = sorted(p.name for p in cam_dir.glob("*.jpg")) if cam_dir.is_dir() else []
+            files_by_cam[cam_id] = set(images)
 
-                cameras.append({
-                    "camera_id": cam_id,
-                    "name_en": _clean(row.get("location_en")),
-                    "detail_en": _clean(row.get("location_detail_en")),
-                    "name_th": _clean(row.get("location")),
-                    "detail_th": _clean(row.get("location_detail")),
-                    "latitude": lat if has_coords else None,
-                    "longitude": lon if has_coords else None,
-                    "has_coords": has_coords,
-                    "image_count": len(images),
-                    "first_image": images[0] if images else None,
-                    "latest_image": images[-1] if images else None,
-                })
+            # Bangkok sits around 13.7N, 100.5E; accept anything plausible for Thailand
+            lat = _coord(row.get("latitude"), 5.0, 21.0)
+            lon = _coord(row.get("longitude"), 97.0, 106.0)
+            has_coords = lat is not None and lon is not None
+
+            cameras.append({
+                "camera_id": cam_id,
+                "name_en": _clean(row.get("location_en")),
+                "detail_en": _clean(row.get("location_detail_en")),
+                "name_th": _clean(row.get("location")),
+                "detail_th": _clean(row.get("location_detail")),
+                "latitude": lat if has_coords else None,
+                "longitude": lon if has_coords else None,
+                "has_coords": has_coords,
+                "image_count": len(images),
+                "first_image": images[0] if images else None,
+                "latest_image": images[-1] if images else None,
+            })
     CAMERAS, CAMERA_FILES = cameras, files_by_cam
     return cameras
 
@@ -188,6 +215,7 @@ class MapRequestHandler(BaseHTTPRequestHandler):
 
 
 def start_server(port=8081):
+    ensure_dataset()
     load_cameras()
     with_images = sum(1 for c in CAMERAS if c["image_count"])
     server = ThreadingHTTPServer(("", port), MapRequestHandler)
