@@ -8,7 +8,8 @@ WORK_DIR = ROOT_DIR / "labeling_work"
 DEFAULT_DATASET_ROOT = ROOT_DIR  # folder that contains dataset/100_cameras/...
 
 CANDIDATES_CSV = TEST_SET_DIR / "candidates.csv"
-ASSIGNMENT_CSV = TEST_SET_DIR / "camera_assignment.csv"
+TRAIN_MANIFEST_CSV = ROOT_DIR / "DataEngineering" / "train_set" / "train_manifest.csv"
+REVIEWS_DIR = ROOT_DIR / "DataEngineering" / "reviews"
 
 # Target classes (same mapping as Models/training_prep.py)
 TARGET_CLASSES = {0: "car", 1: "motorcycle", 2: "bus", 3: "truck"}
