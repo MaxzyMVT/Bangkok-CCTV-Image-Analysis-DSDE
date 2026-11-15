@@ -11,6 +11,13 @@
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- MapLibre draws the vector "Minimal" basemap inside Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+        integrity="sha256-V2sIX92Uh6ZaGSFTKMHghsB85b9toJtmazgG09AI2uk=" crossorigin="">
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"
+          integrity="sha256-vpYzxNhw4m+zfxz+XFp3GBZnEUAD6hYgeseFDY2ordE=" crossorigin=""></script>
+  <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.js"
+          integrity="sha256-WezY0rMnedJPG9Jrh8iJDyfkpueFjZk70X5Nh45tJnc=" crossorigin=""></script>
   <style>
     :root {
       --bg: #070b14;
@@ -127,6 +134,44 @@
     }
     .switcher button:hover { color: var(--text); }
     .switcher button.on { background: var(--cyan); color: #04121a; }
+    .switcher button:focus-visible, .rail-toggle:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    /* "รถไฟฟ้า" on/off switch */
+    .rail-toggle {
+      position: absolute; top: 64px; right: 16px; z-index: 1000; display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px 6px 12px; border-radius: 12px; cursor: pointer; color: var(--text);
+      font: 600 12px var(--sans); border: 1px solid var(--line);
+    }
+    .rail-toggle .track {
+      position: relative; width: 30px; height: 16px; border-radius: 999px; background: #475569; transition: background .2s;
+    }
+    .rail-toggle .track::after {
+      content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%;
+      background: #fff; transition: transform .2s;
+    }
+    .rail-toggle[aria-checked="true"] .track { background: var(--cyan); }
+    .rail-toggle[aria-checked="true"] .track::after { transform: translateX(14px); }
+    .rail-toggle .dots { display: inline-flex; gap: 2px; }
+    .rail-toggle .dots i { width: 6px; height: 6px; border-radius: 50%; display: block; }
+
+    /* Rail station labels and popup */
+    .leaflet-tooltip.st-label {
+      background: rgba(255, 255, 255, 0.92); color: #1f2937; border: 1px solid rgba(15, 23, 42, 0.18);
+      border-radius: 5px; padding: 1px 5px; box-shadow: 0 1px 2px rgba(0,0,0,.15);
+      font: 600 11px "Noto Sans Thai", var(--sans); white-space: nowrap;
+    }
+    .leaflet-tooltip.st-label::before { display: none; }
+    .leaflet-popup.st-popup .leaflet-popup-content-wrapper {
+      background: var(--glass-strong); color: var(--text); border: 1px solid var(--line-strong); border-radius: 12px;
+    }
+    .leaflet-popup.st-popup .leaflet-popup-tip { background: var(--glass-strong); }
+    .leaflet-popup.st-popup .leaflet-popup-content { margin: 10px 12px; min-width: 170px; }
+    .leaflet-popup.st-popup a.leaflet-popup-close-button { color: var(--muted); }
+    .st-name { font: 600 14px "Noto Sans Thai", var(--sans); }
+    .st-en { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+    .st-lines { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+    .st-line { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+    .st-line i { width: 18px; height: 5px; border-radius: 3px; display: block; box-shadow: 0 0 0 1px #fff; }
 
     /* ---------- Zoom + coords ---------- */
     .zoom { position: absolute; right: 16px; bottom: 28px; z-index: 1000; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; }
@@ -315,7 +360,8 @@
       .panel-head { padding: 8px 16px 12px; }
       .stats { display: none; }
       .switcher { top: 12px; right: 12px; left: 12px; justify-content: center; }
-      .switcher button { flex: 1; }
+      .switcher button { flex: 1; padding: 7px 4px; }
+      .rail-toggle { top: 60px; right: 12px; }
       .zoom { display: none; }
       .coords { display: none; }
       .leaflet-control-scale { display: none; }
@@ -362,8 +408,14 @@
   <div class="switcher glass" id="switcher">
     <button data-layer="dark" class="on">Dark</button>
     <button data-layer="streets">Streets</button>
+    <button data-layer="minimal">Minimal</button>
     <button data-layer="satellite">Satellite</button>
   </div>
+  <button type="button" class="rail-toggle glass" id="railToggle" role="switch" aria-checked="false"
+          title="แสดงเส้นทาง BTS / MRT">
+    <span class="dots" aria-hidden="true"><i style="background:#65B724"></i><i style="background:#1E398D"></i><i style="background:#893B90"></i></span>
+    รถไฟฟ้า <span class="track" aria-hidden="true"></span>
+  </button>
 
   <div class="zoom glass">
     <button id="zoomIn" aria-label="Zoom in">+</button>
@@ -390,14 +442,185 @@
         { maxZoom: 19, attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics' })
     };
     let currentLayer = layers.dark.addTo(map);
+    let currentMode = 'dark';
+
+    // ---------- "Minimal" basemap: OpenFreeMap Positron (vector, no key), trimmed and recoloured ----------
+    // Keeps main roads, rivers, parks and district names; drops buildings, minor-road names and shields.
+    const MINIMAL_STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
+    const MINIMAL_ATTR = '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> '
+      + '&copy; <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> '
+      + 'Data from ' + OSM_ATTR;
+    const MINIMAL_DROP = /^(building|highway-name-path|highway-name-minor|highway_path|railway_transit.*|railway_service.*|highway-shield.*|road_shield_us|aeroway-taxiway)$/;
+    const THAI_NAME = ['coalesce', ['get', 'name:th'], ['get', 'name']];
+    const MINIMAL_PAINT = {   // light, Google-like palette
+      background: { 'background-color': '#f5f5f3' },
+      park: { 'fill-color': '#cfe8c4', 'fill-opacity': 1 },
+      landcover_wood: { 'fill-color': '#d7ebcd' },
+      water: { 'fill-color': '#a9d3f2' },
+      waterway: { 'line-color': '#a9d3f2' },
+      landuse_residential: { 'fill-color': '#f0efeb' },
+      highway_minor: { 'line-color': '#ffffff' },
+      highway_major_casing: { 'line-color': '#d9d9d6' },
+      highway_major_inner: { 'line-color': '#ffffff' },
+      highway_major_subtle: { 'line-color': '#ffffff' },
+      highway_motorway_casing: { 'line-color': '#e3c46d' },
+      highway_motorway_inner: { 'line-color': '#fbe4a0' },
+      highway_motorway_subtle: { 'line-color': '#fbe4a0' },
+      highway_motorway_bridge_casing: { 'line-color': '#e3c46d' },
+      highway_motorway_bridge_inner: { 'line-color': '#fbe4a0' },
+      tunnel_motorway_inner: { 'line-color': '#fdf0c8' }
+    };
+
+    function buildMinimalStyle(style) {
+      style.layers = style.layers.filter(l => !MINIMAL_DROP.test(l.id));
+      for (const layer of style.layers) {
+        Object.assign(layer.paint = layer.paint || {}, MINIMAL_PAINT[layer.id] || {});
+        if (layer.id === 'highway_minor') layer.minzoom = 13;  // small streets only once you zoom in
+        if (layer.type === 'symbol' && layer.layout && layer.layout['text-field'] && !/shield/.test(layer.id)) {
+          layer.layout['text-field'] = THAI_NAME;               // Thai names, like the reference map
+          layer.paint['text-color'] = /^label_(city|town|state|country)/.test(layer.id) ? '#3c4043' : '#5f6368';
+          layer.paint['text-halo-color'] = '#ffffff';
+          layer.paint['text-halo-width'] = 1.4;
+        }
+      }
+      return style;
+    }
+
+    let minimalLayerPromise = null;
+    function getMinimalLayer() {
+      if (!minimalLayerPromise) {
+        minimalLayerPromise = fetch(MINIMAL_STYLE_URL)
+          .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+          .then(style => L.maplibreGL({ style: buildMinimalStyle(style), attribution: MINIMAL_ATTR, pane: 'tilePane' }))
+          .catch(err => { minimalLayerPromise = null; throw err; });
+      }
+      return minimalLayerPromise;
+    }
+
+    // Switching basemaps only swaps the background: the view, open camera popup and Replay frame stay as they are
+    async function setBaseMode(mode) {
+      if (mode === currentMode) return;
+      let next;
+      try {
+        next = mode === 'minimal' ? await getMinimalLayer() : layers[mode];
+      } catch (err) {
+        console.error(err);
+        notify('โหลดแผนที่ Minimal ไม่สำเร็จ ลองอีกครั้ง', 'error');
+        return;
+      }
+      map.removeLayer(currentLayer);
+      currentLayer = next.addTo(map);
+      currentMode = mode;
+      document.querySelectorAll('#switcher button').forEach(b => {
+        b.classList.toggle('on', b.dataset.layer === mode);
+        b.setAttribute('aria-pressed', String(b.dataset.layer === mode));
+      });
+      document.body.classList.toggle('light-tiles', mode === 'streets' || mode === 'minimal');
+      setRailVisible(railPref[mode]);
+    }
 
     document.getElementById('switcher').addEventListener('click', e => {
       const btn = e.target.closest('button[data-layer]');
-      if (!btn) return;
-      map.removeLayer(currentLayer);
-      currentLayer = layers[btn.dataset.layer].addTo(map);
-      document.querySelectorAll('#switcher button').forEach(b => b.classList.toggle('on', b === btn));
-      document.body.classList.toggle('light-tiles', btn.dataset.layer === 'streets');
+      if (btn) setBaseMode(btn.dataset.layer);
+    });
+
+    // ---------- BTS / MRT layer (OpenStreetMap data, built by DataEngineering/build_rail_geojson.py) ----------
+    // Lines sit below the camera pins and never take clicks; stations sit below pins too, so a camera on
+    // top of a rail line or station still opens its Replay popup.
+    map.createPane('railLines').style.zIndex = 380;    // tiles 200 < rail lines < overlays 400
+    map.getPane('railLines').style.pointerEvents = 'none';
+    map.createPane('railStations').style.zIndex = 450; // < camera pins (markerPane 600)
+    const railRenderer = L.svg({ pane: 'railLines' });
+    const RAIL_ATTR = 'รถไฟฟ้า BTS/MRT: ' + OSM_ATTR + ' (ODbL)';
+    const RAIL_MIN_ZOOM = 10, STATION_MIN_ZOOM = 13, STATION_LABEL_ZOOM = 15;
+    const railPref = { dark: false, streets: false, minimal: true, satellite: false };  // on by default in Minimal
+    const railGroup = L.layerGroup([], { attribution: RAIL_ATTR });
+    let railData = null, railLinesCasing = null, railLinesColour = null, railStations = null, railVisible = false;
+    let railLabelsPermanent = null;
+    const railToggle = document.getElementById('railToggle');
+
+    const railWeight = z => z >= 16 ? 6 : z >= 14 ? 5 : z >= 12 ? 4 : 3;
+
+    async function loadRail() {
+      if (railData) return railData;
+      const res = await fetch('/static/map/bangkok_rail.geojson');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      railData = await res.json();
+      const lineInfo = Object.fromEntries(railData.lines.map(l => [l.key, l]));
+      const lineFeatures = railData.features.filter(f => f.properties.kind === 'line');
+      const w = railWeight(map.getZoom());
+      // White casing under the coloured line separates rail from roads
+      railLinesCasing = L.geoJSON(lineFeatures, { renderer: railRenderer, interactive: false,
+        style: () => ({ color: '#ffffff', weight: w + 3, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }) });
+      railLinesColour = L.geoJSON(lineFeatures, { renderer: railRenderer, interactive: false,
+        style: f => ({ color: f.properties.colour, weight: w, opacity: 1, lineCap: 'round', lineJoin: 'round' }) });
+
+      railStations = L.layerGroup();
+      for (const f of railData.features.filter(f => f.properties.kind === 'station')) {
+        const p = f.properties;
+        const lines = p.lines.map(k => lineInfo[k]).filter(Boolean);
+        const [lon, lat] = f.geometry.coordinates;
+        const m = L.circleMarker([lat, lon], {
+          pane: 'railStations', radius: 4, weight: 2, color: lines.length > 1 ? '#1f2937' : lines[0].colour,
+          fillColor: '#ffffff', fillOpacity: 1, bubblingMouseEvents: false
+        });
+        m.stationLabel = p.name_th;
+        m.bindPopup(() => `
+          <div class="st-name">สถานี${escapeHtml(p.name_th)}</div>
+          ${p.name_en ? `<div class="st-en">${escapeHtml(p.name_en)}</div>` : ''}
+          <div class="st-lines">${lines.map(l =>
+            `<span class="st-line"><i style="background:${escapeHtml(l.colour)}"></i>${escapeHtml(l.name_th)}</span>`).join('')}</div>`,
+          // autoClose:false keeps an open camera Replay popup open while you read a station name
+          { className: 'st-popup', autoClose: false, closeButton: true, autoPanPadding: [40, 40] });
+        railStations.addLayer(m);
+      }
+      return railData;
+    }
+
+    // Lines from city zoom; station dots from 13; permanent Thai names from 15 (hover names below that)
+    function updateRailForZoom() {
+      if (!railVisible || !railData) return;
+      const z = map.getZoom();
+      const show = (layer, on) => on ? railGroup.addLayer(layer) : railGroup.removeLayer(layer);
+      show(railLinesCasing, z >= RAIL_MIN_ZOOM);
+      show(railLinesColour, z >= RAIL_MIN_ZOOM);
+      show(railStations, z >= STATION_MIN_ZOOM);
+      const w = railWeight(z);
+      railLinesCasing.setStyle({ weight: w + 3 });
+      railLinesColour.setStyle({ weight: w });
+      const permanent = z >= STATION_LABEL_ZOOM;
+      railStations.eachLayer(m => m.setRadius(z >= 16 ? 6 : z >= 15 ? 5 : 4));
+      if (permanent !== railLabelsPermanent) {
+        railLabelsPermanent = permanent;
+        railStations.eachLayer(m => {
+          m.unbindTooltip();
+          m.bindTooltip(escapeHtml(m.stationLabel), { permanent, direction: 'right', offset: [6, 0], className: 'st-label' });
+        });
+      }
+    }
+    map.on('zoomend', updateRailForZoom);
+
+    async function setRailVisible(on) {
+      railVisible = on;
+      railToggle.setAttribute('aria-checked', String(on));
+      if (!on) { map.removeLayer(railGroup); return; }
+      try {
+        await loadRail();
+      } catch (err) {
+        console.error(err);
+        notify('โหลดข้อมูลรถไฟฟ้าไม่สำเร็จ', 'error');
+        railVisible = false;
+        railToggle.setAttribute('aria-checked', 'false');
+        return;
+      }
+      if (!railVisible) return;  // switched off while loading
+      railGroup.addTo(map);
+      updateRailForZoom();
+    }
+
+    railToggle.addEventListener('click', () => {
+      railPref[currentMode] = !railVisible;
+      setRailVisible(railPref[currentMode]);
     });
 
     L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(map);
@@ -926,7 +1149,7 @@
           // Pan so the popup clears the side panel and the top-right controls
           marker.on('popupopen', e => {
             const cover = panelCover();
-            e.popup.options.autoPanPaddingTopLeft = [cover.left + 24, 70];
+            e.popup.options.autoPanPaddingTopLeft = [cover.left + 24, 110];  // clear the style bar + รถไฟฟ้า switch
             e.popup.options.autoPanPaddingBottomRight = [70, cover.bottom + 24];
             e.popup.options.autoPan = true;
             e.popup._adjustPan();

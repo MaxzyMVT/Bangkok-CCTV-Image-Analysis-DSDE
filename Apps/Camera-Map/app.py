@@ -183,9 +183,32 @@ def handle_map_get(handler, path, query, map_template=TEMPLATE_FILE):
         else:
             ctype = mimetypes.guess_type(full.name)[0] or "image/jpeg"
             _send(handler, full.read_bytes(), ctype, cache=True)
+    elif path.startswith("/static/map/"):
+        # Map data files such as bangkok_rail.geojson (built by DataEngineering/build_rail_geojson.py)
+        full = _resolve_static(path[len("/static/map/"):])
+        if full is None:
+            handler.send_error(404, "File not found")
+        else:
+            ctype = "application/geo+json" if full.suffix == ".geojson" else (mimetypes.guess_type(full.name)[0] or "application/octet-stream")
+            _send(handler, full.read_bytes(), ctype)
     else:
         return False
     return True
+
+
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+
+
+def _resolve_static(rel):
+    """A file directly inside Apps/Camera-Map/static, or None (no sub-paths, no '..')."""
+    if not rel or "/" in rel or "\\" in rel:
+        return None
+    try:
+        full = (STATIC_DIR / rel).resolve()
+        full.relative_to(STATIC_DIR.resolve())
+    except (ValueError, OSError):
+        return None
+    return full if full.is_file() else None
 
 
 def _send(handler, body, content_type, status=200, cache=False):

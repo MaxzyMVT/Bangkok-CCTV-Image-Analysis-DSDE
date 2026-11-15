@@ -66,6 +66,16 @@ Use `--port 9000` to pick another port. On first start, a missing dataset is dow
 * Click the preview image or **“เปิดใน Detect”** to open that camera and frame in Detect, with no need to pick it again.
 * The map opens on Bangkok; zoom out to see the cameras in the context of all of Thailand.
 
+**Map styles and BTS/MRT**
+* The style bar has **Dark / Streets / Minimal / Satellite**. **Minimal** is a light map with less detail: no buildings, POI icons or small-street names, but main roads, rivers, parks and district names stay readable.
+* The **“รถไฟฟ้า”** switch shows the BTS/MRT lines in their official colours; it is on by default in Minimal. Station dots appear from zoom 13, and Thai station names from zoom 15. Click a station for its name and lines.
+* Camera pins stay on top of the rail layer, and switching styles or the rail layer keeps the view, the open camera and its Replay frame.
+* Rail lines and stations come from OpenStreetMap (© OpenStreetMap contributors, ODbL) and are stored in `Apps/Camera-Map/static/bangkok_rail.geojson`. To refresh them:
+  ```bash
+  python DataEngineering/build_rail_geojson.py
+  ```
+* Minimal basemap: [OpenFreeMap](https://openfreemap.org) (no API key) © OpenMapTiles, data from OpenStreetMap.
+
 **ภาพย้อนหลัง (Replay) in the map popup**
 * Under the preview: ⏮ previous / ▶ play–pause / ⏭ next, a frame slider, and the real capture date and time.
 * Pick a day to jump to its first frame. Play steps through the real still frames (~1 s each) and stops at the day's last frame; pressing play there starts the day over.
