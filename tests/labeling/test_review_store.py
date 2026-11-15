@@ -85,6 +85,23 @@ class ReviewStoreTest(unittest.TestCase):
         data = json.loads((self.store.set_dir("test") / "status" / f"{STEM}.json").read_text(encoding="utf-8"))
         self.assertEqual(set(data), {"status", "reviewed_at", "n_boxes"})
 
+    def _corrupt_status(self):
+        self._pre([])
+        self.store.save("test", STEM, [], "save")
+        bad = self.store.set_dir("test") / "status" / "cam0001_img00002.json"
+        bad.write_text("<<<<<<< HEAD\n{\"status\": \"approved\"}\n=======\n", encoding="utf-8")
+        return bad
+
+    def test_bad_status_file_skipped_by_default(self):
+        self._corrupt_status()
+        self.assertEqual(self.store.all_status("test"), {STEM: "approved"})
+
+    def test_bad_status_file_raises_when_strict(self):
+        bad = self._corrupt_status()
+        with self.assertRaises(ValueError) as ctx:
+            self.store.all_status("test", strict=True)
+        self.assertIn(bad.name, str(ctx.exception))
+
     def test_all_status_lists_saved_only(self):
         self._pre([])
         self.store.save("test", STEM, [], "save")

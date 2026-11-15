@@ -132,10 +132,17 @@ class ReviewStore:
         saved = self.read_labels(set_name, stem)
         return saved if saved is not None else [tuple(b[:5]) for b in self.read_prelabel(set_name, stem)]
 
-    def all_status(self, set_name) -> dict[str, str]:
+    def all_status(self, set_name, strict: bool = False) -> dict[str, str]:
+        """stem -> status for every saved frame. A broken file (e.g. git conflict markers) is skipped
+        with a warning, or raises ValueError naming the file when strict=True (merge/build)."""
         out = {}
         for p in (self.set_dir(set_name) / "status").glob("*.json"):
-            out[p.stem] = json.loads(p.read_text(encoding="utf-8"))["status"]
+            try:
+                out[p.stem] = json.loads(p.read_text(encoding="utf-8"))["status"]
+            except (ValueError, KeyError, TypeError) as e:
+                if strict:
+                    raise ValueError(f"broken status file {p}: {e}. Fix or delete it, then re-run.") from e
+                print(f"[!] skipping broken status file {p} ({e}); the frame shows as pending")
         return out
 
     def save(self, set_name, stem, boxes, action: str) -> dict:

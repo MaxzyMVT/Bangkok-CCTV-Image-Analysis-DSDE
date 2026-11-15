@@ -113,7 +113,7 @@ def build(args):
     picked = picked.copy()
     picked["stem"] = [preview_name(c, i) for c, i in zip(picked["camera_id"], picked["image_id"])]
     store = ReviewStore()
-    picked = select_frames(picked, pool, store.all_status("train"))
+    picked = select_frames(picked, pool, store.all_status("train", strict=True))
     picked["split"] = ["val" if d in args.val_dates else "train" for d in picked["date"]]
 
     teacher = YOLO(args.teacher)

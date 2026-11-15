@@ -37,10 +37,10 @@ git add DataEngineering/reviews && git commit -m "data(reviews): review batch" &
 | `1` `2` `3` `4` | car / motorcycle / bus / truck — changes the selected box, or the class for new boxes |
 | drag on empty image | draw a new box |
 | drag inside a box / drag a corner | move / resize |
-| `Del` | delete the selected box |
-| `Enter` | save and go to the next frame |
+| `Del` (or `Backspace` / Mac delete with a box selected) | delete the selected box |
+| `Enter` | save and go to the next frame (only once the image has loaded) |
 | `R` | reject the frame (unusable) and go next |
-| `Backspace` | throw away your edits and go back to YOLO's boxes |
+| `Backspace` with nothing selected | go back to YOLO's boxes — on a saved frame it asks first, then **deletes that saved review** |
 | `←` `→` | previous / next frame without saving |
 | `H` | hide boxes to see the vehicles underneath |
 | `Ctrl+Z` | undo |

@@ -48,7 +48,7 @@ def count_error_table(rows: list[dict]) -> pd.DataFrame:
 
 def merge(store: ReviewStore, items: pd.DataFrame, dataset_root: Path, out_dir: Path,
           allow_unreviewed: bool = False) -> dict:
-    statuses = store.all_status("test")
+    statuses = store.all_status("test", strict=True)
     items = items.copy()
     items["status"] = items["stem"].map(statuses).fillna("pending")
     tally = items["status"].value_counts().to_dict()
