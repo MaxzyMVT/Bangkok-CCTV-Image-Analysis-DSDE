@@ -913,7 +913,9 @@
         const res = await fetch('/api/map/cameras');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        allCameras = data.cameras.sort((a, b) => title(a).localeCompare(title(b)));
+        // List cameras by numeric camera ID (11, 32, 124, ...); "numeric" keeps 124 after 32
+        allCameras = data.cameras.sort((a, b) =>
+          a.camera_id.localeCompare(b.camera_id, undefined, { numeric: true }));
 
         allCameras.forEach(cam => {
           if (!cam.has_coords) return; // listed in the panel, but no pin
