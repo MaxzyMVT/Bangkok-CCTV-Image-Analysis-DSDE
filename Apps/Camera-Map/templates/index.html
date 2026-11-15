@@ -151,8 +151,23 @@
     }
     .rail-toggle[aria-checked="true"] .track { background: var(--cyan); }
     .rail-toggle[aria-checked="true"] .track::after { transform: translateX(14px); }
-    .rail-toggle .dots { display: inline-flex; gap: 2px; }
-    .rail-toggle .dots i { width: 6px; height: 6px; border-radius: 50%; display: block; }
+    .rail-toggle .st-icon { --st: 16px; }
+
+    /* BTS / MRT station icons (logo images in a small white badge) */
+    .st-marker { background: none; border: 0; }
+    .st-icon { --st: 18px; display: inline-flex; gap: 2px; }
+    .st-marker .st-icon { transform: translate(-50%, -50%); cursor: pointer; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.35)); }
+    .rail-z15 .st-marker .st-icon { --st: 22px; }
+    .rail-z16 .st-marker .st-icon { --st: 26px; }
+    .st-icon img {
+      width: var(--st); height: var(--st); display: block; border-radius: 50%; background: #fff;
+      box-sizing: border-box; padding: 1px; object-fit: contain;
+    }
+    .st-icon img[alt="BTS"], .rail-toggle .st-icon img:first-child { border-radius: 5px; padding: 2px; }
+    .st-marker:focus-visible { outline: none; }
+    .st-marker:focus-visible .st-icon { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 6px; }
+    .st-head { display: flex; align-items: center; gap: 8px; }
+    .st-head .st-icon { --st: 28px; }
 
     /* Rail station labels and popup */
     .leaflet-tooltip.st-label {
@@ -205,6 +220,14 @@
     .pin:hover .core { transform: scale(1.35); }
     .pin.active .core { background: var(--amber); border-color: #fff7d6; transform: scale(1.4); }
     .pin.active .ring { border-color: var(--amber); animation: pulse 1.6s ease-out infinite; }
+    /* Light maps (Streets / Minimal): cyan disappears on a pale background, so use a dark pin with a white ring */
+    body.light-tiles .pin .core {
+      inset: 6px; background: #111827; border: 2.5px solid #ffffff;
+      box-shadow: 0 0 0 1.5px rgba(17, 24, 39, 0.55), 0 2px 5px rgba(0, 0, 0, 0.45);
+    }
+    body.light-tiles .pin.no-images .core { background: #9ca3af; }
+    body.light-tiles .pin.active .core { background: var(--amber); border-color: #ffffff; }
+    body.light-tiles .pin.active .ring { border-color: #b45309; }
     @keyframes pulse { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(2.4); opacity: 0; } }
 
     .leaflet-tooltip.cam-tip {
@@ -413,7 +436,7 @@
   </div>
   <button type="button" class="rail-toggle glass" id="railToggle" role="switch" aria-checked="false"
           title="แสดงเส้นทาง BTS / MRT">
-    <span class="dots" aria-hidden="true"><i style="background:#65B724"></i><i style="background:#1E398D"></i><i style="background:#893B90"></i></span>
+    <span class="st-icon" aria-hidden="true"><img src="/static/map/icon-bts.png" alt=""><img src="/static/map/icon-mrt.png" alt=""></span>
     รถไฟฟ้า <span class="track" aria-hidden="true"></span>
   </button>
 
@@ -540,6 +563,7 @@
     const railToggle = document.getElementById('railToggle');
 
     const railWeight = z => z >= 16 ? 6 : z >= 14 ? 5 : z >= 12 ? 4 : 3;
+    const SYSTEM_ICON = { BTS: '/static/map/icon-bts.png', MRT: '/static/map/icon-mrt.png' };
 
     async function loadRail() {
       if (railData) return railData;
@@ -560,14 +584,23 @@
         const p = f.properties;
         const lines = p.lines.map(k => lineInfo[k]).filter(Boolean);
         const [lon, lat] = f.geometry.coordinates;
-        const m = L.circleMarker([lat, lon], {
-          pane: 'railStations', radius: 4, weight: 2, color: lines.length > 1 ? '#1f2937' : lines[0].colour,
-          fillColor: '#ffffff', fillOpacity: 1, bubblingMouseEvents: false
+        // BTS / MRT logo per system at the station (both logos at a BTS–MRT interchange)
+        const systems = [...new Set(lines.map(l => l.system))];
+        const m = L.marker([lat, lon], {
+          pane: 'railStations', keyboard: true, riseOnHover: true,
+          icon: L.divIcon({
+            className: 'st-marker', iconSize: null,
+            html: `<span class="st-icon" role="img" aria-label="สถานี${escapeHtml(p.name_th)}">${
+              systems.map(s => `<img src="${SYSTEM_ICON[s]}" alt="${s}">`).join('')}</span>`
+          })
         });
         m.stationLabel = p.name_th;
         m.bindPopup(() => `
-          <div class="st-name">สถานี${escapeHtml(p.name_th)}</div>
-          ${p.name_en ? `<div class="st-en">${escapeHtml(p.name_en)}</div>` : ''}
+          <div class="st-head">
+            <span class="st-icon">${systems.map(s => `<img src="${SYSTEM_ICON[s]}" alt="${s}">`).join('')}</span>
+            <div><div class="st-name">สถานี${escapeHtml(p.name_th)}</div>
+            ${p.name_en ? `<div class="st-en">${escapeHtml(p.name_en)}</div>` : ''}</div>
+          </div>
           <div class="st-lines">${lines.map(l =>
             `<span class="st-line"><i style="background:${escapeHtml(l.colour)}"></i>${escapeHtml(l.name_th)}</span>`).join('')}</div>`,
           // autoClose:false keeps an open camera Replay popup open while you read a station name
@@ -589,12 +622,14 @@
       railLinesCasing.setStyle({ weight: w + 3 });
       railLinesColour.setStyle({ weight: w });
       const permanent = z >= STATION_LABEL_ZOOM;
-      railStations.eachLayer(m => m.setRadius(z >= 16 ? 6 : z >= 15 ? 5 : 4));
+      // Icon size follows zoom (CSS reads these classes)
+      map.getContainer().classList.toggle('rail-z15', z === 15);
+      map.getContainer().classList.toggle('rail-z16', z >= 16);
       if (permanent !== railLabelsPermanent) {
         railLabelsPermanent = permanent;
         railStations.eachLayer(m => {
           m.unbindTooltip();
-          m.bindTooltip(escapeHtml(m.stationLabel), { permanent, direction: 'right', offset: [6, 0], className: 'st-label' });
+          m.bindTooltip(escapeHtml(m.stationLabel), { permanent, direction: 'right', offset: [14, 0], className: 'st-label' });
         });
       }
     }
