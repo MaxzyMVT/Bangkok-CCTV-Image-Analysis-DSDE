@@ -19,20 +19,25 @@ Branch `feat/data-prep-yolo-test-set` · 15 พ.ย. 2026 · ทำโดย kan
 | Merge Test set | `DataEngineering/labeling/merge_test_set.py` | รวมภาพที่ตรวจแล้ว + ออก `count_error.csv` (YOLO นับพลาดกี่คัน) |
 | Training pipeline | `Models/training/train_pipeline.py` | build → fine-tune → เก็บ `best.pt` → eval (mAP + count error) |
 | App ใช้โมเดลใหม่ | `Models/model_registry.py`, `Apps/app.py` | App โหลด `Models/weights/best.pt` อัตโนมัติถ้ามี |
-| Tests | `tests/` | 34 tests (`python -m unittest discover -s tests -t .`) |
+| Tests | `tests/` | 54 tests (`python -m unittest discover -s tests -t .`) |
 
 คู่มือ: `DataEngineering/labeling/README.md` (คนตรวจ) · `Models/training/README.md` (train)
 
-## ผลตอนนี้
+## ผลตอนนี้ (วัดบน Test 294 ภาพที่คนตรวจ, 16 พ.ย.)
 
-โมเดล `best.pt` = `yolo11s` fine-tune 80 epoch บน 1,027 ภาพ (label จาก `yolo11x`) วัดบน val 173 ภาพ:
+Test = 300 ภาพ core (กล้องละ 3 คนละช่วงเวลา) ตรวจครบ, reject 8 → 294 ภาพ 2,422 คัน (เฉลี่ย 8.2 คัน/ภาพ)
 
-| | mAP50 | นับพลาด / ภาพ (car · moto · bus · truck · **รวม**) |
+| โมเดล | mAP50 | นับพลาด / ภาพ (car · moto · bus · truck · **รวม**) |
 |---|---|---|
-| `yolov8n` เดิมของ App | 0.434 | 1.67 · 0.35 · 0.31 · 0.66 · **1.96** |
-| `best.pt` ใหม่ | 0.735 | 1.11 · 0.22 · 0.11 · 0.49 · **1.27** |
+| `yolov8n` เดิมของ App | 0.29 | 3.12 · 1.68 · 0.40 · 0.35 · **4.26** |
+| `yolo11x` (ตัวตีกรอบล่วงหน้า) | – | 1.70 · 1.32 · 0.13 · 0.84 · **2.28** |
+| `yolo11s` fine-tune, pseudo-label ล้วน | 0.44 | 2.01 · 1.32 · 0.14 · 0.94 · **2.52** |
+| **`best.pt` ปัจจุบัน** = fine-tune + label คน 252 ภาพ | **0.51** | **1.63 · 1.15 · 0.11 · 0.57 · 2.31** |
 
-นับพลาดลดลง ~35% · ⚠️ val ยังเป็น label จาก `yolo11x` → เป็นแค่ sanity check ตัวเลขจริงต้องรอตรวจ Test set
+- นับพลาดลดจาก 4.26 → 2.31 คัน/ภาพ (−46 %) เทียบโมเดลเดิมของ App
+- label จากคนแก้ปัญหากระบะ = truck ได้ตรงจุด (truck 0.94 → 0.57)
+- ทุกโมเดลยัง**นับขาด** (best.pt ขาดเฉลี่ย 1.2 คัน/ภาพ) มากสุดช่วงเย็นเร่งด่วน → ต้องระบุในรายงาน
+- ขยายภาพตอน predict (416 → 640/832) แทบไม่ช่วย (2.31 / 2.34 / 2.24) → ปัญหาไม่ใช่ความละเอียดภาพเป็นหลัก
 
 ## วิธีใช้ (ทีม)
 
