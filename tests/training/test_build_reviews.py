@@ -6,12 +6,20 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "Models" / "training"))
 
-from train_pipeline import count_mae, select_frames  # noqa: E402
+from train_pipeline import BUILD_MANIFEST, count_mae, select_frames  # noqa: E402
+from common import TRAIN_MANIFEST_CSV  # noqa: E402
 
 
 def _frames(ids):
     return pd.DataFrame({"image_id": ids, "camera_id": [1] * len(ids), "date": ["2026-08-25"] * len(ids),
                          "stem": [f"cam0001_img{i:05d}" for i in ids]})
+
+
+class BuildManifestTest(unittest.TestCase):
+    def test_build_does_not_overwrite_review_queue(self):
+        # train_manifest.csv is the review tool's train queue; build drops rejected frames, so it writes elsewhere
+        self.assertNotEqual(BUILD_MANIFEST.resolve(), TRAIN_MANIFEST_CSV.resolve())
+        self.assertEqual(BUILD_MANIFEST.parent.resolve(), TRAIN_MANIFEST_CSV.parent.resolve())
 
 
 class SelectFramesTest(unittest.TestCase):

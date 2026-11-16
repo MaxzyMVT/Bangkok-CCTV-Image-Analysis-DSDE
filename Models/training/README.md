@@ -29,7 +29,8 @@ Stages can also run on their own: `build`, `train`, `eval`. See `--help` for all
     N times in `train.txt`. Buses are only ~3 % of frames, so the model sees too few of them otherwise.
   * **Trucks are not up-weighted yet.** Many yolo11x "truck" boxes are pickups (team rule: pickup = car);
     up-weighting them would teach the wrong class. Revisit after the truck frames are human-reviewed.
-* Output: `DataEngineering/train_set/` (`images/`, `labels/`, `train.txt`, `dataset.yaml` are git-ignored; `train_manifest.csv` is committed).
+* Output: `DataEngineering/train_set/` (`images/`, `labels/`, `train.txt`, `dataset.yaml`, `build_manifest.csv` are git-ignored).
+  `train_manifest.csv` (committed) is the review tool's train queue; `build` re-samples the same frames (same seed) and never rewrites it.
   `dataset.yaml` points `train:` at `train.txt` (an image list; Ultralytics keeps duplicate lines) and `val:` at `images/val`.
 
 ## 2. train: fine-tune + augmentation

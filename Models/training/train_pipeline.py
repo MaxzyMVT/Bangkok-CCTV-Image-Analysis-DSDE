@@ -44,6 +44,9 @@ from review_store import ReviewStore  # noqa: E402
 from sample_test_candidates import sample_camera  # noqa: E402
 
 TRAIN_SET_DIR = ROOT_DIR / "DataEngineering" / "train_set"
+# What `build` actually used (split, label source, boxes). Not train_manifest.csv: that file is the
+# review tool's train queue (committed) and must keep rejected frames. Git-ignored.
+BUILD_MANIFEST = TRAIN_SET_DIR / "build_manifest.csv"
 RUNS_DIR = ROOT_DIR / "runs" / "train"
 EVAL_DIR = ROOT_DIR / "runs" / "eval"
 
@@ -190,7 +193,7 @@ def build(args):
                         "train": "train.txt", "val": "images/val", "names": TARGET_CLASSES},
                        f, sort_keys=False)
     picked[["stem", "image_id", "camera_id", "date", "time_period", "split", "label_source", "n_boxes"]] \
-        .to_csv(TRAIN_SET_DIR / "train_manifest.csv", index=False, encoding="utf-8-sig")
+        .to_csv(BUILD_MANIFEST, index=False, encoding="utf-8-sig")
 
     print(pd.crosstab(picked["split"], picked["label_source"], margins=True))
     print(f"[+] {sum(n_boxes)} boxes -> {TRAIN_SET_DIR / 'dataset.yaml'}")
