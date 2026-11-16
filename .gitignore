@@ -10,5 +10,11 @@ runs/
 # Test output artifacts
 Models/test_annotated_sample.jpg
 
+# Virtual environment & Lakehouse Parquet storage
+.venv/
+lakehouse/
+*.ducklake
+*.parquet
+
 # Claude Code local settings
 .claude/
