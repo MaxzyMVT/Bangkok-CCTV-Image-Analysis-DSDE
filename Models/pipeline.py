@@ -92,7 +92,7 @@ def run_batch_pipeline(
     annotated_output_dir: Optional[Path] = None,
     limit: Optional[int] = None,
     conf_threshold: float = 0.25,
-    model_name: str = "yolov8n.pt",
+    model_name: Optional[str] = None,
     device: str = "cpu",
     frozen_csv: Optional[Path] = DEFAULT_FROZEN_CSV
 ):
@@ -100,8 +100,9 @@ def run_batch_pipeline(
     Processes all CCTV images in input_dir, extracts vehicle detections,
     and writes tabular dataset ready for Data Science & Analytics.
     """
+    actual_model = resolve_model(model_name)
     detector = YOLOVehicleDetector(
-        model_name=model_name,
+        model_name=actual_model,
         confidence_threshold=conf_threshold,
         device=device
     )
@@ -189,7 +190,7 @@ if __name__ == "__main__":
     parser.add_argument("--save-annotated", type=str, default="", help="Directory to save annotated images (optional)")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of images to process")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
-    parser.add_argument("--model", type=str, default=None, help="YOLO weights (default: Models/weights/best.pt if present, else yolov8n.pt)")
+    parser.add_argument("--model", type=str, default=None, help="YOLO weights (default: Models/weights/best.pt if present, else yolo11s.pt)")
     parser.add_argument("--keep-frozen", action="store_true",
                         help="Also count frames from frozen camera feeds (skipped by default)")
     args = parser.parse_args()

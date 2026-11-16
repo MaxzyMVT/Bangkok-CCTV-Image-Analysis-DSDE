@@ -48,12 +48,12 @@ def imwrite_unicode(path: Union[str, Path], img: np.ndarray, ext: str = ".jpg") 
 
 class YOLOVehicleDetector:
     """
-    Ultralytics YOLO Vehicle Detection & Counting Pipeline
-    Pretrained on COCO dataset, specifically tailored for Bangkok CCTV road footage.
+    Ultralytics YOLO11 Vehicle Detection & Counting Pipeline
+    Tailored for Bangkok CCTV road traffic analysis with fine-tuned custom weights.
     """
     def __init__(
         self,
-        model_name: str = "yolov8n.pt",
+        model_name: str = "yolo11s.pt",
         vehicle_classes: Optional[Dict[int, str]] = None,
         confidence_threshold: float = 0.25,
         iou_threshold: float = 0.45,
@@ -197,23 +197,43 @@ class YOLOVehicleDetector:
                     )
 
         if draw_annotations:
-            # Draw HUD Analytics Bar on top
-            hud_h = 42
-            hud_overlay = annotated_img.copy()
-            cv2.rectangle(hud_overlay, (0, 0), (w, hud_h), (20, 24, 30), -1)
-            cv2.addWeighted(hud_overlay, 0.75, annotated_img, 0.25, 0, annotated_img)
-
             # Build summary string
             total = counts["total_vehicles"]
             hud_text = f"TOTAL: {total} | Cars: {counts.get('car', 0)} | Moto: {counts.get('motorcycle', 0)} | Bus: {counts.get('bus', 0)} | Truck: {counts.get('truck', 0)}"
+
+            # Auto-scale font dynamically to prevent cut-off on lower resolution CCTV images (e.g. 352x288)
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            margin = max(8, int(w * 0.025))
+            avail_w = max(50, w - 2 * margin)
+            font_scale = 0.65
+            font_thickness = 2
+            (text_w, text_h), _ = cv2.getTextSize(hud_text, font, font_scale, font_thickness)
+            if text_w > avail_w:
+                font_scale = font_scale * (avail_w / text_w)
+                font_thickness = 1 if font_scale < 0.55 else 2
+                (text_w, text_h), _ = cv2.getTextSize(hud_text, font, font_scale, font_thickness)
+                if text_w > avail_w:
+                    font_scale = max(0.35, font_scale * (avail_w / text_w))
+                    (text_w, text_h), _ = cv2.getTextSize(hud_text, font, font_scale, font_thickness)
+
+            # Draw HUD Analytics Bar on top
+            hud_h = max(26, int(text_h + 16))
+            hud_overlay = annotated_img.copy()
+            cv2.rectangle(hud_overlay, (0, 0), (w, hud_h), (20, 24, 30), -1)
+            cv2.addWeighted(hud_overlay, 0.80, annotated_img, 0.20, 0, annotated_img)
+
+            # Center text horizontally & vertically within the HUD bar
+            text_x = max(margin, (w - text_w) // 2)
+            text_y = int((hud_h + text_h) / 2) - 1
+
             cv2.putText(
                 annotated_img,
                 hud_text,
-                (14, 27),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.65,
+                (text_x, text_y),
+                font,
+                font_scale,
                 (255, 255, 255),
-                2,
+                font_thickness,
                 cv2.LINE_AA
             )
 

@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT_DIR / "Models"))
 
 from Models.detector import YOLOVehicleDetector, DEFAULT_VEHICLE_CLASSES, imread_unicode, imwrite_unicode
 from Models.pipeline import parse_cctv_filename, load_cctv_metadata
-from Models.model_registry import resolve_model
+from Models.model_registry import resolve_model, best_model_info
 
 # Dataset auto-download from instructor's Google Drive
 try:
@@ -291,6 +291,23 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # 6. Get Model Metadata Info
+        elif path == "/api/model-info":
+            m_path = resolve_model()
+            m_info = best_model_info()
+            is_finetuned = "best.pt" in str(m_path)
+            self._send_json({
+                "model_name": "YOLO11s (Bangkok Fine-Tuned)" if is_finetuned else "YOLO11s (Pretrained)",
+                "model_path": str(m_path),
+                "is_finetuned": is_finetuned,
+                "base_model": m_info.get("base_model", "yolo11s.pt"),
+                "val_mAP50": m_info.get("val_mAP50", None),
+                "test_mAP50": m_info.get("test", {}).get("mAP50", None),
+                "test_count_mae": m_info.get("test", {}).get("count_mae", {}),
+                "info": m_info
+            })
+            return
+
         self.send_error(404, "Endpoint not found")
 
     def do_POST(self):
@@ -434,10 +451,12 @@ def start_server(port=8080):
         METADATA_LOOKUP = load_cctv_metadata(CCTV_INFO_CSV)
 
     build_camera_index()
+    active_model = resolve_model()
     server_address = ("", port)
     httpd = HTTPServer(server_address, CCTVAnalysisHandler)
     print(f"\n=================================================================")
-    print(f"🚀 Bangkok CCTV YOLO Analytics Web Dashboard (Upgraded) Running!")
+    print(f"🚀 Bangkok CCTV YOLO11 Analytics Web Dashboard (Upgraded) Running!")
+    print(f"📦 Active Model Weights: {active_model}")
     print(f"👉 Local URL: http://localhost:{port}")
     print(f"=================================================================\n")
     try:

@@ -50,7 +50,7 @@ def generate_pseudo_dataset(
     for p in (train_img_dir, val_img_dir, train_lbl_dir, val_lbl_dir):
         p.mkdir(parents=True, exist_ok=True)
 
-    detector = YOLOVehicleDetector(model_name="yolov8n.pt", confidence_threshold=conf_threshold)
+    detector = YOLOVehicleDetector(model_name="yolo11s.pt", confidence_threshold=conf_threshold)
 
     cam_dirs = sorted([d for d in dataset_cctv.iterdir() if d.is_dir()])
     total_images = 0
@@ -112,7 +112,7 @@ def generate_pseudo_dataset(
     print(f"[+] Prepared {total_images} pseudo-labeled CCTV frames.")
     print(f"[+] YOLO data configuration written to: {data_yaml_path}")
     print("\nTo train the model with multi-scale resolution optimization, run:")
-    print(f"yolo detect train data={data_yaml_path} model=yolov8n.pt epochs=30 imgsz=384 rect=True scale=0.5")
+    print(f"yolo detect train data={data_yaml_path} model=yolo11s.pt epochs=30 imgsz=384 rect=True scale=0.5")
 
 if __name__ == "__main__":
     generate_pseudo_dataset(samples_per_cam=3)

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bangkok CCTV YOLO Analytics & 16-Grid Explorer</title>
+  <title>Bangkok CCTV YOLO11 Analytics & 16-Grid Explorer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -31,10 +31,10 @@
         </div>
         <div>
           <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
-            Bangkok CCTV YOLO Vision Hub
+            Bangkok CCTV YOLO11 Vision Hub
             <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium border border-blue-500/30">CU DSDE 2110403</span>
           </h1>
-          <p class="text-xs text-slate-400">100 Cameras • 10-Min Snapshot Timeline • 16-Grid Control Room</p>
+          <p class="text-xs text-slate-400">100 Cameras • 10-Min Snapshot Timeline • YOLO11s Bangkok Fine-Tuned Model</p>
         </div>
       </div>
 
@@ -138,7 +138,23 @@
             <h2 class="text-sm font-semibold text-white flex items-center gap-2">
               <i class="fa-solid fa-sliders text-blue-400"></i> Detection Parameters
             </h2>
-            <span class="text-xs text-slate-500">YOLOv8</span>
+            <span id="modelBadge" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> YOLO11s Fine-Tuned
+            </span>
+          </div>
+
+          <!-- Model Info Card -->
+          <div id="modelInfoCard" class="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 text-xs space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 font-medium flex items-center gap-1.5">
+                <i class="fa-solid fa-microchip text-blue-400"></i> Active Model
+              </span>
+              <span id="activeModelName" class="font-bold text-emerald-400">YOLO11s (Best Checkpoint)</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
+              <div>Val mAP50: <b id="valMap50" class="text-slate-200">65.7%</b></div>
+              <div>Count Error: <b class="text-emerald-400 font-semibold">-46% vs Baseline</b></div>
+            </div>
           </div>
 
           <!-- Sliders -->
@@ -198,7 +214,7 @@
 
           <!-- Run Button -->
           <button id="runBtn" class="w-full py-3 px-4 rounded-xl font-semibold text-white accent-gradient shadow-lg shadow-blue-500/25 hover:opacity-95 transition flex items-center justify-center gap-2 text-sm">
-            <i class="fa-solid fa-play"></i> Run YOLO Detection (R)
+            <i class="fa-solid fa-play"></i> Run YOLO11 Detection (R)
           </button>
 
           <!-- Custom File Upload Dropzone -->
@@ -272,7 +288,7 @@
               </div>
               <div id="loadingOverlay" class="hidden absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center text-white space-y-2">
                 <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500"></i>
-                <span class="text-xs font-medium">Running YOLO detection...</span>
+                <span class="text-xs font-medium">Running YOLO11 detection...</span>
               </div>
             </div>
           </div>
@@ -338,7 +354,7 @@
 
           <!-- Batch YOLO Button -->
           <button id="runGridYoloBtn" class="px-4 py-2 rounded-xl accent-gradient text-white text-xs font-bold shadow-lg shadow-blue-500/20 hover:opacity-95 transition flex items-center gap-2">
-            <i class="fa-solid fa-bolt"></i> Run YOLO on All 16
+            <i class="fa-solid fa-bolt"></i> Run YOLO11 on All 16
           </button>
         </div>
       </div>
@@ -965,7 +981,7 @@
         alert('Grid detection failed: ' + err.message);
       } finally {
         runGridYoloBtn.disabled = false;
-        runGridYoloBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Run YOLO on All 16';
+        runGridYoloBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Run YOLO11 on All 16';
       }
     });
 
@@ -1016,8 +1032,36 @@
       }
     }
 
+    async function loadModelInfo() {
+      try {
+        const res = await fetch('/api/model-info');
+        const data = await res.json();
+        const badge = document.getElementById('modelBadge');
+        const nameEl = document.getElementById('activeModelName');
+        const mapEl = document.getElementById('valMap50');
+        if (data && badge && nameEl) {
+          nameEl.textContent = data.model_name || 'YOLO11s';
+          if (data.is_finetuned) {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> YOLO11s Fine-Tuned';
+            badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5';
+          } else {
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span> YOLO11s Pretrained';
+            badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1.5';
+          }
+          if (mapEl && data.val_mAP50) {
+            mapEl.textContent = (data.val_mAP50 * 100).toFixed(1) + '%';
+          }
+        }
+      } catch (e) {
+        console.warn('Could not load model info:', e);
+      }
+    }
+
     // Startup
-    window.addEventListener('DOMContentLoaded', loadAllCameras);
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAllCameras();
+      loadModelInfo();
+    });
   </script>
 </body>
 </html>

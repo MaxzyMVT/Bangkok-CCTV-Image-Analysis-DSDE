@@ -4,8 +4,8 @@ Which YOLO weights the App / batch pipeline should use.
 Priority:
     1. explicit argument (e.g. --model)
     2. environment variable CCTV_MODEL
-    3. Models/weights/best.pt  (written by Models/training/train_pipeline.py)
-    4. pretrained COCO fallback (yolov8n.pt)
+    3. Models/weights/best.pt  (fine-tuned YOLO11s from Models/training/train_pipeline.py)
+    4. pretrained fallback (yolo11s.pt)
 """
 import json
 import os
@@ -15,7 +15,7 @@ from typing import Optional
 WEIGHTS_DIR = Path(__file__).resolve().parent / "weights"
 BEST_MODEL = WEIGHTS_DIR / "best.pt"
 BEST_MODEL_INFO = WEIGHTS_DIR / "best.json"
-PRETRAINED_FALLBACK = "yolov8n.pt"
+PRETRAINED_FALLBACK = "yolo11s.pt"
 
 
 def resolve_model(explicit: Optional[str] = None) -> str:
