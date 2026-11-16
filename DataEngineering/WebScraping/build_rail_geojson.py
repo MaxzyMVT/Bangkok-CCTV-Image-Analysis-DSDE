@@ -1,7 +1,7 @@
 """
-Build the BTS / MRT layer for the Camera Map from OpenStreetMap.
+Build the rapid transit (BTS / MRT / ARL / SRT) layer for the Camera Map from OpenStreetMap.
 
-Downloads the real route alignments and stations for Bangkok's BTS and MRT lines
+Downloads the real route alignments and stations for all Bangkok rail transit lines
 from the Overpass API and writes one GeoJSON file the map serves itself:
 
     Apps/Camera-Map/static/bangkok_rail.geojson
@@ -25,36 +25,43 @@ BBOX = (13.45, 100.25, 14.05, 100.95)  # south, west, north, east (greater Bangk
 
 # One entry per line. "match" is checked against the route's English name.
 LINES = [
-    {"key": "bts-sukhumvit", "match": "Sukhumvit", "system": "BTS", "name_th": "บีทีเอส สายสุขุมวิท", "name_en": "BTS Sukhumvit Line", "colour": "#65B724"},
-    {"key": "bts-silom",     "match": "Silom",     "system": "BTS", "name_th": "บีทีเอส สายสีลม",     "name_en": "BTS Silom Line",     "colour": "#02817D"},
-    {"key": "bts-gold",      "match": "Gold",      "system": "BTS", "name_th": "สายสีทอง",            "name_en": "Gold Line",          "colour": "#A58704"},
-    {"key": "mrt-blue",      "match": "Blue",      "system": "MRT", "name_th": "เอ็มอาร์ที สายสีน้ำเงิน", "name_en": "MRT Blue Line",   "colour": "#1E398D"},
-    {"key": "mrt-purple",    "match": "Purple",    "system": "MRT", "name_th": "เอ็มอาร์ที สายสีม่วง",  "name_en": "MRT Purple Line",    "colour": "#893B90"},
-    {"key": "mrt-yellow",    "match": "Yellow",    "system": "MRT", "name_th": "เอ็มอาร์ที สายสีเหลือง", "name_en": "MRT Yellow Line",   "colour": "#FFD400"},
-    {"key": "mrt-pink",      "match": "Pink",      "system": "MRT", "name_th": "เอ็มอาร์ที สายสีชมพู",  "name_en": "MRT Pink Line",      "colour": "#E76589"},
+    {"key": "bts-sukhumvit",  "match": "Sukhumvit",  "system": "BTS", "name_th": "บีทีเอส สายสุขุมวิท",       "name_en": "BTS Sukhumvit Line",  "colour": "#65B724"},
+    {"key": "bts-silom",      "match": "Silom",      "system": "BTS", "name_th": "บีทีเอส สายสีลม",           "name_en": "BTS Silom Line",      "colour": "#02817D"},
+    {"key": "bts-gold",       "match": "Gold",       "system": "BTS", "name_th": "สายสีทอง",                  "name_en": "Gold Line",           "colour": "#A58704"},
+    {"key": "mrt-blue",       "match": "Blue",       "system": "MRT", "name_th": "เอ็มอาร์ที สายสีน้ำเงิน",   "name_en": "MRT Blue Line",       "colour": "#1E398D"},
+    {"key": "mrt-purple",     "match": "Purple",     "system": "MRT", "name_th": "เอ็มอาร์ที สายสีม่วง",      "name_en": "MRT Purple Line",     "colour": "#893B90"},
+    {"key": "mrt-yellow",     "match": "Yellow",     "system": "MRT", "name_th": "เอ็มอาร์ที สายสีเหลือง",    "name_en": "MRT Yellow Line",    "colour": "#FFD400"},
+    {"key": "mrt-pink",       "match": "Pink",       "system": "MRT", "name_th": "เอ็มอาร์ที สายสีชมพู",      "name_en": "MRT Pink Line",       "colour": "#E76589"},
+    {"key": "arl",            "match": "Airport",    "system": "ARL", "name_th": "แอร์พอร์ต เรล ลิงก์",       "name_en": "Airport Rail Link",   "colour": "#91278F"},
+    {"key": "srt-dark-red",   "match": "Dark Red",   "system": "SRT", "name_th": "รถไฟฟ้าสายสีแดงเข้ม",       "name_en": "SRT Dark Red Line",   "colour": "#B81D24"},
+    {"key": "srt-light-red",  "match": "Light Red",  "system": "SRT", "name_th": "รถไฟฟ้าสายสีแดงอ่อน",       "name_en": "SRT Light Red Line",  "colour": "#E83D3D"},
 ]
-STATION_MAX_DIST_M = 150  # a station belongs to a line if its node is this close to the line's track
+STATION_MAX_DIST_M = 200  # a station belongs to a line if its node is within 200m of the track
 
 
 def candidate_lines(tags):
-    """Lines a station node can belong to, from its OSM tags (None = not a BTS/MRT station).
+    """Lines a station node can belong to, from its OSM tags (None = not a transit station).
 
     Distance alone mislabels interchanges with different names (BTS Asok sits right next to
     MRT Sukhumvit), so first narrow by station type and operator, then match by distance.
     """
-    kind = tags.get("station") or next((k for k in ("subway", "light_rail", "monorail") if tags.get(k) == "yes"), None)
-    if kind not in ("subway", "light_rail", "monorail") or tags.get("ferry") == "yes":
-        return None  # piers, SRT / Airport Rail Link stations, ...
+    if tags.get("ferry") == "yes":
+        return None
+    kind = tags.get("station") or tags.get("railway") or next((k for k in ("subway", "light_rail", "monorail", "train") if tags.get(k) == "yes"), None)
+    if not kind:
+        return None
     if kind == "monorail":
         return ["mrt-yellow", "mrt-pink"]
     if kind == "light_rail":
         return ["bts-gold"]
-    who = " ".join(tags.get(k, "") for k in ("operator", "network", "operator:en", "network:en")).lower()
+    who = " ".join(tags.get(k, "") for k in ("operator", "network", "operator:en", "network:en", "railway", "station")).lower()
     if any(s in who for s in ("ทางด่วนและรถไฟฟ้า", "bem", "metropolitan rapid transit", "mrt")):
-        return ["mrt-blue", "mrt-purple"]
+        return ["mrt-blue", "mrt-purple", "mrt-yellow", "mrt-pink"]
     if any(s in who for s in ("ระบบขนส่งมวลชนกรุงเทพ", "bts", "บีทีเอส", "bangkok mass transit")):
         return ["bts-sukhumvit", "bts-silom", "bts-gold"]
-    return ["bts-sukhumvit", "bts-silom", "mrt-blue", "mrt-purple"]
+    if any(s in who for s in ("รฟท", "srt", "state railway", "รถไฟ", "airport rail link", "arl", "srtet")):
+        return ["arl", "srt-dark-red", "srt-light-red"]
+    return [l["key"] for l in LINES]
 
 
 def overpass(query):
@@ -64,10 +71,10 @@ def overpass(query):
         try:
             with urllib.request.urlopen(req, timeout=180) as resp:
                 return json.loads(resp.read())
-        except Exception as e:  # Overpass is busy now and then; back off and retry
+        except Exception as e:
             if attempt == 2:
                 raise
-            print(f"[!] Overpass error ({e}); retrying...")
+            print(f"[!] Overpass error ({e}); retrying in {(attempt + 1) * 10}s...")
             time.sleep(10 * (attempt + 1))
 
 
@@ -91,21 +98,28 @@ def point_to_segment_m(p, a, b):
 
 def main():
     s, w, n, e = BBOX
-    print("[*] Downloading BTS/MRT routes from OpenStreetMap (Overpass)...")
-    routes = overpass(f'[out:json][timeout:120];relation["route"~"^(subway|light_rail|monorail)$"]({s},{w},{n},{e});out geom;')
-    print("[*] Downloading stations...")
+    print("[*] Downloading BTS / MRT / ARL / SRT routes from OpenStreetMap (Overpass)...")
+    routes = overpass(
+        f'[out:json][timeout:120];'
+        f'relation["route"~"^(subway|light_rail|monorail|train)$"]({s},{w},{n},{e});'
+        f'out geom;'
+    )
+    print("[*] Downloading transit stations...")
     stations_raw = overpass(
         f'[out:json][timeout:120];'
-        f'(node["railway"="station"]({s},{w},{n},{e});node["public_transport"="station"]({s},{w},{n},{e}););out body;'
+        f'(node["railway"="station"]({s},{w},{n},{e});'
+        f' node["public_transport"="station"]({s},{w},{n},{e});'
+        f' node["station"~"^(subway|light_rail|monorail|train)$"]({s},{w},{n},{e}););'
+        f'out body;'
     )
 
-    # 1) Track geometry per line (each OSM way once, both directions share tracks)
+    # 1) Track geometry per line
     tracks = {line["key"]: {} for line in LINES}
-    for rel in routes["elements"]:
+    for rel in routes.get("elements", []):
         name_en = rel.get("tags", {}).get("name:en", "")
         line = next((l for l in LINES if l["match"] in name_en), None)
         if not line:
-            continue  # e.g. the airport people mover
+            continue
         for m in rel.get("members", []):
             if m["type"] == "way" and not m.get("role", "").startswith("platform") and m.get("geometry"):
                 tracks[line["key"]][m["ref"]] = [(round(p["lat"], 6), round(p["lon"], 6)) for p in m["geometry"]]
@@ -114,7 +128,7 @@ def main():
     for line in LINES:
         ways = list(tracks[line["key"]].values())
         if not ways:
-            print(f"[!] No track found for {line['name_en']}")
+            print(f"[!] No tracks found for {line['name_en']}")
             continue
         features.append({
             "type": "Feature",
@@ -122,9 +136,9 @@ def main():
             "geometry": {"type": "MultiLineString", "coordinates": [[[lon, lat] for lat, lon in way] for way in ways]},
         })
 
-    # 2) Stations: real station nodes, matched to every line whose track passes close by
+    # 2) Stations: real station nodes, matched to lines whose track passes close by
     stations = []
-    for node in stations_raw["elements"]:
+    for node in stations_raw.get("elements", []):
         tags = node.get("tags", {})
         allowed = candidate_lines(tags)
         if not allowed:
@@ -139,7 +153,7 @@ def main():
             if near:
                 lines_here.append(line["key"])
         if not lines_here:
-            continue  # SRT / Airport Rail Link / other stations
+            continue
         name_th = tags.get("name:th") or tags.get("name") or ""
         name_en = tags.get("name:en") or ""
         if not name_th:

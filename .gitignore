@@ -44,6 +44,11 @@ env/
 .env.*
 *.log
 
+# Lakehouse storage (DataEngineering/lakehouse_pipeline.py)
+lakehouse/
+*.ducklake
+*.parquet
+
 # ---------------------------------------------------------------------------
 # Editors, OS, tools
 # ---------------------------------------------------------------------------
