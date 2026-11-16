@@ -46,19 +46,23 @@ def parse_cctv_filename(filename: str) -> Optional[Dict]:
     }
 
 def load_cctv_metadata(csv_path: Path) -> Dict[str, Dict]:
-    """Loads location, lat, long from cctv_info.csv (cp874 encoded)."""
+    """Loads location, lat, long from cctv_info.csv (UTF-8, falling back to cp874)."""
     meta = {}
     if not csv_path.exists():
         return meta
-    try:
-        with open(csv_path, mode="r", encoding="cp874", errors="replace") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                cid = row.get("camera_id")
-                if cid:
-                    meta[cid] = row
-    except Exception as e:
-        print(f"[Warning] Failed loading cctv_info.csv: {e}")
+    for encoding, errors in (("utf-8-sig", "strict"), ("cp874", "replace")):
+        try:
+            with open(csv_path, mode="r", encoding=encoding, errors=errors) as f:
+                for row in csv.DictReader(f):
+                    cid = row.get("camera_id")
+                    if cid:
+                        meta[cid] = row
+            return meta
+        except UnicodeDecodeError:
+            meta = {}
+        except Exception as e:
+            print(f"[Warning] Failed loading cctv_info.csv: {e}")
+            return meta
     return meta
 
 def load_frozen_keys(csv_path: Path) -> set:

@@ -38,6 +38,12 @@
         </div>
       </div>
 
+      <div class="flex items-center gap-2">
+      <!-- Back to the camera map -->
+      <a href="/" id="navMapLink" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700/60 bg-slate-800/80 text-xs font-medium text-slate-300 hover:text-white hover:border-blue-500/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition">
+        <i class="fa-solid fa-map-location-dot text-blue-400"></i> แผนที่กล้อง
+      </a>
+
       <!-- VIEW MODE SWITCHER -->
       <div class="flex items-center bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 text-xs">
         <button id="tabSingleBtn" class="px-3.5 py-1.5 rounded-lg font-medium transition text-white bg-blue-600 shadow-sm flex items-center gap-1.5">
@@ -47,11 +53,15 @@
           <i class="fa-solid fa-table-cells"></i> 16-Image Control Grid
         </button>
       </div>
+      </div>
     </div>
   </header>
 
   <!-- MAIN WRAPPER -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- NOTICES (missing frame, unknown camera, camera without coordinates) -->
+    <div id="appNotices" class="space-y-2 empty:hidden" role="status" aria-live="polite"></div>
 
     <!-- CAMERA SELECTOR & TIMELINE CONTROLS BAR -->
     <div class="glass-card rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
@@ -236,20 +246,30 @@
 
           <!-- IMAGE DISPLAY -->
           <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
-            <div class="bg-slate-900/90 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+            <div class="bg-slate-900/90 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between flex-wrap gap-2">
               <div class="flex items-center space-x-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-green-500/80"></span>
                 <span id="currentCamTitle" class="text-xs font-mono text-slate-300 ml-2">Loading...</span>
               </div>
-              <button id="viewToggleBtn" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
-                <i class="fa-solid fa-eye"></i> <span id="viewToggleLabel">Toggle Raw / Annotated</span>
-              </button>
+              <div class="flex items-center gap-2">
+                <!-- Map link placed in header bar so it never overlaps the image -->
+                <a id="mapLink" class="hidden text-xs px-2.5 py-1 rounded-lg bg-blue-600/90 hover:bg-blue-600 text-white transition flex items-center gap-1.5 font-medium shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                   target="_blank" title="ดูตำแหน่งกล้องบนแผนที่">
+                  <i class="fa-solid fa-location-dot text-blue-200"></i>
+                  <span id="mapLinkLabel">ดูตำแหน่งกล้องบนแผนที่</span>
+                </a>
+                <button id="viewToggleBtn" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1.5">
+                  <i class="fa-solid fa-eye"></i> <span id="viewToggleLabel">Toggle Raw / Annotated</span>
+                </button>
+              </div>
             </div>
 
             <div class="p-2 sm:p-4 bg-slate-950 flex items-center justify-center min-h-[460px] relative">
-              <img id="mainDisplayImage" src="" alt="CCTV View" class="max-h-[560px] w-auto rounded-lg shadow-lg object-contain">
+              <div class="w-full flex items-center justify-center">
+                <img id="mainDisplayImage" src="" alt="CCTV View" class="w-full max-h-[720px] max-w-4xl rounded-lg shadow-xl object-contain">
+              </div>
               <div id="loadingOverlay" class="hidden absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center text-white space-y-2">
                 <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-500"></i>
                 <span class="text-xs font-medium">Running YOLO detection...</span>
@@ -383,6 +403,71 @@
     const iouSlider = document.getElementById('iouSlider');
     const iouVal = document.getElementById('iouVal');
 
+    // ================= MAP <-> DETECT LINKING =================
+    // A frame is identified by camera_id + filename: /?camera=..&frame=.. (map), /inspect?camera=..&frame=.. (here)
+    const mapLink = document.getElementById('mapLink');
+    const mapLinkLabel = document.getElementById('mapLinkLabel');
+    const appNotices = document.getElementById('appNotices');
+    let isCustomUpload = false;
+    const noCoordsWarned = new Set();
+
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+    }
+
+    function notify(message, kind = 'warn') {
+      const colors = kind === 'error'
+        ? 'border-red-500/40 bg-red-500/10 text-red-200'
+        : 'border-amber-500/40 bg-amber-500/10 text-amber-100';
+      const el = document.createElement('div');
+      el.className = `flex items-start gap-3 px-4 py-2.5 rounded-xl border text-sm ${colors}`;
+      el.innerHTML = `<i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span class="flex-1 break-words"></span>
+        <button class="text-slate-400 hover:text-white" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>`;
+      el.querySelector('span').textContent = message;
+      el.querySelector('button').onclick = () => el.remove();
+      appNotices.appendChild(el);
+    }
+
+    const cameraInfo = id => allCameras.find(c => c.camera_id === id);
+    function cameraHasCoords(id) {
+      const c = cameraInfo(id);
+      const lat = parseFloat(c?.latitude), lon = parseFloat(c?.longitude);
+      return Number.isFinite(lat) && Number.isFinite(lon) && lat !== 0 && lon !== 0;
+    }
+    const frameQuery = (cameraId, frame) => new URLSearchParams({ camera: cameraId, frame }).toString();
+    const mapUrlFor = (cameraId, frame) => `/?${frameQuery(cameraId, frame)}`;
+
+    // Make the header button a link to the map, or hide that action (uploads, cameras without coordinates)
+    function updateMapLink() {
+      const imgInfo = currentImages[currentImageIndex];
+      const canLink = !isCustomUpload && imgInfo && cameraHasCoords(currentCameraId);
+      if (canLink) {
+        mapLink.href = mapUrlFor(currentCameraId, imgInfo.filename);
+        mapLink.removeAttribute('aria-disabled');
+        mapLink.setAttribute('aria-label', `ดูตำแหน่งกล้อง ${currentCameraId} บนแผนที่`);
+        mapLink.classList.remove('hidden');
+      } else {
+        mapLink.removeAttribute('href');           // no href = not clickable, not focusable
+        mapLink.removeAttribute('aria-label');
+        mapLink.setAttribute('aria-disabled', 'true');
+        mapLink.classList.add('hidden');
+      }
+      if (!isCustomUpload && imgInfo && !cameraHasCoords(currentCameraId) && !noCoordsWarned.has(currentCameraId)) {
+        noCoordsWarned.add(currentCameraId);
+        notify(`กล้อง ${currentCameraId} ไม่มีพิกัดในชุดข้อมูล จึงเปิดตำแหน่งบนแผนที่ไม่ได้`);
+      }
+    }
+
+    // Keep the address bar on the current camera + frame so refresh / Back / shared links return here
+    function syncInspectUrl() {
+      const imgInfo = currentImages[currentImageIndex];
+      if (!imgInfo) return;
+      const url = `/inspect?${frameQuery(currentCameraId, imgInfo.filename)}`;
+      if (location.pathname + location.search !== url) history.replaceState(null, '', url);
+    }
+
     confSlider.addEventListener('input', e => {
       confVal.textContent = parseFloat(e.target.value).toFixed(2);
       debounceAutoDetect();
@@ -414,6 +499,21 @@
         allCameras = data.cameras || [];
         camCountBadge.textContent = `${allCameras.length} Cameras Available`;
 
+        // Deep link from the map (or a refresh): /inspect?camera=<id>&frame=<filename>
+        const params = new URLSearchParams(location.search);
+        const wantCamera = (params.get('camera') || '').trim();
+        const wantFrame = params.get('frame') || null;
+        let initialFrame = null;
+        if (wantCamera) {
+          if (cameraInfo(wantCamera)) {
+            currentCameraId = wantCamera;
+            initialFrame = wantFrame;
+          } else {
+            notify(`ไม่พบกล้องรหัส "${wantCamera}" — แสดงกล้อง ${currentCameraId} แทน`, 'error');
+          }
+        }
+        if (!cameraInfo(currentCameraId) && allCameras.length) currentCameraId = allCameras[0].camera_id;
+
         cameraSelect.innerHTML = '';
         allCameras.forEach(c => {
           const opt = document.createElement('option');
@@ -423,24 +523,34 @@
           cameraSelect.appendChild(opt);
         });
 
-        // Load images for default camera
-        await loadCameraImages(currentCameraId);
+        // Load images for the requested (or default) camera
+        await loadCameraImages(currentCameraId, initialFrame);
       } catch (err) {
         console.error('Error loading cameras:', err);
       }
     }
 
     // 2. Fetch all images for selected camera
-    async function loadCameraImages(cameraId) {
+    // preferredFrame: open this filename (e.g. from the map); if it isn't found, say so and show the latest frame
+    async function loadCameraImages(cameraId, preferredFrame = null) {
       currentCameraId = cameraId;
       try {
-        const res = await fetch(`/api/camera-images?camera_id=${cameraId}`);
+        const res = await fetch(`/api/camera-images?camera_id=${encodeURIComponent(cameraId)}`);
         const data = await res.json();
         currentImages = data.images || [];
         currentImageIndex = 0;
-        
+        if (preferredFrame) {
+          const idx = currentImages.findIndex(img => img.filename === preferredFrame);
+          if (idx >= 0) {
+            currentImageIndex = idx;
+          } else {
+            notify(`ไม่พบเฟรม "${preferredFrame}" ของกล้อง ${cameraId} — แสดงภาพล่าสุดแทน`);
+            currentImageIndex = Math.max(0, currentImages.length - 1);
+          }
+        }
+
         timelineSlider.max = Math.max(0, currentImages.length - 1);
-        timelineSlider.value = 0;
+        timelineSlider.value = currentImageIndex;
 
         renderSamplePresetThumbnails();
         displayCurrentImage();
@@ -508,6 +618,7 @@
 
       currentPrediction = null;
       showingAnnotated = false;
+      isCustomUpload = false;
 
       // Update UI
       timelineSlider.value = currentImageIndex;
@@ -529,6 +640,8 @@
         }
       });
       mainImg.src = `/api/image?path=${encodeURIComponent(imgInfo.path)}`;
+      updateMapLink();
+      syncInspectUrl();
 
       // Reset scorecards until detected
       document.getElementById('statTotal').textContent = '-';
@@ -775,11 +888,23 @@
             </div>
           </div>
           
-          <div class="p-2 bg-slate-900/60 text-[11px] truncate text-slate-400 flex items-center justify-between">
-            <span class="truncate">${item.location_en || item.filename}</span>
-            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 group-hover:text-blue-400"></i>
+          <div class="p-2 bg-slate-900/60 text-[11px] text-slate-400 flex items-center justify-between gap-2">
+            <span class="truncate">${escapeHtml(item.location_en || item.filename)}</span>
+            <span class="flex items-center gap-1.5 shrink-0">
+              ${cameraHasCoords(item.camera_id) ? `
+              <a href="${escapeHtml(mapUrlFor(item.camera_id, item.filename))}" data-map-pin
+                 class="w-6 h-6 rounded-md flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition"
+                 title="ดูตำแหน่งกล้องบนแผนที่" aria-label="ดูตำแหน่งกล้อง ${escapeHtml(item.camera_id)} บนแผนที่">
+                <i class="fa-solid fa-location-dot text-[11px]"></i>
+              </a>` : ''}
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 group-hover:text-blue-400"></i>
+            </span>
           </div>
         `;
+
+        // The pin opens the map; it must not also trigger the tile's "inspect" click
+        const pin = card.querySelector('[data-map-pin]');
+        if (pin) pin.addEventListener('click', e => e.stopPropagation());
 
         // Click tile to inspect in Single View
         card.addEventListener('click', () => {
@@ -856,6 +981,9 @@
         fileLabel.textContent = f.name;
         const reader = new FileReader();
         reader.onload = ev => {
+          // An uploaded image has no camera location, so drop the map action
+          isCustomUpload = true;
+          updateMapLink();
           mainImg.src = ev.target.result;
           currentCamTitle.textContent = `Custom Upload: ${f.name}`;
           // run inference on base64
