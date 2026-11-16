@@ -8,6 +8,7 @@ Results are written to DataEngineering/reviews/<set>/ (labels/ + status/). Commi
 """
 import argparse
 import json
+import math
 import sys
 import threading
 import urllib.parse
@@ -43,7 +44,10 @@ class ReviewApp:
             raise BadRequest(f"unknown set {set_name!r}")
         if set_name not in self._items:
             df = load_items(set_name)
-            self._items[set_name] = {r["stem"]: r for r in df.to_dict("records")}
+            # empty CSV cells (e.g. camera 1589 has no location_en) are NaN, which is not valid JSON -> None
+            self._items[set_name] = {r["stem"]: {k: None if isinstance(v, float) and math.isnan(v) else v
+                                                 for k, v in r.items()}
+                                     for r in df.to_dict("records")}
         return self._items[set_name]
 
     def row(self, set_name, stem):

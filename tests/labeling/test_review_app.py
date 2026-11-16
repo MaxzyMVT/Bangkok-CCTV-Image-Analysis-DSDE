@@ -77,6 +77,15 @@ class ReviewAppTest(unittest.TestCase):
         self.assertAlmostEqual(first["min_conf"], 0.44)
         self.assertIn(first["status"], ("pending", "approved", "corrected", "rejected"))
 
+    def test_item_with_missing_location_is_valid_json(self):
+        # camera 1589 has no location_en in the metadata; NaN is not valid JSON for the browser
+        stem = next(s for s in load_items("test")["stem"] if s.startswith("cam1589_"))
+        def reject(c):
+            raise ValueError(f"invalid JSON constant {c}")
+        it = json.loads(self._get(f"/api/item?set=test&stem={stem}")[2], parse_constant=reject)
+        self.assertIsNone(it["meta"]["location_en"])
+        self.assertIsInstance(it["boxes"], list)
+
     def test_queue_and_stats_mark_core_subset(self):
         items = self._json("/api/queue?set=test")["items"]
         self.assertEqual(sum(i["core"] for i in items), 300)
