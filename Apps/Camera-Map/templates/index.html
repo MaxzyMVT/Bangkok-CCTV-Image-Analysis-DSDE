@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bangkok CCTV Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+Thai:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- MapLibre draws the vector "Minimal" basemap inside Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"
+        integrity="sha256-V2sIX92Uh6ZaGSFTKMHghsB85b9toJtmazgG09AI2uk=" crossorigin="">
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"
+          integrity="sha256-vpYzxNhw4m+zfxz+XFp3GBZnEUAD6hYgeseFDY2ordE=" crossorigin=""></script>
+  <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.js"
+          integrity="sha256-WezY0rMnedJPG9Jrh8iJDyfkpueFjZk70X5Nh45tJnc=" crossorigin=""></script>
+  <style>
+    :root {
+      --bg: #070b14;
+      --glass: rgba(10, 16, 30, 0.78);
+      --glass-strong: rgba(10, 16, 30, 0.92);
+      --line: rgba(148, 163, 184, 0.16);
+      --line-strong: rgba(148, 163, 184, 0.3);
+      --text: #e6edf7;
+      --muted: #8a98ad;
+      --cyan: #22d3ee;
+      --cyan-soft: rgba(34, 211, 238, 0.14);
+      --amber: #fbbf24;
+      --red: #f43f5e;
+      --sans: "Inter", "Noto Sans Thai", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+      --panel-w: 340px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); }
+    #map { position: absolute; inset: 0; background: var(--bg); }
+    button { font: inherit; color: inherit; }
+
+    .tiles-dark { filter: invert(1) hue-rotate(185deg) brightness(0.82) contrast(0.95) saturate(0.6); }
+
+    /* Subtle scanline + vignette over the map for a control-room feel */
+    .map-fx {
+      position: absolute; inset: 0; pointer-events: none; z-index: 450;
+      background:
+        radial-gradient(ellipse at center, transparent 55%, rgba(3, 6, 12, 0.55) 100%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 3px);
+    }
+    body.light-tiles .map-fx { opacity: 0.35; }
+
+    .glass {
+      background: var(--glass); border: 1px solid var(--line);
+      backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    /* ---------- Side panel ---------- */
+    .panel {
+      position: absolute; top: 16px; left: 16px; bottom: 16px; width: var(--panel-w); z-index: 1000;
+      border-radius: 18px; display: flex; flex-direction: column; overflow: hidden;
+      transition: transform 0.35s cubic-bezier(.2,.8,.2,1);
+    }
+    .panel-head { padding: 18px 18px 14px; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .rec {
+      width: 10px; height: 10px; border-radius: 50%; background: var(--red);
+      animation: blink 1.6s steps(1) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0.25; } }
+    .brand h1 { margin: 0; font-size: 15px; font-weight: 700; letter-spacing: 0.04em; }
+    .brand small { display: block; font: 500 10.5px var(--mono); color: var(--muted); letter-spacing: 0.12em; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+    .stat {
+      border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px;
+      background: linear-gradient(180deg, rgba(34, 211, 238, 0.06), transparent);
+    }
+    .stat b { display: block; font: 600 16px var(--mono); color: var(--cyan); }
+    .stat span { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .search {
+      position: relative; margin-top: 14px;
+    }
+    .search input {
+      width: 100%; padding: 10px 40px 10px 36px; border-radius: 12px; outline: none;
+      border: 1px solid var(--line-strong); background: rgba(2, 6, 14, 0.6); color: var(--text);
+      font: 13px var(--sans); transition: border-color .2s, box-shadow .2s;
+    }
+    .search input::placeholder { color: #64748b; }
+    .search input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-soft); }
+    .search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .search kbd {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      font: 11px var(--mono); color: var(--muted); border: 1px solid var(--line-strong);
+      border-radius: 6px; padding: 1px 6px;
+    }
+
+    .list-head {
+      display: flex; justify-content: space-between; padding: 10px 18px 6px;
+      font: 600 10.5px var(--mono); color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .cam-list { flex: 1; overflow-y: auto; padding: 0 10px 12px; scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+    .cam-item {
+      width: 100%; display: grid; grid-template-columns: 64px 1fr; gap: 10px; align-items: center;
+      padding: 8px; border-radius: 12px; border: 1px solid transparent; background: none;
+      text-align: left; cursor: pointer; transition: background .15s, border-color .15s;
+    }
+    .cam-item:hover { background: rgba(148, 163, 184, 0.08); }
+    .cam-item.active { background: var(--cyan-soft); border-color: rgba(34, 211, 238, 0.45); }
+    .cam-item .thumb {
+      width: 64px; aspect-ratio: 352 / 288; border-radius: 8px; object-fit: cover; display: block;
+      background: #0f172a; border: 1px solid var(--line);
+    }
+    .cam-item .info { min-width: 0; }
+    .cam-item .id { font: 600 10.5px var(--mono); color: var(--cyan); }
+    .cam-item .name {
+      font-size: 12.5px; font-weight: 500; line-height: 1.3; margin-top: 2px;
+      overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+    .empty { padding: 24px; text-align: center; color: var(--muted); font-size: 13px; }
+    .error { color: #fda4af; }
+
+    /* ---------- Style switcher ---------- */
+    .switcher {
+      position: absolute; top: 16px; right: 16px; z-index: 1000; display: flex; gap: 4px;
+      padding: 4px; border-radius: 14px;
+    }
+    .switcher button {
+      border: 0; background: none; padding: 7px 12px; border-radius: 10px; cursor: pointer;
+      font-size: 12px; font-weight: 600; color: var(--muted); transition: all .2s;
+    }
+    .switcher button:hover { color: var(--text); }
+    .switcher button.on { background: var(--cyan); color: #04121a; }
+    .switcher button:focus-visible, .rail-toggle:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    /* "รถไฟฟ้า" on/off switch */
+    .rail-toggle {
+      position: absolute; top: 64px; right: 16px; z-index: 1000; display: flex; align-items: center; gap: 8px;
+      padding: 6px 10px 6px 12px; border-radius: 12px; cursor: pointer; color: var(--text);
+      font: 600 12px var(--sans); border: 1px solid var(--line);
+    }
+    .rail-toggle .track {
+      position: relative; width: 30px; height: 16px; border-radius: 999px; background: #475569; transition: background .2s;
+    }
+    .rail-toggle .track::after {
+      content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%;
+      background: #fff; transition: transform .2s;
+    }
+    .rail-toggle[aria-checked="true"] .track { background: var(--cyan); }
+    .rail-toggle[aria-checked="true"] .track::after { transform: translateX(14px); }
+    .rail-toggle .st-icon { --st: 16px; }
+
+    /* BTS / MRT station icons (logo images in a small white badge) */
+    .st-marker { background: none; border: 0; }
+    .st-icon { --st: 18px; display: inline-flex; gap: 2px; }
+    .st-marker .st-icon { transform: translate(-50%, -50%); cursor: pointer; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.35)); }
+    .rail-z15 .st-marker .st-icon { --st: 22px; }
+    .rail-z16 .st-marker .st-icon { --st: 26px; }
+    .st-icon img {
+      width: var(--st); height: var(--st); display: block; border-radius: 50%; background: #fff;
+      box-sizing: border-box; padding: 1px; object-fit: contain;
+    }
+    .st-icon img[alt="BTS"], .rail-toggle .st-icon img:first-child { border-radius: 5px; padding: 2px; }
+    .st-marker:focus-visible { outline: none; }
+    .st-marker:focus-visible .st-icon { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 6px; }
+    .st-head { display: flex; align-items: center; gap: 8px; }
+    .st-head .st-icon { --st: 28px; }
+
+    /* Rail station labels and popup */
+    .leaflet-tooltip.st-label {
+      background: rgba(255, 255, 255, 0.92); color: #1f2937; border: 1px solid rgba(15, 23, 42, 0.18);
+      border-radius: 5px; padding: 1px 5px; box-shadow: 0 1px 2px rgba(0,0,0,.15);
+      font: 600 11px "Noto Sans Thai", var(--sans); white-space: nowrap;
+    }
+    .leaflet-tooltip.st-label::before { display: none; }
+    .leaflet-popup.st-popup .leaflet-popup-content-wrapper {
+      background: var(--glass-strong); color: var(--text); border: 1px solid var(--line-strong); border-radius: 12px;
+    }
+    .leaflet-popup.st-popup .leaflet-popup-tip { background: var(--glass-strong); }
+    .leaflet-popup.st-popup .leaflet-popup-content { margin: 10px 12px; min-width: 170px; }
+    .leaflet-popup.st-popup a.leaflet-popup-close-button { color: var(--muted); }
+    .st-name { font: 600 14px "Noto Sans Thai", var(--sans); }
+    .st-en { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
+    .st-lines { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+    .st-line { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+    .st-line i { width: 18px; height: 5px; border-radius: 3px; display: block; box-shadow: 0 0 0 1px #fff; }
+
+    /* ---------- Zoom + coords ---------- */
+    .zoom { position: absolute; right: 16px; bottom: 28px; z-index: 1000; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; }
+    .zoom button {
+      width: 40px; height: 40px; border: 0; background: none; cursor: pointer; font-size: 18px; color: var(--text);
+    }
+    .zoom button + button { border-top: 1px solid var(--line); }
+    .zoom button:hover { background: var(--cyan-soft); color: var(--cyan); }
+    .coords {
+      position: absolute; bottom: 28px; left: calc(var(--panel-w) + 32px); z-index: 1000;
+      padding: 6px 12px; border-radius: 10px; font: 12px var(--mono); color: var(--cyan);
+    }
+    .leaflet-control-scale { margin-left: calc(var(--panel-w) + 32px) !important; margin-bottom: 64px !important; }
+    .leaflet-control-scale-line { background: var(--glass); color: var(--muted); border-color: var(--muted); font: 10px var(--mono); }
+    .leaflet-control-attribution {
+      background: rgba(7, 11, 20, 0.7) !important; color: #64748b !important; font-size: 10px !important;
+    }
+    .leaflet-control-attribution a { color: #94a3b8 !important; }
+
+    /* ---------- CCTV Camera Pins (High-Visibility on Any Basemap) ---------- */
+    .pin {
+      position: relative;
+      width: 32px;
+      height: 40px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.75));
+      transition: transform .2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .pin .pin-head {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00f2fe 0%, #0284c7 100%);
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 0 2px #070c18, 0 0 12px rgba(6, 182, 212, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      transition: background .2s, box-shadow .2s, transform .2s;
+      z-index: 2;
+    }
+    .pin .pin-stem {
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 8px solid #0284c7;
+      margin-top: -1px;
+      filter: drop-shadow(0 1.5px 1px #070c18);
+      transition: border-top-color .2s;
+      z-index: 1;
+    }
+    .pin .pin-cam-icon {
+      width: 16px;
+      height: 16px;
+      display: block;
+      filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.35));
+    }
+    .pin .pin-pulse {
+      position: absolute;
+      bottom: 1px;
+      left: 50%;
+      transform: translate(-50%, 50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Hover & Active */
+    .pin:hover {
+      transform: translateY(-3px) scale(1.15);
+      z-index: 1000 !important;
+    }
+    .pin:hover .pin-head {
+      box-shadow: 0 0 0 2px #ffffff, 0 0 16px rgba(6, 182, 212, 0.95);
+    }
+
+    .pin.active {
+      transform: translateY(-4px) scale(1.22);
+      z-index: 1001 !important;
+    }
+    .pin.active .pin-head {
+      background: linear-gradient(135deg, #fbbf24 0%, #ea580c 100%);
+      border-color: #fffbeb;
+      box-shadow: 0 0 0 2.5px #ffffff, 0 0 20px rgba(245, 158, 11, 0.95);
+    }
+    .pin.active .pin-stem {
+      border-top-color: #ea580c;
+    }
+    .pin.active .pin-pulse {
+      border-color: var(--amber);
+      animation: pinPulse 1.6s ease-out infinite;
+    }
+
+    /* No-images camera */
+    .pin.no-images .pin-head {
+      background: linear-gradient(135deg, #94a3b8 0%, #475569 100%);
+      border-color: #e2e8f0;
+      box-shadow: 0 0 0 1.5px #0f172a, 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    .pin.no-images .pin-stem {
+      border-top-color: #475569;
+    }
+    .pin.no-images .pin-cam-icon {
+      color: #e2e8f0;
+      opacity: 0.85;
+    }
+
+    /* Light maps (Streets / Minimal): extra crisp perimeter so it pops against white/gray roads */
+    body.light-tiles .pin .pin-head {
+      box-shadow: 0 0 0 2.5px #0f172a, 0 3px 8px rgba(0, 0, 0, 0.45), 0 0 12px rgba(2, 132, 199, 0.6);
+    }
+    body.light-tiles .pin.active .pin-head {
+      box-shadow: 0 0 0 2.5px #0f172a, 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 16px rgba(245, 158, 11, 0.85);
+    }
+    body.light-tiles .pin.active .pin-pulse {
+      border-color: #b45309;
+    }
+
+    @keyframes pinPulse {
+      0% { transform: translate(-50%, 50%) scale(0.6); opacity: 0.95; }
+      100% { transform: translate(-50%, 50%) scale(3.2); opacity: 0; }
+    }
+
+    .leaflet-tooltip.cam-tip {
+      background: var(--glass-strong); color: var(--text); border: 1px solid var(--line-strong);
+      border-radius: 8px; font: 12px var(--sans); box-shadow: 0 6px 20px rgba(0,0,0,.4); padding: 5px 9px;
+    }
+    .leaflet-tooltip.cam-tip::before { border-top-color: var(--line-strong); }
+    .cam-tip b { color: var(--cyan); font-family: var(--mono); }
+
+    /* ---------- Popup ---------- */
+    .leaflet-popup.cam-popup-wrap .leaflet-popup-content-wrapper {
+      background: var(--glass-strong); color: var(--text); border: 1px solid var(--line-strong);
+      border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.6);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    }
+    .leaflet-popup.cam-popup-wrap .leaflet-popup-tip { background: var(--glass-strong); border: 1px solid var(--line-strong); }
+    .leaflet-popup.cam-popup-wrap .leaflet-popup-content { margin: 10px; width: 320px !important; }
+    .leaflet-popup.cam-popup-wrap a.leaflet-popup-close-button { color: var(--muted); top: 6px; right: 6px; font-size: 20px; }
+    .leaflet-popup.cam-popup-wrap a.leaflet-popup-close-button:hover { color: var(--text); }
+
+    .feed { position: relative; border-radius: 10px; overflow: hidden; background: #000; aspect-ratio: 352 / 288; }
+    .feed img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .feed .hud {
+      position: absolute; left: 8px; right: 8px; display: flex; justify-content: space-between; align-items: center;
+      font: 600 10.5px var(--mono); color: #fff; text-shadow: 0 1px 3px #000;
+    }
+    .feed .hud.top { top: 7px; }
+    .feed .hud.bottom { bottom: 7px; }
+    .feed .tag { background: rgba(0,0,0,.55); padding: 2px 6px; border-radius: 5px; }
+    .feed .live { display: inline-flex; align-items: center; gap: 5px; }
+    .feed .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--red); animation: blink 1.6s steps(1) infinite; }
+    .feed .corner { position: absolute; width: 14px; height: 14px; border-color: rgba(255,255,255,.7); border-style: solid; }
+    .feed .c1 { top: 4px; left: 4px; border-width: 2px 0 0 2px; }
+    .feed .c2 { top: 4px; right: 4px; border-width: 2px 2px 0 0; }
+    .feed .c3 { bottom: 4px; left: 4px; border-width: 0 0 2px 2px; }
+    .feed .c4 { bottom: 4px; right: 4px; border-width: 0 2px 2px 0; }
+    .no-feed { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted); font: 12px var(--mono); }
+
+    .pop-body { padding: 10px 4px 2px; }
+    .pop-body h2 { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.35; }
+    .pop-body p { margin: 3px 0 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .chip {
+      font: 11px var(--mono); color: var(--muted); border: 1px solid var(--line-strong);
+      border-radius: 999px; padding: 3px 9px;
+    }
+    .chip b { color: var(--text); font-weight: 600; }
+    .pop-time { margin-top: 6px; font: 12px var(--mono); color: var(--text); }
+    .pop-time span { color: var(--muted); }
+
+    /* Popup -> Detect links */
+    a.feed-link { display: block; border-radius: 10px; outline: none; color: inherit; text-decoration: none; }
+    a.feed-link:focus-visible { box-shadow: 0 0 0 3px var(--cyan); }
+    .feed .open-hint {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px;
+      background: rgba(4, 10, 20, 0.55); color: #fff; font: 600 12.5px var(--sans);
+      opacity: 0; transition: opacity .15s;
+    }
+    a.feed-link:hover .open-hint, a.feed-link:focus-visible .open-hint { opacity: 1; }
+    .feed .src { color: var(--amber); }
+    .btn-detect {
+      display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+      padding: 9px 12px; border-radius: 10px; background: var(--cyan); color: #04121a !important;
+      font: 600 13px var(--sans); text-decoration: none; transition: filter .15s;
+    }
+    .btn-detect:hover { filter: brightness(1.1); }
+    .btn-detect:focus-visible { outline: 3px solid #e0fbff; outline-offset: 2px; }
+
+    /* ---------- Replay (ภาพย้อนหลัง) ---------- */
+    .rp-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0 2px 6px; }
+    .rp-title { font: 600 12px var(--sans); color: var(--text); }
+    .rp-note { font-size: 10.5px; color: var(--muted); }
+    .rp-state {
+      position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; background: rgba(4, 10, 20, 0.6); color: #fff; font: 600 12px var(--sans); text-align: center; padding: 12px;
+    }
+    .rp-state[hidden] { display: none; }
+    .rp-spinner {
+      width: 22px; height: 22px; border-radius: 50%; border: 3px solid rgba(255,255,255,.25); border-top-color: #fff;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .rp-controls { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .rp-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .rp-day-label { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); }
+    .rp-day {
+      background: rgba(2, 6, 14, 0.7); color: var(--text); border: 1px solid var(--line-strong); border-radius: 8px;
+      padding: 4px 6px; font: 12px var(--sans); max-width: 200px; min-width: 0;
+    }
+    .rp-day:focus-visible, .rp-slider:focus-visible, .rp-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .rp-count { margin-left: auto; font: 11px var(--mono); color: var(--muted); }
+    .rp-slider { width: 100%; margin: 2px 0; accent-color: var(--cyan); cursor: pointer; }
+    .rp-slider:disabled { cursor: default; opacity: .5; }
+    .rp-btn {
+      width: 34px; height: 30px; border-radius: 8px; border: 1px solid var(--line-strong); background: rgba(2, 6, 14, 0.6);
+      color: var(--text); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+      transition: background .15s, border-color .15s;
+    }
+    .rp-btn:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+    .rp-btn:disabled { opacity: .4; cursor: default; }
+    .rp-btn.rp-play { width: 42px; background: var(--cyan); color: #04121a; border-color: var(--cyan); }
+    .rp-btn.rp-play:hover:not(:disabled) { color: #04121a; filter: brightness(1.1); }
+    .rp-btn svg { width: 14px; height: 14px; fill: currentColor; pointer-events: none; }
+    .rp-time { margin-left: auto; font: 600 12px var(--mono); color: var(--text); text-align: right; }
+    .rp-time small { display: block; font: 10.5px var(--sans); color: var(--muted); }
+    .rp-gap { font-size: 11px; color: var(--amber); line-height: 1.4; }
+    .rp-gap[hidden], .rp-status:empty { display: none; }
+    .rp-status { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+    .rp-status.error { color: #fda4af; }
+    .rp-status button {
+      border: 1px solid currentColor; background: none; color: inherit; border-radius: 6px; padding: 2px 8px; cursor: pointer; font-size: 11px;
+    }
+
+    /* Panel link to Detect */
+    .nav-detect {
+      margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px;
+      border-radius: 10px; border: 1px solid var(--line-strong); color: var(--text); text-decoration: none;
+      font: 600 11.5px var(--sans); white-space: nowrap; transition: border-color .15s, color .15s;
+    }
+    .nav-detect:hover, .nav-detect:focus-visible { border-color: var(--cyan); color: var(--cyan); outline: none; }
+
+    .cam-item .nocoord { font: 10px var(--mono); color: var(--amber); margin-left: 6px; }
+
+    /* ---------- Notices ---------- */
+    .notices {
+      position: absolute; top: 70px; left: 50%; transform: translateX(-50%); z-index: 1100;
+      display: flex; flex-direction: column; gap: 8px; width: min(520px, calc(100% - 32px)); pointer-events: none;
+    }
+    .notice {
+      pointer-events: auto; display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px;
+      border-radius: 12px; font-size: 13px; line-height: 1.45; border-left: 3px solid var(--amber);
+    }
+    .notice.error { border-left-color: var(--red); }
+    .notice .msg { flex: 1; word-break: break-word; }
+    .notice button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 2px; }
+    .notice button:hover { color: var(--text); }
+
+    /* ---------- Mobile ---------- */
+    .panel-toggle { display: none; }
+    @media (max-width: 720px) {
+      :root { --panel-w: 100%; }
+      .panel {
+        top: auto; left: 0; right: 0; bottom: 0; width: 100%; height: 62vh;
+        border-radius: 18px 18px 0 0; transform: translateY(calc(100% - 132px));
+      }
+      .panel.open { transform: none; }
+      .panel-toggle {
+        display: block; width: 100%; border: 0; background: none; padding: 8px 0 0; cursor: pointer;
+      }
+      .panel-toggle::before {
+        content: ""; display: block; width: 44px; height: 5px; margin: 0 auto; border-radius: 3px; background: #475569;
+      }
+      .panel-head { padding: 8px 16px 12px; }
+      .stats { display: none; }
+      .switcher { top: 12px; right: 12px; left: 12px; justify-content: center; }
+      .switcher button { flex: 1; padding: 7px 4px; }
+      .rail-toggle { top: 60px; right: 12px; }
+      .zoom { display: none; }
+      .coords { display: none; }
+      .leaflet-control-scale { display: none; }
+      .leaflet-popup.cam-popup-wrap .leaflet-popup-content { width: 268px !important; margin: 8px; }
+      .notices { top: 64px; }
+      .rp-note { display: none; }
+      .rp-day-label { flex: 1; min-width: 0; }
+      .rp-day { flex: 1; max-width: none; }
+      .pop-body .chips { display: none; }
+      .btn-detect { margin-top: 8px; padding: 8px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="map-fx"></div>
+
+  <aside class="panel glass" id="panel">
+    <button class="panel-toggle" id="panelToggle" aria-label="Toggle camera list"></button>
+    <div class="panel-head">
+      <div class="brand">
+        <span class="rec"></span>
+        <div>
+          <h1>BANGKOK CCTV MAP</h1>
+          <small>BMA TRAFFIC CAMERAS · AUG 2026</small>
+        </div>
+        <a class="nav-detect" href="/inspect" title="Open the Detect page">Detect →</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="statCams">–</b><span>Cameras</span></div>
+        <div class="stat"><b id="statShots">–</b><span>Snapshots</span></div>
+        <div class="stat"><b id="statDays">–</b><span>Days</span></div>
+      </div>
+      <label class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Search camera ID or road…" autocomplete="off">
+        <kbd>/</kbd>
+      </label>
+    </div>
+    <div class="list-head"><span>Cameras</span><span id="listCount"></span></div>
+    <div class="cam-list" id="camList"><div class="empty">Loading cameras…</div></div>
+  </aside>
+
+  <div class="switcher glass" id="switcher">
+    <button data-layer="dark" class="on">Dark</button>
+    <button data-layer="streets">Streets</button>
+    <button data-layer="minimal">Minimal</button>
+    <button data-layer="satellite">Satellite</button>
+  </div>
+  <button type="button" class="rail-toggle glass" id="railToggle" role="switch" aria-checked="false"
+          title="แสดงเส้นทาง BTS / MRT">
+    <span class="st-icon" aria-hidden="true"><img src="/static/map/icon-bts.png" alt=""><img src="/static/map/icon-mrt.png" alt=""></span>
+    รถไฟฟ้า <span class="track" aria-hidden="true"></span>
+  </button>
+
+  <div class="zoom glass">
+    <button id="zoomIn" aria-label="Zoom in">+</button>
+    <button id="zoomOut" aria-label="Zoom out">−</button>
+    <button id="zoomAll" aria-label="Show all cameras" title="Show all cameras">⤢</button>
+  </div>
+
+  <div class="coords glass" id="coords">13.75630, 100.50180</div>
+  <div class="notices" id="notices" role="status" aria-live="polite"></div>
+
+  <script>
+    const BANGKOK_CENTER = [13.7563, 100.5018];
+    // Opens on Bangkok; minZoom 5 still lets you zoom out to see all of Thailand
+    const map = L.map('map', { zoomControl: false, attributionControl: true, minZoom: 5 }).setView(BANGKOK_CENTER, 12);
+    const OSM_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+
+    // ---------- Base layers (free, no API key) ----------
+    const layers = {
+      streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        { maxZoom: 19, attribution: OSM_ATTR }),
+      dark: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        { maxZoom: 19, className: 'tiles-dark', attribution: OSM_ATTR }),
+      satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        { maxZoom: 19, attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics' })
+    };
+    let currentLayer = layers.dark.addTo(map);
+    let currentMode = 'dark';
+
+    // ---------- "Minimal" basemap: OpenFreeMap Positron (vector, no key), trimmed and recoloured ----------
+    // Keeps main roads, rivers, parks and district names; drops buildings, minor-road names and shields.
+    const MINIMAL_STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
+    const MINIMAL_ATTR = '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> '
+      + '&copy; <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> '
+      + 'Data from ' + OSM_ATTR;
+    const MINIMAL_DROP = /^(building|highway-name-path|highway-name-minor|highway_path|railway_transit.*|railway_service.*|highway-shield.*|road_shield_us|aeroway-taxiway)$/;
+    const THAI_NAME = ['coalesce', ['get', 'name:th'], ['get', 'name']];
+    const MINIMAL_PAINT = {   // light, Google-like palette
+      background: { 'background-color': '#f5f5f3' },
+      park: { 'fill-color': '#cfe8c4', 'fill-opacity': 1 },
+      landcover_wood: { 'fill-color': '#d7ebcd' },
+      water: { 'fill-color': '#a9d3f2' },
+      waterway: { 'line-color': '#a9d3f2' },
+      landuse_residential: { 'fill-color': '#f0efeb' },
+      highway_minor: { 'line-color': '#ffffff' },
+      highway_major_casing: { 'line-color': '#d9d9d6' },
+      highway_major_inner: { 'line-color': '#ffffff' },
+      highway_major_subtle: { 'line-color': '#ffffff' },
+      highway_motorway_casing: { 'line-color': '#e3c46d' },
+      highway_motorway_inner: { 'line-color': '#fbe4a0' },
+      highway_motorway_subtle: { 'line-color': '#fbe4a0' },
+      highway_motorway_bridge_casing: { 'line-color': '#e3c46d' },
+      highway_motorway_bridge_inner: { 'line-color': '#fbe4a0' },
+      tunnel_motorway_inner: { 'line-color': '#fdf0c8' }
+    };
+
+    function buildMinimalStyle(style) {
+      style.layers = style.layers.filter(l => !MINIMAL_DROP.test(l.id));
+      for (const layer of style.layers) {
+        Object.assign(layer.paint = layer.paint || {}, MINIMAL_PAINT[layer.id] || {});
+        if (layer.id === 'highway_minor') layer.minzoom = 13;  // small streets only once you zoom in
+        if (layer.type === 'symbol' && layer.layout && layer.layout['text-field'] && !/shield/.test(layer.id)) {
+          layer.layout['text-field'] = THAI_NAME;               // Thai names, like the reference map
+          layer.paint['text-color'] = /^label_(city|town|state|country)/.test(layer.id) ? '#3c4043' : '#5f6368';
+          layer.paint['text-halo-color'] = '#ffffff';
+          layer.paint['text-halo-width'] = 1.4;
+        }
+      }
+      return style;
+    }
+
+    let minimalLayerPromise = null;
+    function getMinimalLayer() {
+      if (!minimalLayerPromise) {
+        minimalLayerPromise = fetch(MINIMAL_STYLE_URL)
+          .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+          .then(style => L.maplibreGL({ style: buildMinimalStyle(style), attribution: MINIMAL_ATTR, pane: 'tilePane' }))
+          .catch(err => { minimalLayerPromise = null; throw err; });
+      }
+      return minimalLayerPromise;
+    }
+
+    // Switching basemaps only swaps the background: the view, open camera popup and Replay frame stay as they are
+    async function setBaseMode(mode) {
+      if (mode === currentMode) return;
+      let next;
+      try {
+        next = mode === 'minimal' ? await getMinimalLayer() : layers[mode];
+      } catch (err) {
+        console.error(err);
+        notify('โหลดแผนที่ Minimal ไม่สำเร็จ ลองอีกครั้ง', 'error');
+        return;
+      }
+      map.removeLayer(currentLayer);
+      currentLayer = next.addTo(map);
+      currentMode = mode;
+      document.querySelectorAll('#switcher button').forEach(b => {
+        b.classList.toggle('on', b.dataset.layer === mode);
+        b.setAttribute('aria-pressed', String(b.dataset.layer === mode));
+      });
+      document.body.classList.toggle('light-tiles', mode === 'streets' || mode === 'minimal');
+      setRailVisible(railPref[mode]);
+    }
+
+    document.getElementById('switcher').addEventListener('click', e => {
+      const btn = e.target.closest('button[data-layer]');
+      if (btn) setBaseMode(btn.dataset.layer);
+    });
+
+    // ---------- BTS / MRT layer (OpenStreetMap data, built by DataEngineering/WebScraping/build_rail_geojson.py) ----------
+    // Lines sit below the camera pins and never take clicks; stations sit below pins too, so a camera on
+    // top of a rail line or station still opens its Replay popup.
+    map.createPane('railLines').style.zIndex = 380;    // tiles 200 < rail lines < overlays 400
+    map.getPane('railLines').style.pointerEvents = 'none';
+    map.createPane('railStations').style.zIndex = 450; // < camera pins (markerPane 600)
+    const railRenderer = L.svg({ pane: 'railLines' });
+    const RAIL_ATTR = 'รถไฟฟ้า BTS/MRT: ' + OSM_ATTR + ' (ODbL)';
+    const RAIL_MIN_ZOOM = 10, STATION_MIN_ZOOM = 13, STATION_LABEL_ZOOM = 15;
+    const railPref = { dark: false, streets: false, minimal: true, satellite: false };  // on by default in Minimal
+    const railGroup = L.layerGroup([], { attribution: RAIL_ATTR });
+    let railData = null, railLinesCasing = null, railLinesColour = null, railStations = null, railVisible = false;
+    let railLabelsPermanent = null;
+    const railToggle = document.getElementById('railToggle');
+
+    const railWeight = z => z >= 16 ? 6 : z >= 14 ? 5 : z >= 12 ? 4 : 3;
+    const SYSTEM_ICON = { BTS: '/static/map/icon-bts.png', MRT: '/static/map/icon-mrt.png' };
+
+    async function loadRail() {
+      if (railData) return railData;
+      const res = await fetch('/static/map/bangkok_rail.geojson');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      railData = await res.json();
+      const lineInfo = Object.fromEntries(railData.lines.map(l => [l.key, l]));
+      const lineFeatures = railData.features.filter(f => f.properties.kind === 'line');
+      const w = railWeight(map.getZoom());
+      // White casing under the coloured line separates rail from roads
+      railLinesCasing = L.geoJSON(lineFeatures, { renderer: railRenderer, interactive: false,
+        style: () => ({ color: '#ffffff', weight: w + 3, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }) });
+      railLinesColour = L.geoJSON(lineFeatures, { renderer: railRenderer, interactive: false,
+        style: f => ({ color: f.properties.colour, weight: w, opacity: 1, lineCap: 'round', lineJoin: 'round' }) });
+
+      railStations = L.layerGroup();
+      for (const f of railData.features.filter(f => f.properties.kind === 'station')) {
+        const p = f.properties;
+        const lines = p.lines.map(k => lineInfo[k]).filter(Boolean);
+        const [lon, lat] = f.geometry.coordinates;
+        // BTS / MRT logo per system at the station (both logos at a BTS–MRT interchange)
+        const systems = [...new Set(lines.map(l => l.system))];
+        const m = L.marker([lat, lon], {
+          pane: 'railStations', keyboard: true, riseOnHover: true,
+          icon: L.divIcon({
+            className: 'st-marker', iconSize: null,
+            html: `<span class="st-icon" role="img" aria-label="สถานี${escapeHtml(p.name_th)}">${
+              systems.map(s => `<img src="${SYSTEM_ICON[s]}" alt="${s}">`).join('')}</span>`
+          })
+        });
+        m.stationLabel = p.name_th;
+        m.bindPopup(() => `
+          <div class="st-head">
+            <span class="st-icon">${systems.map(s => `<img src="${SYSTEM_ICON[s]}" alt="${s}">`).join('')}</span>
+            <div><div class="st-name">สถานี${escapeHtml(p.name_th)}</div>
+            ${p.name_en ? `<div class="st-en">${escapeHtml(p.name_en)}</div>` : ''}</div>
+          </div>
+          <div class="st-lines">${lines.map(l =>
+            `<span class="st-line"><i style="background:${escapeHtml(l.colour)}"></i>${escapeHtml(l.name_th)}</span>`).join('')}</div>`,
+          // autoClose:false keeps an open camera Replay popup open while you read a station name
+          { className: 'st-popup', autoClose: false, closeButton: true, autoPanPadding: [40, 40] });
+        railStations.addLayer(m);
+      }
+      return railData;
+    }
+
+    // Lines from city zoom; station dots from 13; permanent Thai names from 15 (hover names below that)
+    function updateRailForZoom() {
+      if (!railVisible || !railData) return;
+      const z = map.getZoom();
+      const show = (layer, on) => on ? railGroup.addLayer(layer) : railGroup.removeLayer(layer);
+      show(railLinesCasing, z >= RAIL_MIN_ZOOM);
+      show(railLinesColour, z >= RAIL_MIN_ZOOM);
+      show(railStations, z >= STATION_MIN_ZOOM);
+      const w = railWeight(z);
+      railLinesCasing.setStyle({ weight: w + 3 });
+      railLinesColour.setStyle({ weight: w });
+      const permanent = z >= STATION_LABEL_ZOOM;
+      // Icon size follows zoom (CSS reads these classes)
+      map.getContainer().classList.toggle('rail-z15', z === 15);
+      map.getContainer().classList.toggle('rail-z16', z >= 16);
+      if (permanent !== railLabelsPermanent) {
+        railLabelsPermanent = permanent;
+        railStations.eachLayer(m => {
+          m.unbindTooltip();
+          m.bindTooltip(escapeHtml(m.stationLabel), { permanent, direction: 'right', offset: [14, 0], className: 'st-label' });
+        });
+      }
+    }
+    map.on('zoomend', updateRailForZoom);
+
+    async function setRailVisible(on) {
+      railVisible = on;
+      railToggle.setAttribute('aria-checked', String(on));
+      if (!on) { map.removeLayer(railGroup); return; }
+      try {
+        await loadRail();
+      } catch (err) {
+        console.error(err);
+        notify('โหลดข้อมูลรถไฟฟ้าไม่สำเร็จ', 'error');
+        railVisible = false;
+        railToggle.setAttribute('aria-checked', 'false');
+        return;
+      }
+      if (!railVisible) return;  // switched off while loading
+      railGroup.addTo(map);
+      updateRailForZoom();
+    }
+
+    railToggle.addEventListener('click', () => {
+      railPref[currentMode] = !railVisible;
+      setRailVisible(railPref[currentMode]);
+    });
+
+    L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(map);
+    document.getElementById('zoomIn').onclick = () => map.zoomIn();
+    document.getElementById('zoomOut').onclick = () => map.zoomOut();
+    document.getElementById('zoomAll').onclick = () => fitAll();
+
+    const coordsEl = document.getElementById('coords');
+    map.on('mousemove', e => {
+      coordsEl.textContent = `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+    });
+
+    // ---------- Helpers ----------
+    function escapeHtml(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+    }
+    // "..._20260831_235012.jpg" -> { date: "2026-08-31", time: "23:50" }
+    function parseStamp(name) {
+      const m = /_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})\d{2}\.jpg$/i.exec(name || '');
+      return m ? { date: `${m[1]}-${m[2]}-${m[3]}`, time: `${m[4]}:${m[5]}` } : null;
+    }
+    const imageUrl = (cam, file) => `/images/${encodeURIComponent(cam.camera_id)}/${encodeURIComponent(file)}`;
+    const title = cam => cam.name_en || cam.name_th || `Camera ${cam.camera_id}`;
+    const subtitle = cam => (cam.name_en ? cam.detail_en : cam.detail_th) || '';
+
+    // Frames are identified by camera_id + filename, in both directions
+    const frameQuery = (cameraId, frame) => {
+      const p = new URLSearchParams({ camera: cameraId });
+      if (frame) p.set('frame', frame);
+      return p.toString();
+    };
+    const detectUrl = (cam, frame) => `/inspect?${frameQuery(cam.camera_id, frame)}`;
+
+    // Frame passed in from Detect, per camera; other cameras preview their latest frame
+    const frameOverride = new Map();
+    const shownFrame = cam => frameOverride.get(cam.camera_id) || cam.latest_image;
+
+    // ---------- Notices ----------
+    const noticesEl = document.getElementById('notices');
+    function notify(message, kind = 'warn', timeoutMs = 9000) {
+      const el = document.createElement('div');
+      el.className = `notice glass ${kind}`;
+      el.innerHTML = `<span class="msg"></span><button aria-label="Dismiss">×</button>`;
+      el.querySelector('.msg').textContent = message;
+      el.querySelector('button').onclick = () => el.remove();
+      noticesEl.appendChild(el);
+      if (timeoutMs) setTimeout(() => el.remove(), timeoutMs);
+    }
+
+    // Keep the address bar on the open camera + frame so refresh/Back/links return here
+    function syncUrl(cam, frame = null) {
+      const url = cam ? `/?${frameQuery(cam.camera_id, frame || shownFrame(cam))}` : '/';
+      if (location.pathname + location.search !== url) history.replaceState(null, '', url);
+    }
+
+    // ---------- Pins ----------
+    const cameraLayer = L.featureGroup().addTo(map);
+    const markers = new Map();
+    let activeId = null;
+
+    function pinIcon(cam, active) {
+      const cls = ['pin', cam.image_count ? '' : 'no-images', active ? 'active' : ''].join(' ');
+      const slash = cam.image_count ? '' : '<line x1="3" y1="21" x2="21" y2="3" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round"/>';
+      const lensColor = active ? '#451a03' : (cam.image_count ? '#082f49' : '#1e293b');
+      const html = `<div class="${cls}">` +
+        `<span class="pin-pulse"></span>` +
+        `<div class="pin-head">` +
+          `<svg class="pin-cam-icon" viewBox="0 0 24 24" fill="none">` +
+            `<path d="M4 6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2l4.5-2.8A1 1 0 0 1 22 6v12a1 1 0 0 1-1.5.85L16 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6z" fill="currentColor"/>` +
+            `<circle cx="10" cy="12" r="2.2" fill="${lensColor}"/>` +
+            slash +
+          `</svg>` +
+        `</div>` +
+        `<div class="pin-stem"></div>` +
+      `</div>`;
+      return L.divIcon({ className: '', html,
+                         iconSize: [32, 40], iconAnchor: [16, 39], popupAnchor: [0, -38], tooltipAnchor: [0, -38] });
+    }
+
+    const ICON = {
+      prev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>',
+      next: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>',
+      play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
+      pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>'
+    };
+
+    // Popup: replay viewer for the camera's still frames (filled in by Replay after the popup opens)
+    function popupHtml(cam) {
+      const frame = shownFrame(cam);
+      const stamp = parseStamp(frame);
+      const sub = subtitle(cam);
+      const href = frame ? escapeHtml(detectUrl(cam, frame)) : '';
+      const viewer = frame
+        ? `<a class="feed-link rp-link" href="${href}" title="เปิดเฟรมนี้ในหน้า Detect">
+             <div class="feed">
+               <img class="rp-img" alt="ภาพจากกล้อง ${escapeHtml(cam.camera_id)}${stamp ? ` เวลา ${stamp.date} ${stamp.time}` : ''}"
+                    src="${imageUrl(cam, frame)}">
+               <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
+               <div class="hud top"><span class="tag live"><i></i>CAM ${escapeHtml(cam.camera_id)}</span>
+                 <span class="tag rp-src">ภาพย้อนหลัง</span></div>
+               <div class="hud bottom"><span class="tag rp-hud-date">${stamp ? stamp.date : ''}</span>
+                 <span class="tag rp-hud-time">${stamp ? stamp.time : ''}</span></div>
+               <span class="open-hint">เปิดเฟรมนี้ใน Detect →</span>
+               <div class="rp-state" hidden></div>
+             </div>
+           </a>
+           <div class="rp-controls">
+             <div class="rp-row">
+               <label class="rp-day-label">วัน
+                 <select class="rp-day" aria-label="เลือกวันของภาพย้อนหลัง" disabled><option>กำลังโหลด…</option></select>
+               </label>
+               <span class="rp-count" aria-hidden="true"></span>
+             </div>
+             <input type="range" class="rp-slider" min="0" max="0" value="0" step="1" disabled
+                    aria-label="เลื่อนเฟรมภาพย้อนหลังของวันที่เลือก">
+             <div class="rp-row">
+               <button type="button" class="rp-btn rp-prev" aria-label="ภาพก่อนหน้า" disabled>${ICON.prev}</button>
+               <button type="button" class="rp-btn rp-play" aria-label="เล่นภาพย้อนหลัง" disabled>${ICON.play}</button>
+               <button type="button" class="rp-btn rp-next" aria-label="ภาพถัดไป" disabled>${ICON.next}</button>
+               <span class="rp-time" aria-live="polite"><small>เวลาถ่ายจริง</small>${stamp ? `${stamp.date} ${stamp.time}` : '—'}</span>
+             </div>
+             <div class="rp-gap" hidden></div>
+             <div class="rp-status" role="status"></div>
+           </div>`
+        : `<div class="feed"><div class="no-feed">ไม่มีภาพ</div></div>`;
+      return `
+        <div class="rp" data-camera="${escapeHtml(cam.camera_id)}">
+          <div class="rp-head"><span class="rp-title">ภาพย้อนหลัง</span><span class="rp-note">ภาพนิ่งราว 10 นาทีต่อภาพ ไม่ใช่วิดีโอ</span></div>
+          ${viewer}
+        </div>
+        <div class="pop-body">
+          <h2>${escapeHtml(title(cam))}</h2>
+          ${sub ? `<p>ทิศทาง: ${escapeHtml(sub)}</p>` : ''}
+          <div class="chips">
+            <span class="chip"><b>${cam.image_count}</b> snapshots</span>
+            <span class="chip">${cam.latitude.toFixed(5)}, ${cam.longitude.toFixed(5)}</span>
+          </div>
+          ${frame ? `<a class="btn-detect rp-detect" href="${href}">เปิดเฟรมนี้ใน Detect</a>` : ''}
+        </div>`;
+    }
+
+    // ---------- Replay: step through a camera's real frames, by day, ~1 s per frame ----------
+    const PLAY_MS = 1000;
+    const GAP_MIN = 15;                 // normal spacing is ~10 min; anything longer is a gap
+    const frameListCache = new Map();   // camera_id -> Promise<frames[]>
+
+    function fetchFrameList(cameraId) {
+      if (!frameListCache.has(cameraId)) {
+        const p = fetch(`/api/camera-images?camera_id=${encodeURIComponent(cameraId)}`)
+          .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+          .then(d => (d.images || [])
+            .filter(im => im.filename && im.date && im.time)
+            .map(im => ({ filename: im.filename, date: im.date, time: im.time }))
+            .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)));
+        p.catch(() => frameListCache.delete(cameraId)); // allow a retry after a failure
+        frameListCache.set(cameraId, p);
+      }
+      return frameListCache.get(cameraId);
+    }
+
+    const toMinutes = f => { const [h, m, s] = f.time.split(':').map(Number); return h * 60 + m + s / 60; };
+    function formatGap(mins) {
+      const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+      return h ? `${h} ชม. ${m} นาที` : `${m} นาที`;
+    }
+    const thaiDay = date => new Date(`${date}T00:00:00`).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' });
+
+    class Replay {
+      constructor(cam, root, startFrame) {
+        this.cam = cam;
+        this.root = root;
+        this.startFrame = startFrame;
+        this.fromDetect = frameOverride.get(cam.camera_id) === startFrame;
+        this.alive = true;
+        this.playing = false;
+        this.loadSeq = 0;      // newest image request; older responses are ignored
+        this.runId = 0;        // current playback loop; bumped on stop
+        this.frames = [];
+        this.days = [];
+        this.idx = -1;
+        const q = s => root.querySelector(s);
+        this.el = {
+          img: q('.rp-img'), link: q('.rp-link'), state: q('.rp-state'), day: q('.rp-day'), count: q('.rp-count'),
+          slider: q('.rp-slider'), prev: q('.rp-prev'), play: q('.rp-play'), next: q('.rp-next'),
+          time: q('.rp-time'), gap: q('.rp-gap'), status: q('.rp-status'), src: q('.rp-src'),
+          hudDate: q('.rp-hud-date'), hudTime: q('.rp-hud-time'),
+          detect: root.parentElement.querySelector('.rp-detect')
+        };
+        if (!this.el.img) return;  // camera with no images: nothing to replay
+        this.bind();
+        this.load();
+      }
+
+      bind() {
+        const { prev, next, play, day, slider } = this.el;
+        // Controls re-render themselves (play icon, retry button). If a clicked node is removed mid-click,
+        // Leaflet can't tell it was inside the popup and closes it, so keep replay clicks away from the map.
+        this.root.addEventListener('click', e => e.stopPropagation());
+        prev.addEventListener('click', () => { this.stop(); this.go(this.idx - 1); });
+        next.addEventListener('click', () => { this.stop(); this.go(this.idx + 1); });
+        play.addEventListener('click', () => this.playing ? this.stop() : this.play());
+        day.addEventListener('change', () => {
+          // New day: stop and open that day's first frame
+          this.stop();
+          const d = this.days.find(x => x.date === day.value);
+          if (d) this.go(d.start, { withinDay: false });
+        });
+        // Dragging updates the label at once; the JPEG loads once the slider settles
+        let dragTimer = null;
+        slider.addEventListener('input', () => {
+          this.stop();
+          const i = this.currentDay().start + Number(slider.value);
+          this.go(i, { deferImage: true });
+          clearTimeout(dragTimer);
+          dragTimer = setTimeout(() => this.alive && this.showImage(), 150);
+        });
+      }
+
+      async load() {
+        this.setStatus('กำลังโหลดรายการภาพ…');
+        let frames;
+        try {
+          frames = await fetchFrameList(this.cam.camera_id);
+        } catch (err) {
+          if (!this.alive) return;
+          console.error(err);
+          this.setStatus('โหลดรายการภาพไม่สำเร็จ', 'error', () => this.load());
+          return;
+        }
+        if (!this.alive) return;
+        if (!frames.length) {
+          this.setStatus('กล้องนี้ไม่มีภาพในชุดข้อมูล', 'error');
+          this.setState('ไม่มีภาพ');
+          return;
+        }
+        this.frames = frames;
+        this.days = [];
+        frames.forEach((f, i) => {
+          const last = this.days[this.days.length - 1];
+          if (last && last.date === f.date) last.end = i;
+          else this.days.push({ date: f.date, start: i, end: i });
+        });
+        this.el.day.innerHTML = this.days.map(d =>
+          `<option value="${d.date}">${thaiDay(d.date)} · ${d.end - d.start + 1} ภาพ</option>`).join('');
+        [this.el.day, this.el.slider, this.el.prev, this.el.play, this.el.next].forEach(e => e.disabled = false);
+        this.setStatus('');
+
+        let start = frames.findIndex(f => f.filename === this.startFrame);
+        if (start < 0) start = frames.length - 1;
+        this.go(start, { keepImage: true, withinDay: false });  // image already shows the start frame
+      }
+
+      currentDay() {
+        return this.days.find(d => this.idx >= d.start && this.idx <= d.end) || this.days[this.days.length - 1];
+      }
+
+      // Move to frame i (kept within the selected day) and update every label, link and the URL
+      // withinDay: prev/next/slider/play never leave the selected day; day changes and the start pass false
+      go(i, { deferImage = false, keepImage = false, withinDay = true } = {}) {
+        if (!this.frames.length) return Promise.resolve(false);
+        const d = withinDay && this.idx >= 0 ? this.currentDay() : null;
+        const lo = d ? d.start : 0, hi = d ? d.end : this.frames.length - 1;
+        this.idx = Math.max(lo, Math.min(hi, i));
+        const f = this.frames[this.idx];
+        const day = this.currentDay();
+        const { el } = this;
+
+        el.day.value = day.date;
+        el.slider.max = String(day.end - day.start);
+        el.slider.value = String(this.idx - day.start);
+        el.slider.setAttribute('aria-valuetext', `${f.date} ${f.time}`);
+        el.count.textContent = `ภาพที่ ${this.idx - day.start + 1} / ${day.end - day.start + 1}`;
+        // Keyboard users keep focus when the button they pressed becomes disabled at the day's edge
+        const focused = document.activeElement;
+        el.prev.disabled = this.idx <= day.start;
+        el.next.disabled = this.idx >= day.end;
+        if ((focused === el.prev || focused === el.next) && focused.disabled) el.play.focus();
+        el.time.innerHTML = `<small>เวลาถ่ายจริง</small>${f.date} ${f.time}`;
+        el.hudDate.textContent = f.date;
+        el.hudTime.textContent = f.time.slice(0, 5);
+        el.img.alt = `ภาพจากกล้อง ${this.cam.camera_id} เวลา ${f.date} ${f.time}`;
+        el.src.textContent = this.fromDetect && f.filename === this.startFrame ? 'เฟรมจาก Detect'
+          : this.idx === this.frames.length - 1 ? 'ภาพล่าสุด' : 'ภาพย้อนหลัง';
+        el.src.classList.toggle('src', el.src.textContent === 'เฟรมจาก Detect');
+
+        // Missing frames: say which real time we jumped from
+        const prevF = this.idx > day.start ? this.frames[this.idx - 1] : null;
+        const gap = prevF ? toMinutes(f) - toMinutes(prevF) : 0;
+        if (gap > GAP_MIN) {
+          el.gap.hidden = false;
+          el.gap.textContent = `ช่วงที่ขาด: ภาพก่อนหน้าคือ ${prevF.time.slice(0, 5)} แล้วกระโดดไป ${f.time.slice(0, 5)} (ห่าง ${formatGap(gap)})`;
+        } else {
+          el.gap.hidden = true;
+        }
+
+        // Detect links + map URL always point at the frame on screen
+        const href = detectUrl(this.cam, f.filename);
+        el.link.href = href;
+        if (el.detect) el.detect.href = href;
+        syncUrl(this.cam, f.filename);
+
+        if (keepImage || deferImage) return Promise.resolve(true);
+        return this.showImage();
+      }
+
+      // Load the current frame's JPEG; show it only if it is still the newest request for this popup
+      showImage() {
+        const f = this.frames[this.idx];
+        if (!f) return Promise.resolve(false);
+        const seq = ++this.loadSeq;
+        const url = imageUrl(this.cam, f.filename);
+        return new Promise(resolve => {
+          const spin = setTimeout(() => {
+            if (this.alive && seq === this.loadSeq) this.setState('loading');
+          }, 250);
+          const pre = new Image();
+          pre.onload = () => {
+            clearTimeout(spin);
+            if (!this.alive || seq !== this.loadSeq) return resolve(false);
+            this.el.img.src = url;
+            this.setState(null);
+            resolve(true);
+          };
+          pre.onerror = () => {
+            clearTimeout(spin);
+            if (!this.alive || seq !== this.loadSeq) return resolve(false);
+            this.setState('โหลดภาพไม่สำเร็จ');
+            resolve(false);
+          };
+          pre.src = url;
+        });
+      }
+
+      async play() {
+        if (this.playing || !this.frames.length) return;
+        const day = this.currentDay();
+        this.playing = true;
+        const run = ++this.runId;
+        this.updatePlayButton();
+        // Pressing play on the day's last frame starts that day over
+        if (this.idx >= day.end) {
+          const ok = await this.go(day.start);
+          if (!ok) return this.stop();
+        }
+        while (this.alive && this.playing && run === this.runId) {
+          await new Promise(r => { this.timer = setTimeout(r, PLAY_MS); });
+          if (!this.alive || !this.playing || run !== this.runId) break;
+          if (this.idx >= day.end) { this.stop(); break; }
+          const ok = await this.go(this.idx + 1);
+          if (!this.alive || run !== this.runId) break;
+          if (!ok || this.idx >= day.end) { this.stop(); break; }  // stop at the day's last frame or on a failed load
+        }
+      }
+
+      stop() {
+        this.playing = false;
+        this.runId++;
+        clearTimeout(this.timer);
+        this.updatePlayButton();
+      }
+
+      updatePlayButton() {
+        const b = this.el.play;
+        if (!b) return;
+        b.innerHTML = this.playing ? ICON.pause : ICON.play;
+        b.setAttribute('aria-label', this.playing ? 'หยุดภาพย้อนหลัง' : 'เล่นภาพย้อนหลัง');
+        b.setAttribute('aria-pressed', String(this.playing));
+      }
+
+      setState(kind) {
+        const s = this.el.state;
+        if (!kind) { s.hidden = true; s.innerHTML = ''; return; }
+        s.hidden = false;
+        s.innerHTML = kind === 'loading'
+          ? '<span class="rp-spinner" aria-hidden="true"></span><span>กำลังโหลดภาพ…</span>'
+          : `<span>${escapeHtml(kind)}</span>`;
+      }
+
+      setStatus(text, kind = '', retry = null) {
+        const s = this.el.status;
+        s.className = `rp-status ${kind}`;
+        s.textContent = text;
+        if (retry) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = 'ลองใหม่';
+          b.onclick = retry;
+          s.appendChild(b);
+        }
+      }
+
+      destroy() {
+        this.stop();
+        this.alive = false;
+        this.loadSeq++;
+      }
+    }
+
+    let replay = null;
+
+    function setActive(id) {
+      if (activeId && markers.has(activeId)) {
+        const prev = markers.get(activeId);
+        prev.marker.setIcon(pinIcon(prev.cam, false));
+        prev.marker.setZIndexOffset(0);
+      }
+      activeId = id;
+      document.querySelectorAll('.cam-item').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+      if (id && markers.has(id)) {
+        const cur = markers.get(id);
+        cur.marker.setIcon(pinIcon(cur.cam, true));
+        cur.marker.setZIndexOffset(1000);
+        const item = document.querySelector(`.cam-item[data-id="${CSS.escape(id)}"]`);
+        if (item) {
+          // Scroll only the list (scrollIntoView would also scroll the page/panel on mobile)
+          const list = document.getElementById('camList');
+          const top = item.offsetTop - list.offsetTop;
+          if (top < list.scrollTop || top + item.offsetHeight > list.scrollTop + list.clientHeight) {
+            list.scrollTo({ top: top - 8, behavior: 'smooth' });
+          }
+        }
+      }
+    }
+
+    const isNarrow = () => window.innerWidth <= 720;
+    // Pixels the side panel covers on the left (desktop) or bottom (mobile)
+    const panelCover = () => isNarrow() ? { left: 0, bottom: 140 } : { left: 356, bottom: 0 };
+
+    function focusCamera(id, { instant = false } = {}) {
+      const entry = markers.get(id);
+      if (!entry) {
+        const cam = allCameras.find(c => c.camera_id === id);
+        if (cam) notify(`กล้อง ${id} ไม่มีพิกัด จึงแสดงบนแผนที่ไม่ได้`);
+        return;
+      }
+      document.getElementById('panel').classList.remove('open');
+      const zoom = Math.max(map.getZoom(), 16);
+      // Aim below the visible center (so the popup fits above the pin) and right of the panel
+      const cover = panelCover();
+      const pt = map.project(entry.marker.getLatLng(), zoom)
+        .subtract([cover.left / 2, 150 - cover.bottom / 2]);
+      const target = map.unproject(pt, zoom);
+      map.stop(); // cancel any running animation (e.g. the initial fit) so moveend belongs to this fly
+      map.closePopup();
+      if (instant) {
+        map.setView(target, zoom, { animate: false });
+        entry.marker.openPopup();
+        return;
+      }
+      map.flyTo(target, zoom, { duration: 0.9 });
+      map.once('moveend', () => entry.marker.openPopup());
+    }
+
+    function fitAll() {
+      // A hidden / zero-size map can't fit bounds (Leaflet computes NaN); fit once it gets a size
+      const size = map.getSize();
+      if (!size.x || !size.y) { map.once('resize', fitAll); return; }
+      if (cameraLayer.getLayers().length) {
+        const narrow = isNarrow();
+        map.flyToBounds(cameraLayer.getBounds(), {
+          paddingTopLeft: narrow ? [30, 70] : [380, 70],
+          paddingBottomRight: narrow ? [30, 160] : [70, 50],
+          duration: 0.8
+        });
+      }
+    }
+
+    // ---------- Side list ----------
+    let allCameras = [];
+    const listEl = document.getElementById('camList');
+    const listCountEl = document.getElementById('listCount');
+
+    function renderList(filter = '') {
+      const q = filter.trim().toLowerCase();
+      const shown = allCameras.filter(cam => !q || [cam.camera_id, cam.name_en, cam.name_th, cam.detail_en, cam.detail_th]
+        .some(v => (v || '').toLowerCase().includes(q)));
+      listCountEl.textContent = q ? `${shown.length} / ${allCameras.length}` : `${allCameras.length}`;
+
+      if (!shown.length) {
+        listEl.innerHTML = `<div class="empty">No camera matches "${escapeHtml(filter)}"</div>`;
+        return;
+      }
+      listEl.innerHTML = shown.map(cam => `
+        <button class="cam-item ${cam.camera_id === activeId ? 'active' : ''}" data-id="${escapeHtml(cam.camera_id)}">
+          ${cam.latest_image
+            ? `<img class="thumb" loading="lazy" alt="" src="${imageUrl(cam, cam.latest_image)}">`
+            : `<span class="thumb"></span>`}
+          <span class="info">
+            <span class="id">CAM ${escapeHtml(cam.camera_id)}${cam.has_coords ? '' : '<span class="nocoord">ไม่มีพิกัด</span>'}</span>
+            <span class="name">${escapeHtml(title(cam))}</span>
+          </span>
+        </button>`).join('');
+
+      // Dim pins that don't match the search
+      const visible = new Set(shown.map(c => c.camera_id));
+      markers.forEach(({ marker }, id) => marker.setOpacity(!q || visible.has(id) ? 1 : 0.18));
+    }
+
+    listEl.addEventListener('click', e => {
+      const item = e.target.closest('.cam-item');
+      if (item) focusCamera(item.dataset.id);
+    });
+
+    const searchEl = document.getElementById('search');
+    searchEl.addEventListener('input', () => renderList(searchEl.value));
+    searchEl.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const first = listEl.querySelector('.cam-item');
+        if (first) focusCamera(first.dataset.id);
+      }
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === '/' && document.activeElement !== searchEl) { e.preventDefault(); searchEl.focus(); }
+      if (e.key === 'Escape') { map.closePopup(); searchEl.blur(); }
+    });
+
+    document.getElementById('panelToggle').addEventListener('click', () =>
+      document.getElementById('panel').classList.toggle('open'));
+    searchEl.addEventListener('focus', () => document.getElementById('panel').classList.add('open'));
+
+    // ---------- Load ----------
+    async function loadCameras() {
+      try {
+        const res = await fetch('/api/map/cameras');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        // List cameras by numeric camera ID (11, 32, 124, ...); "numeric" keeps 124 after 32
+        allCameras = data.cameras.sort((a, b) =>
+          a.camera_id.localeCompare(b.camera_id, undefined, { numeric: true }));
+
+        allCameras.forEach(cam => {
+          if (!cam.has_coords) return; // listed in the panel, but no pin
+          const marker = L.marker([cam.latitude, cam.longitude], { icon: pinIcon(cam, false), riseOnHover: true })
+            .bindTooltip(`<b>${escapeHtml(cam.camera_id)}</b> &nbsp;${escapeHtml(title(cam))}`,
+                         { direction: 'top', className: 'cam-tip' })
+            .bindPopup(() => popupHtml(cam), { className: 'cam-popup-wrap', maxWidth: 340, autoPan: false });
+          // Pan so the popup clears the side panel and the top-right controls
+          marker.on('popupopen', e => {
+            const cover = panelCover();
+            e.popup.options.autoPanPaddingTopLeft = [cover.left + 24, 110];  // clear the style bar + รถไฟฟ้า switch
+            e.popup.options.autoPanPaddingBottomRight = [70, cover.bottom + 24];
+            e.popup.options.autoPan = true;
+            e.popup._adjustPan();
+          });
+          marker.on('popupopen', e => {
+            marker.closeTooltip();
+            setActive(cam.camera_id);
+            syncUrl(cam);
+            // One replay at a time: a new popup always gets a fresh controller bound to its own DOM
+            if (replay) replay.destroy();
+            const root = e.popup.getElement()?.querySelector('.rp');
+            replay = root ? new Replay(cam, root, shownFrame(cam)) : null;
+          });
+          marker.on('popupclose', () => {
+            // Stop playback immediately and ignore any image still loading for this camera
+            if (replay && replay.cam.camera_id === cam.camera_id) { replay.destroy(); replay = null; }
+            if (activeId === cam.camera_id) { setActive(null); syncUrl(null); }
+          });
+          marker.addTo(cameraLayer);
+          markers.set(cam.camera_id, { marker, cam });
+        });
+
+        // Header stats
+        const shots = allCameras.reduce((n, c) => n + c.image_count, 0);
+        const dates = allCameras.flatMap(c => [parseStamp(c.first_image), parseStamp(c.latest_image)])
+          .filter(Boolean).map(s => s.date).sort();
+        const days = dates.length ? Math.round((new Date(dates.at(-1)) - new Date(dates[0])) / 864e5) + 1 : 0;
+        document.getElementById('statCams').textContent = allCameras.length;
+        document.getElementById('statShots').textContent = shots >= 1000 ? `${(shots / 1000).toFixed(1)}k` : shots;
+        document.getElementById('statDays').textContent = days || '–';
+
+        renderList();
+      } catch (err) {
+        console.error(err);
+        listEl.innerHTML = '<div class="empty error">Could not load cameras.<br>Is the server running?</div>';
+        return;
+      }
+      // The camera list is fine even if opening the linked camera fails
+      try {
+        await openFromUrl();
+      } catch (err) {
+        console.error(err);
+        notify('เปิดกล้องจากลิงก์ไม่สำเร็จ', 'error');
+      }
+    }
+
+    // ---------- Deep link: /?camera=<id>&frame=<filename> ----------
+    async function openFromUrl() {
+      const params = new URLSearchParams(location.search);
+      const cameraId = (params.get('camera') || '').trim();
+      const frame = params.get('frame') || '';
+      if (!cameraId) { map.whenReady(fitAll); return; }
+
+      const cam = allCameras.find(c => c.camera_id === cameraId);
+      if (!cam) {
+        notify(`ไม่พบกล้องรหัส "${cameraId}" — แสดงกล้องทั้งหมดแทน`, 'error');
+        syncUrl(null);
+        map.whenReady(fitAll);
+        return;
+      }
+      if (!cam.has_coords) {
+        notify(`กล้อง ${cameraId} ไม่มีพิกัด จึงแสดงบนแผนที่ไม่ได้`, 'error');
+        map.whenReady(fitAll);
+        return;
+      }
+
+      if (frame) {
+        // Confirm the frame belongs to this camera before showing it; tell the user before falling back
+        let found = false;
+        try {
+          const q = new URLSearchParams({ camera_id: cameraId, filename: frame });
+          const r = await fetch(`/api/map/frame?${q}`);
+          found = r.ok && (await r.json()).found;
+        } catch (e) { console.error(e); }
+        if (found) {
+          frameOverride.set(cameraId, frame);
+        } else {
+          notify(`ไม่พบเฟรม "${frame}" ของกล้อง ${cameraId} — แสดงภาพล่าสุดแทน`);
+        }
+      }
+      map.whenReady(() => focusCamera(cameraId, { instant: true }));
+    }
+
+    loadCameras();
+  </script>
+</body>
+</html>

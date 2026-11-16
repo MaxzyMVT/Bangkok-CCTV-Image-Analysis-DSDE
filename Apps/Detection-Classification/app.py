@@ -35,6 +35,44 @@ METADATA_LOOKUP = load_cctv_metadata(CCTV_INFO_CSV)
 # Cache camera image index for fast navigation
 CAMERA_INDEX = {}
 
+def frame_belongs_to_camera(camera_id, filename):
+    """True if filename is a dataset frame named for camera_id (e.g. '915_..._20260831_210012.jpg')."""
+    if not camera_id or not filename or "/" in filename or "\\" in filename:
+        return False
+    parsed = parse_cctv_filename(filename)
+    return parsed is not None and parsed["camera_id"] == str(camera_id)
+
+
+def resolve_frame(camera_id, filename):
+    """Absolute path of a dataset frame, or None if it is not a real frame of that camera."""
+    if not frame_belongs_to_camera(camera_id, filename):
+        return None
+    try:
+        full = (DATASET_DIR / str(camera_id) / filename).resolve()
+        full.relative_to(DATASET_DIR.resolve())
+    except (ValueError, OSError):
+        return None
+    return full if full.is_file() else None
+
+
+def resolve_dataset_image(rel_path):
+    """Resolve a repo-relative image path ('dataset/100_cameras/cctv_images/<cid>/<file>').
+
+    Returns the absolute Path only if it stays inside cctv_images, is exactly
+    <camera_id>/<filename>, and the filename belongs to that camera. Otherwise None.
+    """
+    if not rel_path or not isinstance(rel_path, str):
+        return None
+    try:
+        full = (ROOT_DIR / rel_path).resolve()
+        rel = full.relative_to(DATASET_DIR.resolve())
+    except (ValueError, OSError):
+        return None
+    if len(rel.parts) != 2:
+        return None
+    return resolve_frame(rel.parts[0], rel.parts[1])
+
+
 def get_detector(conf=0.25, iou=0.45):
     global DETECTOR
     if DETECTOR is None:
@@ -100,8 +138,8 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
         path = parsed_url.path
         query = urllib.parse.parse_qs(parsed_url.query)
 
-        # 1. Main HTML Dashboard
-        if path in ("/", "/index.html"):
+        # 1. Main HTML Dashboard (also at /inspect, its address in the combined Apps/main.py server)
+        if path in ("/", "/index.html", "/inspect"):
             if TEMPLATE_FILE.exists():
                 content = TEMPLATE_FILE.read_bytes()
                 self.send_response(200)
@@ -119,8 +157,8 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
             if not rel_path:
                 self.send_error(400, "Missing path parameter")
                 return
-            full_path = ROOT_DIR / rel_path
-            if not full_path.exists():
+            full_path = resolve_dataset_image(rel_path)
+            if full_path is None:
                 self.send_error(404, "Image file not found")
                 return
             try:
@@ -291,8 +329,8 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
                     self._send_json({"error": f"Failed decoding image: {str(e)}"}, status=400)
                     return
             elif img_path_rel:
-                full_path = ROOT_DIR / img_path_rel
-                if not full_path.exists():
+                full_path = resolve_dataset_image(img_path_rel)
+                if full_path is None:
                     self._send_json({"error": f"Image not found: {img_path_rel}"}, status=404)
                     return
                 img_bgr = imread_unicode(full_path)
@@ -363,8 +401,8 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
             detector = get_detector(conf=conf, iou=iou)
 
             for rel_p in image_paths[:16]:
-                f_path = ROOT_DIR / rel_p
-                if not f_path.exists():
+                f_path = resolve_dataset_image(rel_p)
+                if f_path is None:
                     continue
                 img = imread_unicode(f_path)
                 if img is None:

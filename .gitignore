@@ -9,3 +9,6 @@ runs/
 
 # Test output artifacts
 Models/test_annotated_sample.jpg
+
+# Claude Code local settings
+.claude/
