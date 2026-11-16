@@ -24,11 +24,15 @@ Usage (conda activate dsde):
 """
 import argparse
 import json
+import os
 import random
 import shutil
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+
+# Prevent crash on Windows when both PyTorch and OpenCV / torchvision load OpenMP runtimes
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 import pandas as pd
 import yaml
