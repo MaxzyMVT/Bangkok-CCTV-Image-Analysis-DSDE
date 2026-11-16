@@ -77,5 +77,8 @@ python Models/pipeline.py --output-csv DataEngineering/vehicle_counts.csv
 set CCTV_MODEL=yolov8n.pt && python Apps/app.py     # force the old pretrained model
 ```
 
+`pipeline.py` skips frames from frozen camera feeds listed in `DataEngineering/quality/frozen_frames.csv`
+(598 frames; `--keep-frozen` to count them anyway).
+
 `/api/predict` responses include `"model"` so you can see which weights answered.
 Weights (`*.pt`) are not committed. Share `Models/weights/best.pt` + `best.json` through the team Drive.

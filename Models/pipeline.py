@@ -18,6 +18,10 @@ except ImportError:
 
 FILENAME_PATTERN = re.compile(r'^(\d+)_(.+)_(\d{8})_(\d{6})\.jpe?g$', re.IGNORECASE)
 
+# Frames from frozen camera feeds (same picture as the previous frame), made by
+# DataEngineering/quality/find_frozen_frames.py. Counting them would repeat old traffic.
+DEFAULT_FROZEN_CSV = Path(__file__).resolve().parent.parent / "DataEngineering" / "quality" / "frozen_frames.csv"
+
 def parse_cctv_filename(filename: str) -> Optional[Dict]:
     """
     Parses standard BMA CCTV image filename format:
@@ -57,6 +61,26 @@ def load_cctv_metadata(csv_path: Path) -> Dict[str, Dict]:
         print(f"[Warning] Failed loading cctv_info.csv: {e}")
     return meta
 
+def load_frozen_keys(csv_path: Path) -> set:
+    """(camera_id, ISO timestamp) of every frozen frame; empty set if the list is missing."""
+    if not csv_path or not Path(csv_path).exists():
+        return set()
+    with open(csv_path, mode="r", encoding="utf-8-sig") as f:
+        return {(int(r["camera_id"]), r["timestamp"]) for r in csv.DictReader(f)}
+
+
+def drop_frozen(image_paths: List[Path], frozen_keys: set):
+    """Returns (paths to keep, number skipped). Files whose name can't be parsed are kept."""
+    kept, skipped = [], 0
+    for p in image_paths:
+        parsed = parse_cctv_filename(p.name)
+        if parsed and (int(parsed["camera_id"]), parsed["timestamp"]) in frozen_keys:
+            skipped += 1
+        else:
+            kept.append(p)
+    return kept, skipped
+
+
 def run_batch_pipeline(
     input_dir: Path,
     output_csv: Path,
@@ -65,7 +89,8 @@ def run_batch_pipeline(
     limit: Optional[int] = None,
     conf_threshold: float = 0.25,
     model_name: str = "yolov8n.pt",
-    device: str = "cpu"
+    device: str = "cpu",
+    frozen_csv: Optional[Path] = DEFAULT_FROZEN_CSV
 ):
     """
     Processes all CCTV images in input_dir, extracts vehicle detections,
@@ -84,6 +109,9 @@ def run_batch_pipeline(
         image_paths.extend(input_dir.rglob(ext))
 
     image_paths = sorted(image_paths)
+    image_paths, n_frozen = drop_frozen(image_paths, load_frozen_keys(frozen_csv))
+    if n_frozen:
+        print(f"[*] Skipped {n_frozen} frozen-camera frames listed in {frozen_csv}")
     if limit:
         image_paths = image_paths[:limit]
 
@@ -158,6 +186,8 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, default=None, help="Limit number of images to process")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
     parser.add_argument("--model", type=str, default=None, help="YOLO weights (default: Models/weights/best.pt if present, else yolov8n.pt)")
+    parser.add_argument("--keep-frozen", action="store_true",
+                        help="Also count frames from frozen camera feeds (skipped by default)")
     args = parser.parse_args()
 
     ann_dir = Path(args.save_annotated) if args.save_annotated else None
@@ -168,5 +198,6 @@ if __name__ == "__main__":
         annotated_output_dir=ann_dir,
         limit=args.limit,
         conf_threshold=args.conf,
-        model_name=resolve_model(args.model)
+        model_name=resolve_model(args.model),
+        frozen_csv=None if args.keep_frozen else DEFAULT_FROZEN_CSV
     )

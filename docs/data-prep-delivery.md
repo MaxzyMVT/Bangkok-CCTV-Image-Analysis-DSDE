@@ -58,7 +58,7 @@ python Models/training/train_pipeline.py all --device 0    # train ใหม่�
   - `build` ซ้ำภาพที่มี bus ใน train 2 เท่า (`--oversample-bus 2`) และเพิ่มภาพยืด/บีบแนวนอน ×0.8–1.2 ภาพละ 1 ใบ (`--stretch`) — val ไม่ถูกแตะ
   - **ยังไม่เพิ่มน้ำหนัก truck** จนกว่าจะตรวจ truck เสร็จ
   - val ยังเป็น pseudo-label ของ yolo11x → วัดว่า bus/truck ดีขึ้นจริงไหมได้หลังตรวจ test set 1,000 ภาพแล้วเท่านั้น
-- **กล้องค้าง**: `DataEngineering/quality/frozen_frames.csv` = 598 ภาพ (1 %) ที่เป็นภาพเดิมซ้ำทุกพิกเซล ทั้งที่เวลาต่างกัน (กล้อง 150, 938, 939, 206, 395 ค้างนานสุด ~23 ชม.) → **ตัดออกก่อนนับรถ/วิเคราะห์** สร้างใหม่ด้วย `python DataEngineering/quality/find_frozen_frames.py`
+- **กล้องค้าง**: `DataEngineering/quality/frozen_frames.csv` = 598 ภาพ (1 %) ที่เป็นภาพเดิมซ้ำทุกพิกเซล ทั้งที่เวลาต่างกัน (กล้อง 150, 938, 939, 206, 395 ค้างนานสุด ~23 ชม.) → `Models/pipeline.py` **ข้ามให้อัตโนมัติ** (`--keep-frozen` ถ้าอยากนับด้วย) ถ้าใช้ข้อมูลจากที่อื่นต้องตัดเอง · สร้างใหม่ด้วย `python DataEngineering/quality/find_frozen_frames.py`
 - ไฟล์โมเดล (`*.pt`) ไม่อยู่ใน git → แชร์ `Models/weights/best.pt` + `best.json` ผ่าน Drive หรือ train เอง (~40 นาที GPU)
 - **กล้องซ้อนกัน**: 21 คู่ห่างกัน < 100 ม. (ส่วนใหญ่คนละทิศ) → ตอนรวมยอดต้องจัดกลุ่มตาม ถนน + ทิศ ไม่บวกกล้องตรง ๆ (งานถัดไป)
 - **ชนกับ branch `feat/interactive-camera-map`**: branch นั้นย้าย `Apps/app.py` → `Apps/Detection-Classification/app.py` ต้องย้ายการแก้ `resolve_model()` ไปไฟล์ใหม่ตอน merge
