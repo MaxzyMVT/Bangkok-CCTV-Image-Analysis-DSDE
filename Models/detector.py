@@ -173,22 +173,35 @@ class YOLOVehicleDetector:
                     # Label tag
                     label = f"{class_name} {confidence:.2f}"
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 0.5
+                    font_scale = 0.38
                     font_thickness = 1
                     (text_w, text_h), baseline = cv2.getTextSize(label, font, font_scale, font_thickness)
-                    
+
+                    # If box is too near top HUD banner, place label inside the box
+                    if y1 < 28:
+                        lbl_y = min(h - 4, y1 + text_h + 3)
+                        box_top = y1
+                        box_bot = min(h, y1 + text_h + baseline + 4)
+                    else:
+                        lbl_y = y1 - 3
+                        box_top = max(0, y1 - text_h - baseline - 4)
+                        box_bot = y1
+
+                    lbl_x1 = max(0, x1)
+                    lbl_x2 = min(w, x1 + text_w + 4)
+
                     # Background pill for text label
                     cv2.rectangle(
                         annotated_img,
-                        (x1, max(0, y1 - text_h - baseline - 4)),
-                        (x1 + text_w + 4, max(text_h + baseline + 4, y1)),
+                        (lbl_x1, box_top),
+                        (lbl_x2, box_bot),
                         color,
                         -1
                     )
                     cv2.putText(
                         annotated_img,
                         label,
-                        (x1 + 2, max(text_h + 2, y1 - 4)),
+                        (lbl_x1 + 2, lbl_y),
                         font,
                         font_scale,
                         (0, 0, 0),
@@ -197,33 +210,30 @@ class YOLOVehicleDetector:
                     )
 
         if draw_annotations:
-            # Build summary string
+            # Build sleek, compact summary string
             total = counts["total_vehicles"]
             hud_text = f"TOTAL: {total} | Cars: {counts.get('car', 0)} | Moto: {counts.get('motorcycle', 0)} | Bus: {counts.get('bus', 0)} | Truck: {counts.get('truck', 0)}"
 
-            # Auto-scale font dynamically to prevent cut-off on lower resolution CCTV images (e.g. 352x288)
+            # Proportionally compact font: highly legible without oversized letters or border clipping
             font = cv2.FONT_HERSHEY_SIMPLEX
-            margin = max(8, int(w * 0.025))
-            avail_w = max(50, w - 2 * margin)
-            font_scale = 0.65
-            font_thickness = 2
-            (text_w, text_h), _ = cv2.getTextSize(hud_text, font, font_scale, font_thickness)
-            if text_w > avail_w:
-                font_scale = font_scale * (avail_w / text_w)
-                font_thickness = 1 if font_scale < 0.55 else 2
-                (text_w, text_h), _ = cv2.getTextSize(hud_text, font, font_scale, font_thickness)
-                if text_w > avail_w:
-                    font_scale = max(0.35, font_scale * (avail_w / text_w))
-                    (text_w, text_h), _ = cv2.getTextSize(hud_text, font, font_scale, font_thickness)
+            font_scale = 0.38
+            font_thickness = 1
+            (text_w, text_h), baseline = cv2.getTextSize(hud_text, font, font_scale, font_thickness)
 
-            # Draw HUD Analytics Bar on top
-            hud_h = max(26, int(text_h + 16))
+            # Ensure text leaves at least 15% breathing room on margins
+            max_allowed_w = int(w * 0.85)
+            if text_w > max_allowed_w:
+                font_scale = max(0.28, font_scale * (max_allowed_w / text_w))
+                (text_w, text_h), baseline = cv2.getTextSize(hud_text, font, font_scale, font_thickness)
+
+            # Compact HUD Analytics Bar on top (sleek 22-24px height)
+            hud_h = max(22, int(text_h + 12))
             hud_overlay = annotated_img.copy()
-            cv2.rectangle(hud_overlay, (0, 0), (w, hud_h), (20, 24, 30), -1)
-            cv2.addWeighted(hud_overlay, 0.80, annotated_img, 0.20, 0, annotated_img)
+            cv2.rectangle(hud_overlay, (0, 0), (w, hud_h), (18, 22, 28), -1)
+            cv2.addWeighted(hud_overlay, 0.85, annotated_img, 0.15, 0, annotated_img)
 
-            # Center text horizontally & vertically within the HUD bar
-            text_x = max(margin, (w - text_w) // 2)
+            # Perfectly center text horizontally & vertically within the HUD bar
+            text_x = max(6, (w - text_w) // 2)
             text_y = int((hud_h + text_h) / 2) - 1
 
             cv2.putText(
@@ -232,7 +242,7 @@ class YOLOVehicleDetector:
                 (text_x, text_y),
                 font,
                 font_scale,
-                (255, 255, 255),
+                (245, 248, 252),
                 font_thickness,
                 cv2.LINE_AA
             )
