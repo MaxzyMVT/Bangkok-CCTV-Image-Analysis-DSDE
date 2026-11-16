@@ -2,7 +2,8 @@
 Build the hand-verified test set from the review tool's results.
 
 Keeps frames reviewed as `approved` (YOLO was right) or `corrected` (a person fixed the boxes);
-drops `rejected` frames. Also reports how far YOLO's pre-label counts were from the reviewed counts.
+drops `rejected` frames. Only the 300 `core` frames of candidates.csv must be reviewed before merging;
+any other candidate that was reviewed is kept as well. Also reports how far YOLO's pre-label counts were from the reviewed counts.
 
 Outputs in DataEngineering/test_set/:
     labels/<stem>.txt     committed
@@ -53,9 +54,12 @@ def merge(store: ReviewStore, items: pd.DataFrame, dataset_root: Path, out_dir: 
     items["status"] = items["stem"].map(statuses).fillna("pending")
     tally = items["status"].value_counts().to_dict()
     print("[*] review status:", tally)
-    pending = int(tally.get("pending", 0))
+    # Only the core subset (candidates.csv `core`, 300 frames) must be reviewed; reviewed extras are kept too.
+    required = items[items["core"].astype(bool)] if "core" in items.columns else items
+    pending = int((required["status"] == "pending").sum())
     if pending and not allow_unreviewed:
-        sys.exit(f"[x] {pending} frames still pending. Finish reviewing or pass --allow-unreviewed.")
+        sys.exit(f"[x] {pending} of {len(required)} core frames still pending. "
+                 "Finish reviewing or pass --allow-unreviewed.")
 
     kept = items[items["status"].isin(["approved", "corrected"])].copy()
     img_out, lbl_out = Path(out_dir) / "images", Path(out_dir) / "labels"
@@ -80,7 +84,8 @@ def merge(store: ReviewStore, items: pd.DataFrame, dataset_root: Path, out_dir: 
 
     out_dir = Path(out_dir)
     kept.to_csv(out_dir / "test_manifest.csv", index=False, encoding="utf-8-sig")
-    items[["stem", "image_id", "camera_id", "time_period", "status"]].to_csv(
+    log_cols = ["stem", "image_id", "camera_id", "time_period", *(["core"] if "core" in items.columns else []), "status"]
+    items[log_cols].to_csv(
         out_dir / "review_log.csv", index=False, encoding="utf-8-sig")
     errors = count_error_table(rows)
     errors.to_csv(out_dir / "count_error.csv", index=False)

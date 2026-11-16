@@ -68,6 +68,23 @@ class MergeTest(unittest.TestCase):
         with self.assertRaises(SystemExit):
             merge(self.store, self.items, self.data, self.out)
 
+    def test_only_core_frames_must_be_reviewed(self):
+        items = self.items.assign(core=[True, True, False, False])   # pending STEMS[3] is not core
+        summary = merge(self.store, items, self.data, self.out)
+        self.assertEqual(summary["kept"], 2)
+        log = pd.read_csv(self.out / "review_log.csv", encoding="utf-8-sig")
+        self.assertIn("core", log.columns)
+
+    def test_pending_core_frame_blocks_merge(self):
+        items = self.items.assign(core=[True, False, False, True])   # STEMS[3] is core and pending
+        with self.assertRaises(SystemExit):
+            merge(self.store, items, self.data, self.out)
+
+    def test_reviewed_extra_frames_are_kept(self):
+        items = self.items.assign(core=[True, False, False, False])  # STEMS[1] reviewed but not core
+        summary = merge(self.store, items, self.data, self.out)
+        self.assertEqual(summary["kept"], 2)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -64,7 +64,8 @@ class ReviewApp:
                         "n_boxes": len(self.store.current_boxes(set_name, stem)),
                         "min_conf": round(min((b[5] for b in pre), default=1.0), 4),
                         "has_bus": any(int(b[0]) == BUS for b in pre),
-                        "has_truck": any(int(b[0]) == TRUCK for b in pre)})
+                        "has_truck": any(int(b[0]) == TRUCK for b in pre),
+                        "core": bool(r.get("core", False))})
         return {"items": out}
 
     def item(self, set_name, stem):
@@ -82,11 +83,16 @@ class ReviewApp:
         return path
 
     def stats(self, set_name):
-        total = len(self.items(set_name))
+        items = self.items(set_name)
+        total = len(items)
         out = {"approved": 0, "corrected": 0, "rejected": 0}
-        for s in self.store.all_status(set_name).values():
+        statuses = self.store.all_status(set_name)
+        for s in statuses.values():
             out[s] = out.get(s, 0) + 1
         out["total"] = total
+        core = [stem for stem, r in items.items() if r.get("core", False)]
+        out["core_total"] = len(core)
+        out["core_done"] = sum(statuses.get(stem, "pending") != "pending" for stem in core)
         out["pending"] = total - out["approved"] - out["corrected"] - out["rejected"]
         return out
 

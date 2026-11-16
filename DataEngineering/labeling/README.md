@@ -6,8 +6,12 @@ so people check a sample of frames. That gives us (1) a measured counting error 
 
 | Set | Frames | Used for |
 |---|---|---|
-| `test` | 1,000 (10 per camera, 2 per time period) | measuring the error — never used for training |
+| `test` | **300 core** (3 per camera, 60 per time period) — must be done; 700 more optional | measuring the error — never used for training |
 | `train` | 1,200 (12 per camera) | fine-tuning the model |
+
+**Do the test set first.** It is the only way to measure the counting error. The page shows only the
+300 core frames by default (*Frames → core 300*); switch to *all 1,000* only after those are done.
+Train frames are optional extra help: unreviewed train frames still get YOLO labels.
 
 There is **no per-person split**. Everyone works from the same queue; if several people help, pick different
 cameras with the *Camera* filter. Each frame's result is its own small file, so pushes don't conflict.
@@ -69,7 +73,8 @@ python DataEngineering/labeling/merge_test_set.py          # test set + YOLO cou
 python Models/training/train_pipeline.py all --device 0     # rebuild train set with your labels, train, eval
 ```
 
-`merge_test_set.py` refuses to run while test frames are still pending (add `--allow-unreviewed` for a preview).
+`merge_test_set.py` refuses to run while **core** test frames are still pending (add `--allow-unreviewed` for a preview).
+Reviewed non-core test frames are included too; `review_log.csv` has a `core` column to filter on.
 `train_pipeline.py build` always keeps reviewed train frames and drops rejected ones.
 
 ## Notes

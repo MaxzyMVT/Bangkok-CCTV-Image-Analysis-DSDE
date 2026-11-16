@@ -77,6 +77,15 @@ class ReviewAppTest(unittest.TestCase):
         self.assertAlmostEqual(first["min_conf"], 0.44)
         self.assertIn(first["status"], ("pending", "approved", "corrected", "rejected"))
 
+    def test_queue_and_stats_mark_core_subset(self):
+        items = self._json("/api/queue?set=test")["items"]
+        self.assertEqual(sum(i["core"] for i in items), 300)
+        s = self._json("/api/stats?set=test")
+        self.assertEqual(s["core_total"], 300)
+        self.assertIn("core_done", s)
+        train = self._json("/api/queue?set=train")["items"]
+        self.assertFalse(any(i["core"] for i in train))
+
     def test_queue_flags_bus_and_truck_from_prelabel(self):
         stem_bus = load_items("test")["stem"].iloc[2]
         self.store.write_prelabel("test", stem_bus, [(2, .5, .5, .2, .2, .8), (0, .2, .2, .1, .1, .9)], overwrite=True)

@@ -12,7 +12,7 @@ Branch `feat/data-prep-yolo-test-set` · 15 พ.ย. 2026 · ทำโดย kan
 
 | ส่วน | ไฟล์ | ทำอะไร |
 |---|---|---|
-| ชุดภาพ Test | `DataEngineering/test_set/candidates.csv` | 1,000 ภาพ กล้องละ 10 (2 ภาพ × 5 ช่วงเวลา) ล็อก seed ไว้ |
+| ชุดภาพ Test | `DataEngineering/test_set/candidates.csv` | 1,000 ภาพ กล้องละ 10 ล็อก seed ไว้ · **ต้องตรวจแค่ 300 ภาพ `core`** (กล้องละ 3 ภาพ คนละช่วงเวลา, ช่วงละ 60) |
 | ชุดภาพ Train | `DataEngineering/train_set/train_manifest.csv` | 1,200 ภาพ กล้องละ 12 ไม่ซ้ำ/ไม่ใกล้ภาพ Test (±20 นาที) val = 31 ส.ค. |
 | YOLO ตีกรอบล่วงหน้า | `DataEngineering/reviews/{test,train}/prelabels/` | `yolo11x` ตีกรอบไว้ทั้ง 2,200 ภาพแล้ว (ไม่ต้องมี GPU) |
 | เครื่องมือตรวจภาพ | `DataEngineering/labeling/review_app.py` | เว็บ `localhost:8090` กด Approve หรือแก้กรอบ/class เอง |
@@ -50,7 +50,8 @@ python Models/training/train_pipeline.py all --device 0    # train ใหม่�
 
 ## ยังไม่ได้ทำ / ต้องรู้
 
-- **ยังไม่มีใครตรวจภาพ** (0/2,200) — ตัวเลข error จริงยังไม่มี
+- **ตรวจแล้ว (16 พ.ย.)**: train 248 ภาพ (แก้ 228 = YOLO ผิด 93 %) · test core เพิ่งเริ่ม — ตัวเลข error จริงรอ test core 300 ภาพ
+- **ลด Test เหลือ 300 ภาพ** เพราะเหลือคนตรวจคนเดียว: 300 ภาพพอประมาณค่าเฉลี่ยการนับพลาดได้ (กระจายทุกกล้อง ทุกช่วงเวลา) ภาพที่เหลือ 700 ตรวจเพิ่มได้ถ้ามีเวลา
 - `best.pt` ยังนับ **กระบะเป็น truck** (ติดมาจาก COCO) → จะหายเมื่อ train ใหม่ด้วย label ที่ตรวจแล้ว
 - **bus/truck มีน้อย + truck ปนกระบะ**: pre-label ชุด train มี bus แค่ 3 % ของภาพ (171 ภาพ) แต่ truck 16 % (592 ภาพ) ซึ่งสูงเกินจริง เพราะ yolo11x เรียกกระบะว่า truck
   - review tool มี Sort **"bus/truck first"** → ตรวจภาพที่มี bus/truck ก่อน (กระบะ = car)
