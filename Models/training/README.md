@@ -81,4 +81,6 @@ set CCTV_MODEL=yolov8n.pt && python Apps/app.py     # force the old pretrained m
 (598 frames; `--keep-frozen` to count them anyway).
 
 `/api/predict` responses include `"model"` so you can see which weights answered.
-Weights (`*.pt`) are not committed. Share `Models/weights/best.pt` + `best.json` through the team Drive.
+`Models/weights/best.pt` + `best.json` (19 MB) are committed, so `git pull` gives everyone the App's current model.
+Other weights (`best_prev.pt`, `runs/`) stay local. Commit a new `best.pt` only when it beats the current one on the test set:
+each commit adds ~19 MB to the repo history for good.

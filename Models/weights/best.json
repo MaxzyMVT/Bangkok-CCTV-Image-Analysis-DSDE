@@ -1,0 +1,34 @@
+{
+  "run": "runs/train/yolo11s_20261116_2022",
+  "base_model": "yolo11s.pt",
+  "epochs": 80,
+  "imgsz": 416,
+  "classes": {
+    "0": "car",
+    "1": "motorcycle",
+    "2": "bus",
+    "3": "truck"
+  },
+  "trained_at": "2026-11-16T21:22:00",
+  "best_epoch": 55,
+  "val_mAP50": 0.6571,
+  "val_mAP50_95": 0.492,
+  "train_frames": {
+    "human": 252,
+    "pseudo": 945
+  },
+  "test": {
+    "frames": 294,
+    "source": "hand-reviewed core test set",
+    "mAP50": 0.5084,
+    "mAP50_95": 0.339,
+    "count_mae": {
+      "car": 1.626,
+      "motorcycle": 1.146,
+      "bus": 0.112,
+      "truck": 0.571,
+      "total": 2.313
+    }
+  },
+  "note": "promoted 2026-11-16: beats yolo11s_20261115_1718 on every class of the test set (total 2.31 vs 2.52)"
+}

@@ -6,7 +6,7 @@ discord_sync/
 *.zip
 
 # ---------------------------------------------------------------------------
-# Models & training outputs (share weights via Drive, not git)
+# Models & training outputs (only the App's current model is committed)
 # ---------------------------------------------------------------------------
 *.pt
 *.pth
@@ -14,7 +14,9 @@ discord_sync/
 *.engine
 *.torchscript
 runs/
-Models/weights/
+Models/weights/*
+!Models/weights/best.pt
+!Models/weights/best.json
 Models/test_annotated_sample.jpg
 
 # Labeling workflow: images/previews are reproducible from dataset/.
