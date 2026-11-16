@@ -1,20 +1,68 @@
+# ---------------------------------------------------------------------------
+# Data (download from the course Google Drive; never commit images)
+# ---------------------------------------------------------------------------
 dataset/
 discord_sync/
+*.zip
 
-# Python & PyTorch cache
-__pycache__/
-*.pyc
+# ---------------------------------------------------------------------------
+# Models & training outputs (only the App's current model is committed)
+# ---------------------------------------------------------------------------
 *.pt
+*.pth
+*.onnx
+*.engine
+*.torchscript
 runs/
-
-# Test output artifacts
+Models/weights/*
+!Models/weights/best.pt
+!Models/weights/best.json
 Models/test_annotated_sample.jpg
 
-# Virtual environment & Lakehouse Parquet storage
+# Labeling workflow: images/previews are reproducible from dataset/.
+# Text labels in DataEngineering/reviews/ ARE committed.
+labeling_work/
+DataEngineering/test_set/images/
+
+# Training set is rebuilt by Models/training/train_pipeline.py; keep only the manifest
+DataEngineering/train_set/*
+!DataEngineering/train_set/train_manifest.csv
+
+# YOLO label caches
+*.cache
+
+# ---------------------------------------------------------------------------
+# Python / environments
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
 .venv/
+venv/
+env/
+.env
+.env.*
+*.log
+
+# Lakehouse storage (DataEngineering/lakehouse_pipeline.py)
 lakehouse/
 *.ducklake
 *.parquet
 
-# Claude Code local settings
+# ---------------------------------------------------------------------------
+# Editors, OS, tools
+# ---------------------------------------------------------------------------
 .claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# Local design/plan notes (superpowers skills)
+docs/superpowers/
+.superpowers/
+
+# Interrupted atomic writes from the review tool
+*.tmp

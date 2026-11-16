@@ -1,0 +1,1001 @@
+﻿stem,image_id,camera_id,time_period,core,status
+cam0011_img00087,87,11,Late Evening,False,pending
+cam0011_img00091,91,11,Early Morning,True,corrected
+cam0011_img00260,260,11,Morning Rush,True,corrected
+cam0011_img00303,303,11,Midday,False,corrected
+cam0011_img00344,344,11,Early Morning,False,corrected
+cam0011_img00401,401,11,Midday,True,corrected
+cam0011_img00506,506,11,Evening Rush,False,pending
+cam0011_img00517,517,11,Late Evening,False,pending
+cam0011_img00529,529,11,Morning Rush,False,pending
+cam0011_img00605,605,11,Evening Rush,False,pending
+cam0018_img00706,706,18,Early Morning,False,pending
+cam0018_img00714,714,18,Morning Rush,True,corrected
+cam0018_img00768,768,18,Evening Rush,True,corrected
+cam0018_img00814,814,18,Midday,True,corrected
+cam0018_img00950,950,18,Late Evening,False,pending
+cam0018_img00985,985,18,Midday,False,pending
+cam0018_img01026,1026,18,Evening Rush,False,pending
+cam0018_img01042,1042,18,Late Evening,False,pending
+cam0018_img01137,1137,18,Early Morning,False,pending
+cam0018_img01154,1154,18,Morning Rush,False,pending
+cam0026_img01228,1228,26,Early Morning,False,pending
+cam0026_img01260,1260,26,Midday,True,corrected
+cam0026_img01304,1304,26,Evening Rush,True,corrected
+cam0026_img01581,1581,26,Morning Rush,False,pending
+cam0026_img01652,1652,26,Late Evening,False,pending
+cam0026_img01674,1674,26,Morning Rush,False,pending
+cam0026_img01729,1729,26,Evening Rush,False,pending
+cam0026_img01748,1748,26,Early Morning,False,pending
+cam0026_img01787,1787,26,Midday,False,pending
+cam0026_img01831,1831,26,Late Evening,True,corrected
+cam0032_img01840,1840,32,Early Morning,True,corrected
+cam0032_img01859,1859,32,Morning Rush,False,pending
+cam0032_img01936,1936,32,Morning Rush,False,pending
+cam0032_img02089,2089,32,Late Evening,True,corrected
+cam0032_img02124,2124,32,Midday,False,pending
+cam0032_img02170,2170,32,Evening Rush,True,corrected
+cam0032_img02175,2175,32,Late Evening,False,pending
+cam0032_img02232,2232,32,Midday,False,pending
+cam0032_img02273,2273,32,Early Morning,False,pending
+cam0032_img02429,2429,32,Evening Rush,False,pending
+cam0036_img02516,2516,36,Evening Rush,False,pending
+cam0036_img02531,2531,36,Late Evening,True,approved
+cam0036_img02538,2538,36,Early Morning,True,approved
+cam0036_img02621,2621,36,Late Evening,False,pending
+cam0036_img02645,2645,36,Midday,False,pending
+cam0036_img02709,2709,36,Morning Rush,True,corrected
+cam0036_img02793,2793,36,Early Morning,False,pending
+cam0036_img02798,2798,36,Morning Rush,False,pending
+cam0036_img02959,2959,36,Evening Rush,False,pending
+cam0036_img03007,3007,36,Midday,False,pending
+cam0068_img03145,3145,68,Late Evening,False,pending
+cam0068_img03235,3235,68,Late Evening,False,pending
+cam0068_img03238,3238,68,Morning Rush,False,pending
+cam0068_img03294,3294,68,Evening Rush,False,pending
+cam0068_img03327,3327,68,Morning Rush,True,corrected
+cam0068_img03402,3402,68,Early Morning,True,corrected
+cam0068_img03481,3481,68,Evening Rush,False,pending
+cam0068_img03545,3545,68,Midday,True,corrected
+cam0068_img03586,3586,68,Early Morning,False,pending
+cam0068_img03621,3621,68,Midday,False,pending
+cam0070_img03852,3852,70,Morning Rush,False,pending
+cam0070_img03909,3909,70,Evening Rush,True,corrected
+cam0070_img03921,3921,70,Late Evening,False,pending
+cam0070_img03926,3926,70,Early Morning,False,pending
+cam0070_img03999,3999,70,Evening Rush,False,pending
+cam0070_img04015,4015,70,Early Morning,False,pending
+cam0070_img04073,4073,70,Midday,False,pending
+cam0070_img04100,4100,70,Late Evening,False,pending
+cam0070_img04119,4119,70,Morning Rush,True,corrected
+cam0070_img04132,4132,70,Midday,True,corrected
+cam0075_img04286,4286,75,Early Morning,False,pending
+cam0075_img04376,4376,75,Early Morning,False,pending
+cam0075_img04459,4459,75,Late Evening,False,pending
+cam0075_img04476,4476,75,Midday,True,corrected
+cam0075_img04527,4527,75,Evening Rush,False,pending
+cam0075_img04545,4545,75,Morning Rush,False,pending
+cam0075_img04726,4726,75,Morning Rush,False,pending
+cam0075_img04754,4754,75,Midday,False,pending
+cam0075_img04804,4804,75,Late Evening,True,corrected
+cam0075_img04887,4887,75,Evening Rush,True,corrected
+cam0082_img04900,4900,82,Early Morning,True,approved
+cam0082_img04977,4977,82,Evening Rush,False,pending
+cam0082_img05008,5008,82,Morning Rush,False,pending
+cam0082_img05073,5073,82,Late Evening,True,corrected
+cam0082_img05181,5181,82,Midday,False,pending
+cam0082_img05251,5251,82,Morning Rush,False,pending
+cam0082_img05322,5322,82,Evening Rush,True,corrected
+cam0082_img05338,5338,82,Early Morning,False,pending
+cam0082_img05372,5372,82,Midday,False,pending
+cam0082_img05418,5418,82,Late Evening,False,pending
+cam0088_img05527,5527,88,Morning Rush,True,corrected
+cam0088_img05590,5590,88,Evening Rush,False,pending
+cam0088_img05649,5649,88,Midday,False,pending
+cam0088_img05763,5763,88,Late Evening,False,pending
+cam0088_img05767,5767,88,Early Morning,True,corrected
+cam0088_img05851,5851,88,Late Evening,True,corrected
+cam0088_img05864,5864,88,Morning Rush,False,pending
+cam0088_img05888,5888,88,Midday,False,pending
+cam0088_img05916,5916,88,Evening Rush,False,pending
+cam0088_img05951,5951,88,Early Morning,False,pending
+cam0112_img06208,6208,112,Late Evening,False,pending
+cam0112_img06218,6218,112,Early Morning,False,pending
+cam0112_img06336,6336,112,Midday,False,pending
+cam0112_img06371,6371,112,Late Evening,False,pending
+cam0112_img06437,6437,112,Evening Rush,False,pending
+cam0112_img06467,6467,112,Early Morning,True,corrected
+cam0112_img06476,6476,112,Morning Rush,True,corrected
+cam0112_img06510,6510,112,Midday,True,corrected
+cam0112_img06537,6537,112,Evening Rush,False,pending
+cam0112_img06660,6660,112,Morning Rush,False,pending
+cam0118_img06743,6743,118,Morning Rush,False,pending
+cam0118_img06836,6836,118,Morning Rush,True,corrected
+cam0118_img06990,6990,118,Late Evening,False,pending
+cam0118_img06991,6991,118,Early Morning,False,pending
+cam0118_img07037,7037,118,Midday,False,pending
+cam0118_img07142,7142,118,Evening Rush,True,corrected
+cam0118_img07165,7165,118,Late Evening,False,pending
+cam0118_img07173,7173,118,Early Morning,False,pending
+cam0118_img07221,7221,118,Midday,True,corrected
+cam0118_img07329,7329,118,Evening Rush,False,pending
+cam0119_img07353,7353,119,Early Morning,False,pending
+cam0119_img07373,7373,119,Morning Rush,False,pending
+cam0119_img07399,7399,119,Midday,False,pending
+cam0119_img07424,7424,119,Evening Rush,True,corrected
+cam0119_img07433,7433,119,Late Evening,False,pending
+cam0119_img07445,7445,119,Early Morning,False,pending
+cam0119_img07715,7715,119,Midday,True,corrected
+cam0119_img07764,7764,119,Evening Rush,False,pending
+cam0119_img07779,7779,119,Late Evening,True,corrected
+cam0119_img07881,7881,119,Morning Rush,False,pending
+cam0120_img08056,8056,120,Early Morning,False,pending
+cam0120_img08099,8099,120,Midday,False,pending
+cam0120_img08139,8139,120,Late Evening,False,pending
+cam0120_img08144,8144,120,Morning Rush,False,pending
+cam0120_img08190,8190,120,Evening Rush,True,corrected
+cam0120_img08207,8207,120,Late Evening,True,corrected
+cam0120_img08305,8305,120,Early Morning,True,corrected
+cam0120_img08324,8324,120,Morning Rush,False,pending
+cam0120_img08367,8367,120,Evening Rush,False,pending
+cam0120_img08447,8447,120,Midday,False,pending
+cam0123_img08575,8575,123,Early Morning,True,approved
+cam0123_img08582,8582,123,Morning Rush,True,corrected
+cam0123_img08610,8610,123,Midday,False,pending
+cam0123_img08681,8681,123,Morning Rush,False,pending
+cam0123_img08821,8821,123,Late Evening,True,corrected
+cam0123_img08954,8954,123,Midday,False,pending
+cam0123_img08989,8989,123,Evening Rush,False,pending
+cam0123_img09007,9007,123,Early Morning,False,pending
+cam0123_img09072,9072,123,Evening Rush,False,pending
+cam0123_img09177,9177,123,Late Evening,False,pending
+cam0124_img09221,9221,124,Midday,True,corrected
+cam0124_img09328,9328,124,Midday,False,pending
+cam0124_img09433,9433,124,Late Evening,False,pending
+cam0124_img09436,9436,124,Early Morning,True,corrected
+cam0124_img09547,9547,124,Morning Rush,False,pending
+cam0124_img09606,9606,124,Evening Rush,False,pending
+cam0124_img09612,9612,124,Late Evening,False,pending
+cam0124_img09708,9708,124,Early Morning,False,pending
+cam0124_img09711,9711,124,Morning Rush,True,corrected
+cam0124_img09786,9786,124,Evening Rush,False,pending
+cam0125_img09819,9819,125,Midday,True,corrected
+cam0125_img09888,9888,125,Early Morning,False,pending
+cam0125_img09964,9964,125,Evening Rush,False,pending
+cam0125_img10042,10042,125,Late Evening,False,pending
+cam0125_img10108,10108,125,Evening Rush,True,corrected
+cam0125_img10132,10132,125,Late Evening,False,pending
+cam0125_img10138,10138,125,Early Morning,False,pending
+cam0125_img10157,10157,125,Morning Rush,True,corrected
+cam0125_img10190,10190,125,Midday,False,pending
+cam0125_img10242,10242,125,Morning Rush,False,pending
+cam0126_img10445,10445,126,Midday,False,pending
+cam0126_img10524,10524,126,Midday,True,approved
+cam0126_img10567,10567,126,Evening Rush,False,pending
+cam0126_img10583,10583,126,Late Evening,False,pending
+cam0126_img10586,10586,126,Morning Rush,False,pending
+cam0126_img10661,10661,126,Early Morning,False,pending
+cam0126_img10737,10737,126,Evening Rush,True,corrected
+cam0126_img10842,10842,126,Early Morning,False,pending
+cam0126_img10854,10854,126,Morning Rush,False,pending
+cam0126_img11014,11014,126,Late Evening,True,corrected
+cam0127_img11039,11039,127,Morning Rush,False,pending
+cam0127_img11060,11060,127,Midday,False,pending
+cam0127_img11089,11089,127,Evening Rush,True,corrected
+cam0127_img11105,11105,127,Late Evening,False,pending
+cam0127_img11258,11258,127,Evening Rush,False,pending
+cam0127_img11274,11274,127,Early Morning,False,pending
+cam0127_img11302,11302,127,Midday,False,pending
+cam0127_img11458,11458,127,Early Morning,True,corrected
+cam0127_img11472,11472,127,Morning Rush,False,pending
+cam0127_img11541,11541,127,Late Evening,True,corrected
+cam0135_img11654,11654,135,Morning Rush,True,corrected
+cam0135_img11705,11705,135,Evening Rush,False,pending
+cam0135_img11718,11718,135,Late Evening,True,corrected
+cam0135_img11723,11723,135,Early Morning,False,pending
+cam0135_img11766,11766,135,Midday,False,pending
+cam0135_img11806,11806,135,Evening Rush,False,pending
+cam0135_img11926,11926,135,Midday,False,pending
+cam0135_img11978,11978,135,Early Morning,True,corrected
+cam0135_img11996,11996,135,Morning Rush,False,pending
+cam0135_img12241,12241,135,Late Evening,False,pending
+cam0136_img12330,12330,136,Late Evening,False,pending
+cam0136_img12350,12350,136,Morning Rush,True,corrected
+cam0136_img12526,12526,136,Midday,True,corrected
+cam0136_img12560,12560,136,Evening Rush,False,pending
+cam0136_img12591,12591,136,Early Morning,True,approved
+cam0136_img12681,12681,136,Early Morning,False,pending
+cam0136_img12721,12721,136,Midday,False,pending
+cam0136_img12764,12764,136,Late Evening,False,pending
+cam0136_img12783,12783,136,Morning Rush,False,pending
+cam0136_img12833,12833,136,Evening Rush,False,pending
+cam0137_img12941,12941,137,Evening Rush,False,pending
+cam0137_img12948,12948,137,Early Morning,False,pending
+cam0137_img13026,13026,137,Evening Rush,True,corrected
+cam0137_img13039,13039,137,Morning Rush,False,pending
+cam0137_img13126,13126,137,Morning Rush,True,corrected
+cam0137_img13287,13287,137,Late Evening,False,pending
+cam0137_img13344,13344,137,Midday,False,pending
+cam0137_img13385,13385,137,Early Morning,False,pending
+cam0137_img13434,13434,137,Midday,True,corrected
+cam0137_img13467,13467,137,Late Evening,False,pending
+cam0139_img13561,13561,139,Late Evening,True,corrected
+cam0139_img13576,13576,139,Morning Rush,False,pending
+cam0139_img13685,13685,139,Midday,True,corrected
+cam0139_img13727,13727,139,Early Morning,False,pending
+cam0139_img13789,13789,139,Evening Rush,False,pending
+cam0139_img13811,13811,139,Late Evening,False,pending
+cam0139_img13845,13845,139,Midday,False,pending
+cam0139_img13998,13998,139,Early Morning,False,pending
+cam0139_img14010,14010,139,Morning Rush,False,pending
+cam0139_img14056,14056,139,Evening Rush,True,corrected
+cam0141_img14088,14088,141,Early Morning,False,pending
+cam0141_img14174,14174,141,Early Morning,True,corrected
+cam0141_img14181,14181,141,Morning Rush,False,pending
+cam0141_img14248,14248,141,Evening Rush,True,corrected
+cam0141_img14365,14365,141,Midday,False,pending
+cam0141_img14513,14513,141,Late Evening,True,corrected
+cam0141_img14525,14525,141,Morning Rush,False,pending
+cam0141_img14599,14599,141,Evening Rush,False,pending
+cam0141_img14644,14644,141,Midday,False,pending
+cam0141_img14698,14698,141,Late Evening,False,pending
+cam0150_img14701,14701,150,Early Morning,False,pending
+cam0150_img14758,14758,150,Evening Rush,False,pending
+cam0150_img14781,14781,150,Late Evening,False,pending
+cam0150_img14803,14803,150,Morning Rush,True,corrected
+cam0150_img14814,14814,150,Midday,False,pending
+cam0150_img14892,14892,150,Morning Rush,False,pending
+cam0150_img15052,15052,150,Late Evening,True,corrected
+cam0150_img15153,15153,150,Early Morning,True,corrected
+cam0150_img15198,15198,150,Midday,False,pending
+cam0150_img15305,15305,150,Evening Rush,False,pending
+cam0158_img15334,15334,158,Early Morning,True,corrected
+cam0158_img15379,15379,158,Midday,True,corrected
+cam0158_img15405,15405,158,Evening Rush,False,pending
+cam0158_img15438,15438,158,Morning Rush,False,pending
+cam0158_img15507,15507,158,Morning Rush,True,corrected
+cam0158_img15569,15569,158,Evening Rush,False,pending
+cam0158_img15666,15666,158,Late Evening,False,pending
+cam0158_img15672,15672,158,Early Morning,False,pending
+cam0158_img15758,15758,158,Late Evening,False,pending
+cam0158_img15903,15903,158,Midday,False,pending
+cam0169_img15958,15958,169,Morning Rush,False,pending
+cam0169_img15999,15999,169,Evening Rush,False,pending
+cam0169_img16031,16031,169,Early Morning,False,pending
+cam0169_img16043,16043,169,Morning Rush,True,corrected
+cam0169_img16102,16102,169,Evening Rush,True,corrected
+cam0169_img16127,16127,169,Midday,False,pending
+cam0169_img16273,16273,169,Late Evening,False,pending
+cam0169_img16322,16322,169,Midday,True,corrected
+cam0169_img16459,16459,169,Early Morning,False,pending
+cam0169_img16546,16546,169,Late Evening,False,pending
+cam0170_img16566,16566,170,Morning Rush,False,pending
+cam0170_img16654,16654,170,Morning Rush,False,pending
+cam0170_img16677,16677,170,Midday,True,corrected
+cam0170_img16777,16777,170,Evening Rush,False,pending
+cam0170_img16803,16803,170,Early Morning,False,pending
+cam0170_img16888,16888,170,Late Evening,True,corrected
+cam0170_img16933,16933,170,Midday,False,pending
+cam0170_img16985,16985,170,Early Morning,False,pending
+cam0170_img17146,17146,170,Evening Rush,True,corrected
+cam0170_img17158,17158,170,Late Evening,False,pending
+cam0176_img17214,17214,176,Midday,False,pending
+cam0176_img17248,17248,176,Late Evening,False,pending
+cam0176_img17312,17312,176,Evening Rush,True,corrected
+cam0176_img17339,17339,176,Late Evening,True,corrected
+cam0176_img17343,17343,176,Morning Rush,False,pending
+cam0176_img17435,17435,176,Morning Rush,False,pending
+cam0176_img17599,17599,176,Early Morning,False,pending
+cam0176_img17688,17688,176,Early Morning,True,corrected
+cam0176_img17724,17724,176,Midday,False,pending
+cam0176_img17758,17758,176,Evening Rush,False,pending
+cam0177_img17778,17778,177,Early Morning,False,pending
+cam0177_img17781,17781,177,Morning Rush,True,corrected
+cam0177_img17855,17855,177,Evening Rush,False,pending
+cam0177_img17883,17883,177,Morning Rush,False,pending
+cam0177_img17902,17902,177,Midday,False,pending
+cam0177_img18071,18071,177,Midday,False,pending
+cam0177_img18112,18112,177,Evening Rush,False,pending
+cam0177_img18119,18119,177,Late Evening,False,pending
+cam0177_img18205,18205,177,Late Evening,True,corrected
+cam0177_img18300,18300,177,Early Morning,True,approved
+cam0178_img18433,18433,178,Midday,True,corrected
+cam0178_img18477,18477,178,Early Morning,True,corrected
+cam0178_img18562,18562,178,Late Evening,False,pending
+cam0178_img18671,18671,178,Midday,False,pending
+cam0178_img18747,18747,178,Morning Rush,False,pending
+cam0178_img18815,18815,178,Late Evening,False,pending
+cam0178_img18821,18821,178,Early Morning,False,pending
+cam0178_img18896,18896,178,Evening Rush,False,pending
+cam0178_img18932,18932,178,Morning Rush,True,corrected
+cam0178_img18981,18981,178,Evening Rush,False,pending
+cam0179_img19001,19001,179,Early Morning,False,pending
+cam0179_img19089,19089,179,Late Evening,False,pending
+cam0179_img19096,19096,179,Early Morning,False,pending
+cam0179_img19117,19117,179,Midday,True,corrected
+cam0179_img19177,19177,179,Late Evening,False,pending
+cam0179_img19367,19367,179,Morning Rush,True,corrected
+cam0179_img19420,19420,179,Evening Rush,True,approved
+cam0179_img19534,19534,179,Morning Rush,False,pending
+cam0179_img19569,19569,179,Midday,False,pending
+cam0179_img19598,19598,179,Evening Rush,False,pending
+cam0186_img19631,19631,186,Morning Rush,False,pending
+cam0186_img19798,19798,186,Morning Rush,False,pending
+cam0186_img19861,19861,186,Late Evening,True,corrected
+cam0186_img19872,19872,186,Early Morning,False,pending
+cam0186_img19903,19903,186,Midday,True,corrected
+cam0186_img19955,19955,186,Late Evening,False,pending
+cam0186_img20026,20026,186,Evening Rush,False,pending
+cam0186_img20107,20107,186,Evening Rush,True,corrected
+cam0186_img20139,20139,186,Early Morning,False,pending
+cam0186_img20167,20167,186,Midday,False,pending
+cam0188_img20227,20227,188,Early Morning,False,pending
+cam0188_img20489,20489,188,Morning Rush,False,pending
+cam0188_img20506,20506,188,Midday,False,pending
+cam0188_img20563,20563,188,Late Evening,False,pending
+cam0188_img20571,20571,188,Early Morning,True,corrected
+cam0188_img20642,20642,188,Evening Rush,False,pending
+cam0188_img20665,20665,188,Morning Rush,False,pending
+cam0188_img20699,20699,188,Midday,False,pending
+cam0188_img20746,20746,188,Late Evening,True,corrected
+cam0188_img20824,20824,188,Evening Rush,True,corrected
+cam0194_img20842,20842,194,Early Morning,True,corrected
+cam0194_img20901,20901,194,Evening Rush,False,pending
+cam0194_img21020,21020,194,Morning Rush,True,corrected
+cam0194_img21090,21090,194,Late Evening,False,pending
+cam0194_img21185,21185,194,Early Morning,False,pending
+cam0194_img21193,21193,194,Morning Rush,False,pending
+cam0194_img21318,21318,194,Midday,False,pending
+cam0194_img21423,21423,194,Midday,False,pending
+cam0194_img21446,21446,194,Evening Rush,False,pending
+cam0194_img21449,21449,194,Late Evening,True,approved
+cam0196_img21458,21458,196,Early Morning,False,pending
+cam0196_img21552,21552,196,Morning Rush,False,pending
+cam0196_img21602,21602,196,Midday,True,corrected
+cam0196_img21616,21616,196,Evening Rush,False,pending
+cam0196_img21649,21649,196,Midday,False,pending
+cam0196_img21701,21701,196,Late Evening,False,pending
+cam0196_img21715,21715,196,Morning Rush,True,corrected
+cam0196_img21882,21882,196,Late Evening,False,pending
+cam0196_img21975,21975,196,Early Morning,True,corrected
+cam0196_img22043,22043,196,Evening Rush,False,pending
+cam0206_img22125,22125,206,Evening Rush,True,corrected
+cam0206_img22186,22186,206,Midday,False,pending
+cam0206_img22234,22234,206,Late Evening,False,pending
+cam0206_img22313,22313,206,Late Evening,False,pending
+cam0206_img22315,22315,206,Early Morning,False,pending
+cam0206_img22337,22337,206,Morning Rush,False,pending
+cam0206_img22339,22339,206,Midday,True,corrected
+cam0206_img22379,22379,206,Evening Rush,False,pending
+cam0206_img22404,22404,206,Early Morning,False,pending
+cam0206_img22513,22513,206,Morning Rush,True,corrected
+cam0211_img22674,22674,211,Early Morning,False,pending
+cam0211_img22755,22755,211,Late Evening,False,pending
+cam0211_img22773,22773,211,Morning Rush,False,pending
+cam0211_img22813,22813,211,Midday,False,pending
+cam0211_img22846,22846,211,Late Evening,True,corrected
+cam0211_img22927,22927,211,Early Morning,False,pending
+cam0211_img23023,23023,211,Morning Rush,False,pending
+cam0211_img23174,23174,211,Evening Rush,True,corrected
+cam0211_img23251,23251,211,Midday,True,corrected
+cam0211_img23259,23259,211,Evening Rush,False,pending
+cam0212_img23306,23306,212,Morning Rush,False,pending
+cam0212_img23344,23344,212,Midday,False,pending
+cam0212_img23377,23377,212,Early Morning,False,pending
+cam0212_img23463,23463,212,Late Evening,True,approved
+cam0212_img23504,23504,212,Midday,False,pending
+cam0212_img23539,23539,212,Early Morning,True,corrected
+cam0212_img23544,23544,212,Morning Rush,False,pending
+cam0212_img23598,23598,212,Evening Rush,True,corrected
+cam0212_img23700,23700,212,Evening Rush,False,pending
+cam0212_img23807,23807,212,Late Evening,False,pending
+cam0215_img24001,24001,215,Morning Rush,False,pending
+cam0215_img24100,24100,215,Midday,False,pending
+cam0215_img24147,24147,215,Late Evening,True,corrected
+cam0215_img24224,24224,215,Evening Rush,False,pending
+cam0215_img24239,24239,215,Late Evening,False,pending
+cam0215_img24335,24335,215,Early Morning,True,corrected
+cam0215_img24342,24342,215,Morning Rush,True,corrected
+cam0215_img24378,24378,215,Midday,False,pending
+cam0215_img24404,24404,215,Evening Rush,False,pending
+cam0215_img24424,24424,215,Early Morning,False,pending
+cam0219_img24518,24518,219,Early Morning,True,corrected
+cam0219_img24529,24529,219,Morning Rush,True,corrected
+cam0219_img24611,24611,219,Morning Rush,False,pending
+cam0219_img24628,24628,219,Midday,False,pending
+cam0219_img24688,24688,219,Late Evening,False,pending
+cam0219_img24826,24826,219,Evening Rush,False,pending
+cam0219_img24852,24852,219,Late Evening,False,pending
+cam0219_img24856,24856,219,Early Morning,False,pending
+cam0219_img24986,24986,219,Midday,True,corrected
+cam0219_img25006,25006,219,Evening Rush,False,pending
+cam0224_img25197,25197,224,Evening Rush,True,corrected
+cam0224_img25217,25217,224,Early Morning,False,pending
+cam0224_img25299,25299,224,Late Evening,False,pending
+cam0224_img25308,25308,224,Morning Rush,False,pending
+cam0224_img25339,25339,224,Midday,True,corrected
+cam0224_img25450,25450,224,Evening Rush,False,pending
+cam0224_img25461,25461,224,Late Evening,False,pending
+cam0224_img25651,25651,224,Early Morning,False,pending
+cam0224_img25655,25655,224,Morning Rush,True,rejected
+cam0224_img25704,25704,224,Midday,False,pending
+cam0225_img25784,25784,225,Midday,False,pending
+cam0225_img25993,25993,225,Early Morning,False,pending
+cam0225_img26003,26003,225,Morning Rush,False,pending
+cam0225_img26064,26064,225,Evening Rush,False,pending
+cam0225_img26075,26075,225,Late Evening,True,corrected
+cam0225_img26120,26120,225,Midday,True,corrected
+cam0225_img26148,26148,225,Evening Rush,True,corrected
+cam0225_img26167,26167,225,Late Evening,False,pending
+cam0225_img26185,26185,225,Morning Rush,False,pending
+cam0225_img26263,26263,225,Early Morning,False,pending
+cam0228_img26373,26373,228,Midday,False,pending
+cam0228_img26430,26430,228,Evening Rush,True,corrected
+cam0228_img26436,26436,228,Late Evening,True,approved
+cam0228_img26455,26455,228,Morning Rush,False,pending
+cam0228_img26601,26601,228,Early Morning,True,approved
+cam0228_img26611,26611,228,Morning Rush,False,pending
+cam0228_img26651,26651,228,Midday,False,pending
+cam0228_img26687,26687,228,Late Evening,False,pending
+cam0228_img26693,26693,228,Early Morning,False,pending
+cam0228_img26764,26764,228,Evening Rush,False,pending
+cam0230_img26965,26965,230,Early Morning,False,pending
+cam0230_img26977,26977,230,Morning Rush,True,corrected
+cam0230_img27136,27136,230,Late Evening,True,corrected
+cam0230_img27147,27147,230,Morning Rush,False,pending
+cam0230_img27158,27158,230,Midday,False,pending
+cam0230_img27195,27195,230,Evening Rush,False,pending
+cam0230_img27218,27218,230,Early Morning,True,corrected
+cam0230_img27255,27255,230,Midday,False,pending
+cam0230_img27388,27388,230,Late Evening,False,pending
+cam0230_img27467,27467,230,Evening Rush,False,pending
+cam0233_img27701,27701,233,Midday,False,pending
+cam0233_img27758,27758,233,Morning Rush,True,corrected
+cam0233_img27772,27772,233,Midday,True,corrected
+cam0233_img27802,27802,233,Evening Rush,False,pending
+cam0233_img27836,27836,233,Morning Rush,False,pending
+cam0233_img27918,27918,233,Early Morning,True,approved
+cam0233_img27999,27999,233,Late Evening,False,pending
+cam0233_img28006,28006,233,Early Morning,False,pending
+cam0233_img28075,28075,233,Evening Rush,False,pending
+cam0233_img28090,28090,233,Late Evening,False,pending
+cam0239_img28276,28276,239,Early Morning,False,pending
+cam0239_img28282,28282,239,Morning Rush,True,corrected
+cam0239_img28357,28357,239,Evening Rush,False,pending
+cam0239_img28360,28360,239,Late Evening,False,pending
+cam0239_img28465,28465,239,Midday,False,pending
+cam0239_img28506,28506,239,Evening Rush,True,corrected
+cam0239_img28527,28527,239,Late Evening,False,pending
+cam0239_img28667,28667,239,Midday,True,corrected
+cam0239_img28712,28712,239,Early Morning,False,pending
+cam0239_img28721,28721,239,Morning Rush,False,pending
+cam0250_img28805,28805,250,Early Morning,False,pending
+cam0250_img28981,28981,250,Morning Rush,False,pending
+cam0250_img29108,29108,250,Midday,True,corrected
+cam0250_img29134,29134,250,Evening Rush,True,corrected
+cam0250_img29201,29201,250,Midday,False,pending
+cam0250_img29229,29229,250,Late Evening,False,pending
+cam0250_img29235,29235,250,Early Morning,False,pending
+cam0250_img29241,29241,250,Morning Rush,False,pending
+cam0250_img29304,29304,250,Evening Rush,False,pending
+cam0250_img29321,29321,250,Late Evening,True,corrected
+cam0251_img29414,29414,251,Early Morning,False,pending
+cam0251_img29582,29582,251,Evening Rush,False,pending
+cam0251_img29661,29661,251,Late Evening,False,pending
+cam0251_img29672,29672,251,Early Morning,True,corrected
+cam0251_img29719,29719,251,Midday,False,pending
+cam0251_img29767,29767,251,Morning Rush,False,pending
+cam0251_img29825,29825,251,Evening Rush,True,corrected
+cam0251_img29842,29842,251,Late Evening,True,corrected
+cam0251_img29864,29864,251,Morning Rush,False,pending
+cam0251_img29973,29973,251,Midday,False,pending
+cam0256_img30119,30119,256,Early Morning,True,corrected
+cam0256_img30137,30137,256,Morning Rush,True,corrected
+cam0256_img30287,30287,256,Early Morning,False,pending
+cam0256_img30389,30389,256,Morning Rush,False,pending
+cam0256_img30420,30420,256,Midday,False,pending
+cam0256_img30446,30446,256,Evening Rush,False,pending
+cam0256_img30506,30506,256,Midday,False,pending
+cam0256_img30547,30547,256,Late Evening,False,pending
+cam0256_img30628,30628,256,Evening Rush,False,pending
+cam0256_img30640,30640,256,Late Evening,True,corrected
+cam0277_img30724,30724,277,Late Evening,False,pending
+cam0277_img30777,30777,277,Midday,False,pending
+cam0277_img30818,30818,277,Late Evening,False,pending
+cam0277_img30865,30865,277,Evening Rush,False,pending
+cam0277_img30950,30950,277,Midday,True,corrected
+cam0277_img30965,30965,277,Evening Rush,False,pending
+cam0277_img31002,31002,277,Morning Rush,True,corrected
+cam0277_img31075,31075,277,Early Morning,True,corrected
+cam0277_img31168,31168,277,Early Morning,False,pending
+cam0277_img31173,31173,277,Morning Rush,False,pending
+cam0301_img31346,31346,301,Early Morning,False,pending
+cam0301_img31363,31363,301,Morning Rush,True,approved
+cam0301_img31375,31375,301,Midday,True,approved
+cam0301_img31434,31434,301,Morning Rush,False,pending
+cam0301_img31482,31482,301,Evening Rush,True,approved
+cam0301_img31591,31591,301,Late Evening,False,pending
+cam0301_img31782,31782,301,Early Morning,False,pending
+cam0301_img31829,31829,301,Midday,False,pending
+cam0301_img31847,31847,301,Evening Rush,False,pending
+cam0301_img31866,31866,301,Late Evening,False,pending
+cam0332_img31872,31872,332,Early Morning,False,pending
+cam0332_img31942,31942,332,Evening Rush,True,approved
+cam0332_img31951,31951,332,Late Evening,True,corrected
+cam0332_img32007,32007,332,Midday,True,corrected
+cam0332_img32024,32024,332,Evening Rush,False,pending
+cam0332_img32048,32048,332,Morning Rush,False,pending
+cam0332_img32128,32128,332,Morning Rush,False,pending
+cam0332_img32217,32217,332,Early Morning,False,pending
+cam0332_img32301,32301,332,Late Evening,False,pending
+cam0332_img32327,32327,332,Midday,False,pending
+cam0363_img32484,32484,363,Early Morning,True,approved
+cam0363_img32501,32501,363,Morning Rush,False,pending
+cam0363_img32734,32734,363,Late Evening,True,corrected
+cam0363_img32738,32738,363,Early Morning,False,pending
+cam0363_img32767,32767,363,Midday,False,pending
+cam0363_img32925,32925,363,Morning Rush,False,pending
+cam0363_img32968,32968,363,Midday,False,pending
+cam0363_img32983,32983,363,Evening Rush,True,corrected
+cam0363_img33002,33002,363,Late Evening,False,pending
+cam0363_img33076,33076,363,Evening Rush,False,pending
+cam0370_img33098,33098,370,Early Morning,True,approved
+cam0370_img33195,33195,370,Morning Rush,True,approved
+cam0370_img33254,33254,370,Evening Rush,False,pending
+cam0370_img33340,33340,370,Evening Rush,False,pending
+cam0370_img33401,33401,370,Midday,False,pending
+cam0370_img33450,33450,370,Morning Rush,False,pending
+cam0370_img33525,33525,370,Late Evening,False,pending
+cam0370_img33569,33569,370,Midday,False,pending
+cam0370_img33615,33615,370,Late Evening,True,approved
+cam0370_img33619,33619,370,Early Morning,False,pending
+cam0371_img33792,33792,371,Late Evening,False,pending
+cam0371_img33815,33815,371,Morning Rush,False,pending
+cam0371_img33853,33853,371,Midday,True,corrected
+cam0371_img33873,33873,371,Evening Rush,False,pending
+cam0371_img33944,33944,371,Evening Rush,False,pending
+cam0371_img33956,33956,371,Late Evening,False,pending
+cam0371_img34009,34009,371,Midday,False,pending
+cam0371_img34054,34054,371,Early Morning,False,pending
+cam0371_img34157,34157,371,Morning Rush,True,approved
+cam0371_img34234,34234,371,Early Morning,True,corrected
+cam0395_img34326,34326,395,Early Morning,False,pending
+cam0395_img34413,34413,395,Early Morning,False,pending
+cam0395_img34430,34430,395,Morning Rush,True,approved
+cam0395_img34512,34512,395,Midday,False,pending
+cam0395_img34563,34563,395,Evening Rush,True,corrected
+cam0395_img34570,34570,395,Late Evening,False,pending
+cam0395_img34662,34662,395,Late Evening,False,pending
+cam0395_img34719,34719,395,Midday,True,corrected
+cam0395_img34771,34771,395,Morning Rush,False,pending
+cam0395_img34906,34906,395,Evening Rush,False,pending
+cam0411_img34941,34941,411,Early Morning,False,pending
+cam0411_img34993,34993,411,Midday,False,pending
+cam0411_img35024,35024,411,Late Evening,True,corrected
+cam0411_img35094,35094,411,Evening Rush,False,pending
+cam0411_img35212,35212,411,Morning Rush,False,pending
+cam0411_img35326,35326,411,Midday,True,corrected
+cam0411_img35357,35357,411,Evening Rush,True,approved
+cam0411_img35375,35375,411,Early Morning,False,pending
+cam0411_img35459,35459,411,Late Evening,False,pending
+cam0411_img35481,35481,411,Morning Rush,False,pending
+cam0412_img35551,35551,412,Early Morning,False,pending
+cam0412_img35558,35558,412,Morning Rush,False,pending
+cam0412_img35732,35732,412,Morning Rush,False,pending
+cam0412_img35839,35839,412,Midday,False,pending
+cam0412_img35885,35885,412,Evening Rush,True,approved
+cam0412_img35887,35887,412,Late Evening,True,approved
+cam0412_img35946,35946,412,Midday,False,pending
+cam0412_img35982,35982,412,Early Morning,True,corrected
+cam0412_img36151,36151,412,Evening Rush,False,pending
+cam0412_img36161,36161,412,Late Evening,False,pending
+cam0413_img36201,36201,413,Midday,False,pending
+cam0413_img36282,36282,413,Midday,False,pending
+cam0413_img36346,36346,413,Morning Rush,False,pending
+cam0413_img36388,36388,413,Evening Rush,False,pending
+cam0413_img36422,36422,413,Early Morning,False,pending
+cam0413_img36529,36529,413,Morning Rush,True,approved
+cam0413_img36593,36593,413,Late Evening,False,pending
+cam0413_img36598,36598,413,Early Morning,True,approved
+cam0413_img36685,36685,413,Late Evening,True,approved
+cam0413_img36760,36760,413,Evening Rush,False,pending
+cam0414_img36793,36793,414,Morning Rush,True,approved
+cam0414_img36822,36822,414,Midday,True,approved
+cam0414_img36953,36953,414,Late Evening,False,pending
+cam0414_img36958,36958,414,Morning Rush,False,pending
+cam0414_img37106,37106,414,Evening Rush,False,pending
+cam0414_img37125,37125,414,Early Morning,False,pending
+cam0414_img37282,37282,414,Evening Rush,False,pending
+cam0414_img37305,37305,414,Early Morning,True,approved
+cam0414_img37324,37324,414,Midday,False,pending
+cam0414_img37386,37386,414,Late Evening,False,pending
+cam0432_img37479,37479,432,Late Evening,False,pending
+cam0432_img37522,37522,432,Midday,False,pending
+cam0432_img37546,37546,432,Evening Rush,False,pending
+cam0432_img37672,37672,432,Morning Rush,True,corrected
+cam0432_img37751,37751,432,Early Morning,False,pending
+cam0432_img37805,37805,432,Midday,True,corrected
+cam0432_img37836,37836,432,Late Evening,False,pending
+cam0432_img37930,37930,432,Early Morning,False,pending
+cam0432_img37934,37934,432,Morning Rush,False,pending
+cam0432_img37991,37991,432,Evening Rush,True,corrected
+cam0500_img38021,38021,500,Early Morning,False,pending
+cam0500_img38105,38105,500,Late Evening,True,corrected
+cam0500_img38115,38115,500,Morning Rush,False,pending
+cam0500_img38239,38239,500,Midday,True,corrected
+cam0500_img38243,38243,500,Evening Rush,True,approved
+cam0500_img38295,38295,500,Morning Rush,False,pending
+cam0500_img38324,38324,500,Midday,False,pending
+cam0500_img38366,38366,500,Early Morning,False,pending
+cam0500_img38436,38436,500,Evening Rush,False,pending
+cam0500_img38629,38629,500,Late Evening,False,pending
+cam0529_img38702,38702,529,Evening Rush,True,corrected
+cam0529_img38815,38815,529,Morning Rush,False,pending
+cam0529_img38826,38826,529,Midday,False,pending
+cam0529_img38892,38892,529,Morning Rush,False,pending
+cam0529_img38969,38969,529,Late Evening,False,pending
+cam0529_img38975,38975,529,Early Morning,True,approved
+cam0529_img39010,39010,529,Midday,False,pending
+cam0529_img39047,39047,529,Evening Rush,False,pending
+cam0529_img39070,39070,529,Early Morning,False,pending
+cam0529_img39239,39239,529,Late Evening,True,corrected
+cam0542_img39245,39245,542,Early Morning,True,corrected
+cam0542_img39257,39257,542,Morning Rush,False,pending
+cam0542_img39348,39348,542,Morning Rush,True,corrected
+cam0542_img39469,39469,542,Evening Rush,False,pending
+cam0542_img39577,39577,542,Evening Rush,False,pending
+cam0542_img39614,39614,542,Midday,False,pending
+cam0542_img39765,39765,542,Late Evening,False,pending
+cam0542_img39769,39769,542,Early Morning,False,pending
+cam0542_img39819,39819,542,Midday,False,pending
+cam0542_img39855,39855,542,Late Evening,True,corrected
+cam0546_img39871,39871,546,Morning Rush,True,approved
+cam0546_img39899,39899,546,Midday,True,corrected
+cam0546_img39919,39919,546,Evening Rush,False,pending
+cam0546_img39945,39945,546,Late Evening,False,pending
+cam0546_img40033,40033,546,Late Evening,False,pending
+cam0546_img40050,40050,546,Midday,False,pending
+cam0546_img40115,40115,546,Early Morning,False,pending
+cam0546_img40208,40208,546,Early Morning,True,approved
+cam0546_img40364,40364,546,Evening Rush,False,pending
+cam0546_img40399,40399,546,Morning Rush,False,pending
+cam0556_img40475,40475,556,Early Morning,False,pending
+cam0556_img40502,40502,556,Midday,True,approved
+cam0556_img40650,40650,556,Late Evening,False,pending
+cam0556_img40682,40682,556,Midday,False,pending
+cam0556_img40722,40722,556,Late Evening,False,pending
+cam0556_img40840,40840,556,Morning Rush,False,pending
+cam0556_img40908,40908,556,Early Morning,False,pending
+cam0556_img40979,40979,556,Evening Rush,True,corrected
+cam0556_img41016,41016,556,Morning Rush,True,corrected
+cam0556_img41078,41078,556,Evening Rush,False,pending
+cam0569_img41103,41103,569,Morning Rush,False,pending
+cam0569_img41130,41130,569,Midday,True,corrected
+cam0569_img41182,41182,569,Early Morning,False,pending
+cam0569_img41217,41217,569,Midday,False,pending
+cam0569_img41243,41243,569,Evening Rush,True,corrected
+cam0569_img41266,41266,569,Late Evening,True,corrected
+cam0569_img41271,41271,569,Morning Rush,False,pending
+cam0569_img41516,41516,569,Late Evening,False,pending
+cam0569_img41522,41522,569,Early Morning,False,pending
+cam0569_img41683,41683,569,Evening Rush,False,pending
+cam0572_img41717,41717,572,Morning Rush,False,pending
+cam0572_img41764,41764,572,Evening Rush,True,approved
+cam0572_img41825,41825,572,Midday,False,pending
+cam0572_img41890,41890,572,Morning Rush,False,pending
+cam0572_img41901,41901,572,Midday,False,pending
+cam0572_img41956,41956,572,Late Evening,False,pending
+cam0572_img42042,42042,572,Late Evening,True,rejected
+cam0572_img42138,42138,572,Early Morning,False,pending
+cam0572_img42229,42229,572,Early Morning,True,corrected
+cam0572_img42303,42303,572,Evening Rush,False,pending
+cam0576_img42323,42323,576,Morning Rush,False,pending
+cam0576_img42404,42404,576,Late Evening,False,pending
+cam0576_img42412,42412,576,Morning Rush,True,approved
+cam0576_img42448,42448,576,Midday,False,pending
+cam0576_img42537,42537,576,Midday,False,pending
+cam0576_img42543,42543,576,Evening Rush,False,pending
+cam0576_img42572,42572,576,Early Morning,True,corrected
+cam0576_img42654,42654,576,Late Evening,True,corrected
+cam0576_img42750,42750,576,Early Morning,False,pending
+cam0576_img42826,42826,576,Evening Rush,False,pending
+cam0595_img42934,42934,595,Early Morning,True,approved
+cam0595_img43023,43023,595,Early Morning,False,pending
+cam0595_img43102,43102,595,Evening Rush,False,pending
+cam0595_img43108,43108,595,Late Evening,False,pending
+cam0595_img43118,43118,595,Morning Rush,True,corrected
+cam0595_img43146,43146,595,Midday,False,pending
+cam0595_img43172,43172,595,Evening Rush,False,pending
+cam0595_img43203,43203,595,Morning Rush,False,pending
+cam0595_img43230,43230,595,Midday,True,corrected
+cam0595_img43540,43540,595,Late Evening,False,pending
+cam0599_img43598,43598,599,Midday,False,pending
+cam0599_img43628,43628,599,Late Evening,False,pending
+cam0599_img43727,43727,599,Morning Rush,True,corrected
+cam0599_img43795,43795,599,Late Evening,False,pending
+cam0599_img43798,43798,599,Early Morning,False,pending
+cam0599_img43867,43867,599,Evening Rush,False,pending
+cam0599_img43900,43900,599,Morning Rush,False,pending
+cam0599_img43981,43981,599,Early Morning,False,pending
+cam0599_img44006,44006,599,Midday,True,corrected
+cam0599_img44130,44130,599,Evening Rush,True,corrected
+cam0603_img44162,44162,603,Early Morning,False,pending
+cam0603_img44254,44254,603,Morning Rush,False,pending
+cam0603_img44409,44409,603,Late Evening,False,pending
+cam0603_img44412,44412,603,Early Morning,False,pending
+cam0603_img44482,44482,603,Evening Rush,False,pending
+cam0603_img44550,44550,603,Midday,False,pending
+cam0603_img44588,44588,603,Late Evening,True,approved
+cam0603_img44694,44694,603,Morning Rush,False,pending
+cam0603_img44725,44725,603,Midday,True,approved
+cam0603_img44749,44749,603,Evening Rush,True,corrected
+cam0604_img44835,44835,604,Evening Rush,False,pending
+cam0604_img44856,44856,604,Late Evening,True,corrected
+cam0604_img44863,44863,604,Early Morning,True,corrected
+cam0604_img45029,45029,604,Early Morning,False,pending
+cam0604_img45040,45040,604,Morning Rush,False,pending
+cam0604_img45086,45086,604,Evening Rush,True,corrected
+cam0604_img45200,45200,604,Late Evening,False,pending
+cam0604_img45238,45238,604,Midday,False,pending
+cam0604_img45313,45313,604,Morning Rush,False,pending
+cam0604_img45342,45342,604,Midday,False,pending
+cam0619_img45387,45387,619,Early Morning,True,approved
+cam0619_img45420,45420,619,Midday,False,pending
+cam0619_img45462,45462,619,Evening Rush,False,pending
+cam0619_img45469,45469,619,Late Evening,False,pending
+cam0619_img45603,45603,619,Midday,False,pending
+cam0619_img45640,45640,619,Early Morning,False,pending
+cam0619_img45748,45748,619,Morning Rush,True,approved
+cam0619_img45795,45795,619,Evening Rush,False,pending
+cam0619_img45816,45816,619,Late Evening,True,corrected
+cam0619_img45925,45925,619,Morning Rush,False,pending
+cam0630_img46002,46002,630,Early Morning,True,corrected
+cam0630_img46019,46019,630,Morning Rush,False,pending
+cam0630_img46046,46046,630,Midday,True,corrected
+cam0630_img46163,46163,630,Evening Rush,False,pending
+cam0630_img46244,46244,630,Late Evening,False,pending
+cam0630_img46346,46346,630,Early Morning,False,pending
+cam0630_img46392,46392,630,Midday,False,pending
+cam0630_img46426,46426,630,Late Evening,False,pending
+cam0630_img46540,46540,630,Morning Rush,True,approved
+cam0630_img46598,46598,630,Evening Rush,False,pending
+cam0913_img46614,46614,913,Early Morning,False,pending
+cam0913_img46658,46658,913,Midday,False,pending
+cam0913_img46672,46672,913,Evening Rush,True,corrected
+cam0913_img46713,46713,913,Morning Rush,True,corrected
+cam0913_img46785,46785,913,Late Evening,False,pending
+cam0913_img46826,46826,913,Midday,True,corrected
+cam0913_img46848,46848,913,Evening Rush,False,pending
+cam0913_img46957,46957,913,Early Morning,False,pending
+cam0913_img47056,47056,913,Morning Rush,False,pending
+cam0913_img47128,47128,913,Late Evening,False,pending
+cam0915_img47223,47223,915,Early Morning,False,pending
+cam0915_img47300,47300,915,Evening Rush,True,corrected
+cam0915_img47318,47318,915,Morning Rush,False,pending
+cam0915_img47471,47471,915,Late Evening,True,corrected
+cam0915_img47530,47530,915,Midday,True,corrected
+cam0915_img47570,47570,915,Morning Rush,False,pending
+cam0915_img47598,47598,915,Midday,False,pending
+cam0915_img47656,47656,915,Early Morning,False,pending
+cam0915_img47740,47740,915,Late Evening,False,pending
+cam0915_img47815,47815,915,Evening Rush,False,pending
+cam0938_img47904,47904,938,Evening Rush,True,corrected
+cam0938_img47921,47921,938,Late Evening,True,rejected
+cam0938_img47925,47925,938,Early Morning,True,rejected
+cam0938_img47939,47939,938,Morning Rush,False,pending
+cam0938_img47993,47993,938,Evening Rush,False,pending
+cam0938_img48103,48103,938,Morning Rush,False,pending
+cam0938_img48233,48233,938,Midday,False,pending
+cam0938_img48268,48268,938,Early Morning,False,pending
+cam0938_img48354,48354,938,Late Evening,False,pending
+cam0938_img48400,48400,938,Midday,False,pending
+cam0939_img48464,48464,939,Morning Rush,True,corrected
+cam0939_img48487,48487,939,Midday,False,pending
+cam0939_img48505,48505,939,Evening Rush,False,pending
+cam0939_img48532,48532,939,Late Evening,False,pending
+cam0939_img48788,48788,939,Early Morning,True,corrected
+cam0939_img48877,48877,939,Late Evening,True,corrected
+cam0939_img48881,48881,939,Early Morning,False,pending
+cam0939_img48897,48897,939,Morning Rush,False,pending
+cam0939_img48933,48933,939,Midday,False,pending
+cam0939_img48949,48949,939,Evening Rush,False,pending
+cam1028_img49063,49063,1028,Early Morning,True,corrected
+cam1028_img49099,49099,1028,Midday,False,pending
+cam1028_img49178,49178,1028,Midday,True,corrected
+cam1028_img49213,49213,1028,Evening Rush,False,pending
+cam1028_img49311,49311,1028,Early Morning,False,pending
+cam1028_img49322,49322,1028,Morning Rush,True,rejected
+cam1028_img49388,49388,1028,Evening Rush,False,pending
+cam1028_img49416,49416,1028,Morning Rush,False,pending
+cam1028_img49486,49486,1028,Late Evening,False,pending
+cam1028_img49666,49666,1028,Late Evening,False,pending
+cam1039_img49745,49745,1039,Evening Rush,True,corrected
+cam1039_img49763,49763,1039,Early Morning,False,pending
+cam1039_img49770,49770,1039,Morning Rush,False,pending
+cam1039_img49792,49792,1039,Midday,False,pending
+cam1039_img49839,49839,1039,Evening Rush,False,pending
+cam1039_img49923,49923,1039,Late Evening,False,pending
+cam1039_img49929,49929,1039,Early Morning,False,pending
+cam1039_img50103,50103,1039,Late Evening,False,pending
+cam1039_img50162,50162,1039,Midday,True,corrected
+cam1039_img50207,50207,1039,Morning Rush,True,corrected
+cam1060_img50302,50302,1060,Morning Rush,False,pending
+cam1060_img50425,50425,1060,Midday,False,pending
+cam1060_img50455,50455,1060,Evening Rush,True,corrected
+cam1060_img50459,50459,1060,Late Evening,False,pending
+cam1060_img50539,50539,1060,Early Morning,False,pending
+cam1060_img50623,50623,1060,Late Evening,True,corrected
+cam1060_img50633,50633,1060,Early Morning,False,pending
+cam1060_img50648,50648,1060,Morning Rush,False,pending
+cam1060_img50675,50675,1060,Midday,True,corrected
+cam1060_img50883,50883,1060,Evening Rush,False,pending
+cam1063_img50901,50901,1063,Early Morning,False,pending
+cam1063_img50908,50908,1063,Morning Rush,False,pending
+cam1063_img51012,51012,1063,Midday,False,pending
+cam1063_img51072,51072,1063,Late Evening,True,corrected
+cam1063_img51079,51079,1063,Morning Rush,False,pending
+cam1063_img51115,51115,1063,Midday,False,pending
+cam1063_img51321,51321,1063,Evening Rush,False,pending
+cam1063_img51328,51328,1063,Late Evening,False,pending
+cam1063_img51335,51335,1063,Early Morning,True,approved
+cam1063_img51484,51484,1063,Evening Rush,True,corrected
+cam1070_img51512,51512,1070,Early Morning,False,pending
+cam1070_img51654,51654,1070,Midday,False,pending
+cam1070_img51696,51696,1070,Morning Rush,True,corrected
+cam1070_img51925,51925,1070,Evening Rush,False,pending
+cam1070_img51939,51939,1070,Late Evening,False,pending
+cam1070_img51950,51950,1070,Early Morning,True,approved
+cam1070_img51967,51967,1070,Morning Rush,False,pending
+cam1070_img52008,52008,1070,Evening Rush,False,pending
+cam1070_img52033,52033,1070,Late Evening,True,corrected
+cam1070_img52067,52067,1070,Midday,False,pending
+cam1071_img52136,52136,1071,Morning Rush,False,pending
+cam1071_img52211,52211,1071,Late Evening,False,pending
+cam1071_img52321,52321,1071,Midday,True,corrected
+cam1071_img52379,52379,1071,Early Morning,True,corrected
+cam1071_img52438,52438,1071,Evening Rush,False,pending
+cam1071_img52467,52467,1071,Late Evening,False,pending
+cam1071_img52476,52476,1071,Morning Rush,True,approved
+cam1071_img52511,52511,1071,Midday,False,pending
+cam1071_img52549,52549,1071,Evening Rush,False,pending
+cam1071_img52654,52654,1071,Early Morning,False,pending
+cam1076_img52765,52765,1076,Midday,True,corrected
+cam1076_img52823,52823,1076,Late Evening,False,pending
+cam1076_img52843,52843,1076,Morning Rush,True,corrected
+cam1076_img52913,52913,1076,Late Evening,False,pending
+cam1076_img52951,52951,1076,Midday,False,pending
+cam1076_img52958,52958,1076,Evening Rush,False,pending
+cam1076_img53048,53048,1076,Evening Rush,True,corrected
+cam1076_img53164,53164,1076,Early Morning,False,pending
+cam1076_img53255,53255,1076,Early Morning,False,pending
+cam1076_img53270,53270,1076,Morning Rush,False,pending
+cam1078_img53362,53362,1078,Morning Rush,False,pending
+cam1078_img53494,53494,1078,Evening Rush,False,pending
+cam1078_img53536,53536,1078,Midday,True,corrected
+cam1078_img53592,53592,1078,Late Evening,True,approved
+cam1078_img53597,53597,1078,Early Morning,False,pending
+cam1078_img53610,53610,1078,Morning Rush,False,pending
+cam1078_img53648,53648,1078,Midday,False,pending
+cam1078_img53770,53770,1078,Late Evening,False,pending
+cam1078_img53773,53773,1078,Early Morning,False,pending
+cam1078_img53831,53831,1078,Evening Rush,True,corrected
+cam1103_img53951,53951,1103,Early Morning,False,pending
+cam1103_img54180,54180,1103,Evening Rush,True,corrected
+cam1103_img54210,54210,1103,Morning Rush,False,pending
+cam1103_img54258,54258,1103,Midday,False,pending
+cam1103_img54286,54286,1103,Late Evening,False,pending
+cam1103_img54313,54313,1103,Morning Rush,False,pending
+cam1103_img54386,54386,1103,Early Morning,True,approved
+cam1103_img54518,54518,1103,Midday,False,pending
+cam1103_img54534,54534,1103,Evening Rush,False,pending
+cam1103_img54555,54555,1103,Late Evening,True,rejected
+cam1112_img54668,54668,1112,Morning Rush,False,pending
+cam1112_img54705,54705,1112,Midday,False,pending
+cam1112_img54735,54735,1112,Late Evening,True,corrected
+cam1112_img54741,54741,1112,Morning Rush,True,corrected
+cam1112_img54815,54815,1112,Early Morning,False,pending
+cam1112_img54845,54845,1112,Midday,False,pending
+cam1112_img54886,54886,1112,Evening Rush,False,pending
+cam1112_img54994,54994,1112,Early Morning,True,corrected
+cam1112_img55145,55145,1112,Evening Rush,False,pending
+cam1112_img55166,55166,1112,Late Evening,False,pending
+cam1132_img55175,55175,1132,Early Morning,True,corrected
+cam1132_img55346,55346,1132,Late Evening,False,pending
+cam1132_img55350,55350,1132,Morning Rush,False,pending
+cam1132_img55398,55398,1132,Evening Rush,False,pending
+cam1132_img55468,55468,1132,Midday,True,corrected
+cam1132_img55624,55624,1132,Morning Rush,True,corrected
+cam1132_img55653,55653,1132,Midday,False,pending
+cam1132_img55698,55698,1132,Early Morning,False,pending
+cam1132_img55755,55755,1132,Evening Rush,False,pending
+cam1132_img55783,55783,1132,Late Evening,False,pending
+cam1188_img55825,55825,1188,Midday,False,pending
+cam1188_img55877,55877,1188,Early Morning,False,pending
+cam1188_img55886,55886,1188,Morning Rush,True,corrected
+cam1188_img55960,55960,1188,Late Evening,False,pending
+cam1188_img56022,56022,1188,Evening Rush,True,corrected
+cam1188_img56167,56167,1188,Midday,True,corrected
+cam1188_img56194,56194,1188,Evening Rush,False,pending
+cam1188_img56214,56214,1188,Late Evening,False,pending
+cam1188_img56234,56234,1188,Morning Rush,False,pending
+cam1188_img56309,56309,1188,Early Morning,False,pending
+cam1195_img56438,56438,1195,Midday,True,corrected
+cam1195_img56489,56489,1195,Early Morning,False,pending
+cam1195_img56496,56496,1195,Morning Rush,False,pending
+cam1195_img56624,56624,1195,Evening Rush,True,corrected
+cam1195_img56646,56646,1195,Late Evening,False,pending
+cam1195_img56814,56814,1195,Evening Rush,False,pending
+cam1195_img56835,56835,1195,Early Morning,False,pending
+cam1195_img56913,56913,1195,Late Evening,True,corrected
+cam1195_img56928,56928,1195,Morning Rush,False,pending
+cam1195_img56961,56961,1195,Midday,False,pending
+cam1361_img57074,57074,1361,Evening Rush,False,pending
+cam1361_img57097,57097,1361,Early Morning,False,pending
+cam1361_img57187,57187,1361,Morning Rush,False,pending
+cam1361_img57235,57235,1361,Evening Rush,True,corrected
+cam1361_img57358,57358,1361,Morning Rush,False,pending
+cam1361_img57376,57376,1361,Midday,False,pending
+cam1361_img57440,57440,1361,Late Evening,True,corrected
+cam1361_img57496,57496,1361,Midday,False,pending
+cam1361_img57527,57527,1361,Late Evening,False,pending
+cam1361_img57532,57532,1361,Early Morning,True,corrected
+cam1362_img57638,57638,1362,Morning Rush,False,pending
+cam1362_img57669,57669,1362,Midday,False,pending
+cam1362_img57713,57713,1362,Early Morning,False,pending
+cam1362_img57752,57752,1362,Midday,False,pending
+cam1362_img57878,57878,1362,Early Morning,True,approved
+cam1362_img57950,57950,1362,Evening Rush,False,pending
+cam1362_img57960,57960,1362,Late Evening,True,rejected
+cam1362_img58026,58026,1362,Evening Rush,False,pending
+cam1362_img58073,58073,1362,Morning Rush,True,corrected
+cam1362_img58143,58143,1362,Late Evening,False,pending
+cam1368_img58242,58242,1368,Morning Rush,True,corrected
+cam1368_img58270,58270,1368,Midday,True,corrected
+cam1368_img58454,58454,1368,Midday,False,pending
+cam1368_img58549,58549,1368,Evening Rush,False,pending
+cam1368_img58655,58655,1368,Evening Rush,False,pending
+cam1368_img58668,58668,1368,Late Evening,False,pending
+cam1368_img58671,58671,1368,Early Morning,False,pending
+cam1368_img58686,58686,1368,Morning Rush,False,pending
+cam1368_img58760,58760,1368,Early Morning,True,approved
+cam1368_img58844,58844,1368,Late Evening,False,pending
+cam1408_img58904,58904,1408,Midday,False,pending
+cam1408_img58939,58939,1408,Early Morning,False,pending
+cam1408_img58955,58955,1408,Morning Rush,False,pending
+cam1408_img59147,59147,1408,Midday,True,corrected
+cam1408_img59172,59172,1408,Evening Rush,True,corrected
+cam1408_img59192,59192,1408,Late Evening,False,pending
+cam1408_img59202,59202,1408,Morning Rush,True,corrected
+cam1408_img59280,59280,1408,Late Evening,False,pending
+cam1408_img59376,59376,1408,Early Morning,False,pending
+cam1408_img59444,59444,1408,Evening Rush,False,pending
+cam1589_img59553,59553,1589,Early Morning,False,pending
+cam1589_img59565,59565,1589,Morning Rush,False,pending
+cam1589_img59639,59639,1589,Late Evening,True,corrected
+cam1589_img59643,59643,1589,Morning Rush,False,pending
+cam1589_img59720,59720,1589,Early Morning,False,pending
+cam1589_img59768,59768,1589,Midday,True,corrected
+cam1589_img59779,59779,1589,Evening Rush,False,pending
+cam1589_img59830,59830,1589,Midday,False,pending
+cam1589_img59980,59980,1589,Late Evening,False,pending
+cam1589_img60068,60068,1589,Evening Rush,True,approved
+cam1804_img60167,60167,1804,Early Morning,False,pending
+cam1804_img60238,60238,1804,Evening Rush,False,pending
+cam1804_img60272,60272,1804,Morning Rush,False,pending
+cam1804_img60340,60340,1804,Late Evening,True,corrected
+cam1804_img60440,60440,1804,Early Morning,True,corrected
+cam1804_img60463,60463,1804,Midday,False,pending
+cam1804_img60539,60539,1804,Morning Rush,False,pending
+cam1804_img60584,60584,1804,Midday,False,pending
+cam1804_img60611,60611,1804,Late Evening,False,pending
+cam1804_img60695,60695,1804,Evening Rush,True,rejected
+cam1815_img60707,60707,1815,Early Morning,True,corrected
+cam1815_img60811,60811,1815,Morning Rush,True,corrected
+cam1815_img60819,60819,1815,Midday,False,pending
+cam1815_img60880,60880,1815,Late Evening,False,pending
+cam1815_img60884,60884,1815,Morning Rush,False,pending
+cam1815_img61030,61030,1815,Evening Rush,False,pending
+cam1815_img61085,61085,1815,Midday,False,pending
+cam1815_img61117,61117,1815,Evening Rush,False,pending
+cam1815_img61223,61223,1815,Late Evening,True,corrected
+cam1815_img61230,61230,1815,Early Morning,False,pending

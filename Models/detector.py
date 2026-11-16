@@ -61,6 +61,9 @@ class YOLOVehicleDetector:
     ):
         self.model_name = model_name
         self.vehicle_classes = vehicle_classes or DEFAULT_VEHICLE_CLASSES
+        # Fine-tuned models have their own class ids (0=car, 1=motorcycle, ...);
+        # unless classes were given explicitly, read them from the weights on load.
+        self._auto_classes = vehicle_classes is None
         self.confidence_threshold = confidence_threshold
         self.iou_threshold = iou_threshold
         self.device = device
@@ -74,6 +77,10 @@ class YOLOVehicleDetector:
                 from ultralytics import YOLO
                 print(f"[YOLOVehicleDetector] Loading model weights: {self.model_name}...")
                 self._model = YOLO(self.model_name)
+                names = dict(self._model.names)
+                if self._auto_classes and len(names) != 80:  # not a COCO checkpoint
+                    self.vehicle_classes = {int(i): n for i, n in names.items()}
+                    print(f"[YOLOVehicleDetector] Custom model classes: {self.vehicle_classes}")
             except ImportError:
                 raise ImportError(
                     "The 'ultralytics' package is required. "
@@ -121,8 +128,9 @@ class YOLOVehicleDetector:
         h, w = img_bgr.shape[:2]
 
         # Run inference filtering by target vehicle class IDs
+        model = self.model  # load first: a custom model replaces vehicle_classes
         target_class_ids = list(self.vehicle_classes.keys())
-        results = self.model.predict(
+        results = model.predict(
             source=img_bgr,
             conf=conf,
             iou=iou,

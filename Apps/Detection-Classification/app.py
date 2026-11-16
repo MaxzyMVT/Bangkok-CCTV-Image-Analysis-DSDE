@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT_DIR / "Models"))
 
 from Models.detector import YOLOVehicleDetector, DEFAULT_VEHICLE_CLASSES, imread_unicode, imwrite_unicode
 from Models.pipeline import parse_cctv_filename, load_cctv_metadata
+from Models.model_registry import resolve_model
 
 # Dataset auto-download from instructor's Google Drive
 try:
@@ -77,8 +78,10 @@ def get_detector(conf=0.25, iou=0.45):
     global DETECTOR
     if DETECTOR is None:
         print("[App] Initializing YOLO Vehicle Detector...")
+        model_path = resolve_model()
+        print(f"[App] Using model weights: {model_path}")
         DETECTOR = YOLOVehicleDetector(
-            model_name="yolov8n.pt",
+            model_name=model_path,
             confidence_threshold=conf,
             iou_threshold=iou
         )
@@ -378,6 +381,7 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
 
                 self._send_json({
                     "metadata": metadata,
+                    "model": Path(detector.model_name).name,
                     "counts": counts,
                     "detections": filtered_detections,
                     "annotated_image_base64": ann_b64,
