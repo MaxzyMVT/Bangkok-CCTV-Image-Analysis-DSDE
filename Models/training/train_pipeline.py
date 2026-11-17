@@ -338,23 +338,31 @@ def train(args):
     data = TRAIN_SET_DIR / "dataset.yaml"
     if not data.exists():
         sys.exit("[x] No training dataset. Run the 'build' stage first.")
-    name = args.name or f"{Path(args.model).stem}_{datetime.now():%Y%m%d_%H%M}"
-    model = YOLO(args.model)
+    if getattr(args, "resume", None):
+        resume_ckpt = Path(args.resume)
+        if not resume_ckpt.exists():
+            sys.exit(f"[x] Resume checkpoint not found: {resume_ckpt}")
+        name = resume_ckpt.parents[1].name
+        model = YOLO(str(resume_ckpt))
+        model.train(resume=True, workers=args.workers, device=args.device)
+    else:
+        name = args.name or f"{Path(args.model).stem}_{datetime.now():%Y%m%d_%H%M}"
+        model = YOLO(args.model)
 
-    train_kwargs = dict(
-        data=str(data), epochs=args.epochs, imgsz=args.imgsz, batch=args.batch,
-        patience=args.patience, device=args.device, workers=args.workers,
-        project=str(RUNS_DIR), name=name, exist_ok=True, seed=args.seed,
-        plots=True, **AUGMENT
-    )
-    if getattr(args, "cos_lr", False):
-        train_kwargs["cos_lr"] = True
-    if getattr(args, "label_smoothing", 0.0) > 0:
-        train_kwargs["label_smoothing"] = args.label_smoothing
-    if getattr(args, "warmup_epochs", None) is not None:
-        train_kwargs["warmup_epochs"] = args.warmup_epochs
+        train_kwargs = dict(
+            data=str(data), epochs=args.epochs, imgsz=args.imgsz, batch=args.batch,
+            patience=args.patience, device=args.device, workers=args.workers,
+            project=str(RUNS_DIR), name=name, exist_ok=True, seed=args.seed,
+            plots=True, **AUGMENT
+        )
+        if getattr(args, "cos_lr", False):
+            train_kwargs["cos_lr"] = True
+        if getattr(args, "label_smoothing", 0.0) > 0:
+            train_kwargs["label_smoothing"] = args.label_smoothing
+        if getattr(args, "warmup_epochs", None) is not None:
+            train_kwargs["warmup_epochs"] = args.warmup_epochs
 
-    model.train(**train_kwargs)
+        model.train(**train_kwargs)
 
     run_dir = RUNS_DIR / name
     best = run_dir / "weights" / "best.pt"
@@ -579,7 +587,8 @@ def main():
     ap.add_argument("--label-smoothing", type=float, default=0.0,
                     help="Label smoothing factor (e.g. 0.05) to regularize against noisy pseudo-labels.")
     ap.add_argument("--warmup-epochs", type=float, default=3.0, help="Warmup epochs.")
-    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--workers", type=int, default=0, help="Dataloader workers (0 = main process, safest on Windows).")
+    ap.add_argument("--resume", default=None, help="Resume training from weights/last.pt checkpoint.")
     ap.add_argument("--name", default=None, help="Run name under runs/train/.")
     ap.add_argument("--no-promote", action="store_true", help="Don't overwrite Models/weights/best.pt.")
     # eval
