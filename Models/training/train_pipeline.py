@@ -238,8 +238,101 @@ def build(args):
     print(f"[+] {sum(n_boxes)} boxes -> {TRAIN_SET_DIR / 'dataset.yaml'}")
 
 
+def patch_ultralytics_save_model():
+    """Patches Ultralytics checkpoint saving on Windows to prevent 'I/O operation on closed file'
+    errors caused by antivirus scans, flush delays, or closed BytesIO buffers during retries."""
+    import io
+    import time
+    from copy import deepcopy
+    import torch
+    from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils import __version__, GIT
+    from ultralytics.utils.torch_utils import (
+        convert_optimizer_state_dict_to_fp16,
+        qat_state,
+        strip_qat,
+        unwrap_model,
+    )
+
+    def safe_save_model(self):
+        ema = self.ema.ema
+        if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
+            model_sd = unwrap_model(self.model).state_dict()
+            for k, v in ema.state_dict().items():
+                if isinstance(v, torch.Tensor) and not torch.isfinite(v).all() and torch.isfinite(model_sd[k]).all():
+                    v.copy_(model_sd[k])
+        modelopt = qat_state(ema)
+        ema = deepcopy(ema).half().to(memory_format=torch.contiguous_format)
+        if hasattr(ema, "criterion"):
+            ema.criterion = None
+        for v in ema.state_dict().values():
+            if isinstance(v, torch.Tensor) and v.is_floating_point():
+                torch.nan_to_num_(v)
+
+        strip_qat(ema)
+        ckpt = {
+            "epoch": self.epoch,
+            "best_fitness": self.best_fitness,
+            "stopper": {"best_fitness": self.stopper.best_fitness, "best_epoch": self.stopper.best_epoch},
+            "model": None,
+            "ema": ema,
+            "updates": self.ema.updates,
+            "modelopt": modelopt,
+            "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
+            "scaler": self.scaler.state_dict(),
+            "train_args": vars(self.args),
+            "train_metrics": {**self.metrics, "fitness": self.fitness},
+            "train_results": self.read_results_csv(),
+            "date": datetime.now().astimezone().isoformat(),
+            "version": __version__,
+            "git": {
+                "root": str(GIT.root),
+                "branch": GIT.branch,
+                "commit": GIT.commit,
+                "message": GIT.message,
+                "origin": GIT.origin,
+            },
+            "license": "AGPL-3.0 (https://ultralytics.com/license)",
+            "docs": "https://docs.ultralytics.com",
+        }
+
+        # Robust serialization with fresh BytesIO buffer on every attempt
+        serialized_ckpt = None
+        for attempt in range(5):
+            try:
+                if torch.cuda.is_available():
+                    torch.cuda.synchronize()
+                buf = io.BytesIO()
+                torch.save(ckpt, buf)
+                serialized_ckpt = buf.getvalue()
+                break
+            except Exception as e:
+                if attempt == 4:
+                    raise
+                time.sleep(1.0)
+
+        # Robust checkpoint write to disk with retry against file locks
+        self.wdir.mkdir(parents=True, exist_ok=True)
+        for attempt in range(5):
+            try:
+                self.last.write_bytes(serialized_ckpt)
+                if self.best_fitness == self.fitness:
+                    self.best.write_bytes(serialized_ckpt)
+                if (self.save_period > 0) and (self.epoch % self.save_period == 0):
+                    (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)
+                break
+            except Exception as e:
+                if attempt == 4:
+                    raise
+                time.sleep(1.0)
+        return True
+
+    BaseTrainer.save_model = safe_save_model
+
+
 # ----------------------------------------------------------------------------- train
 def train(args):
+    patch_ultralytics_save_model()
     from ultralytics import YOLO
 
     data = TRAIN_SET_DIR / "dataset.yaml"
