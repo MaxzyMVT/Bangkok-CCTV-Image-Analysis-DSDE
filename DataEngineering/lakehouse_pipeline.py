@@ -60,6 +60,9 @@ LAKEHOUSE_DIR = DATA_ENG_DIR / "lakehouse"
 CATALOG_PATH = LAKEHOUSE_DIR / "bkk_cctv.ducklake"
 PARQUET_DATA_DIR = LAKEHOUSE_DIR / "data"
 
+sys.path.insert(0, str(DATA_ENG_DIR / "WebScraping"))
+import external_lakehouse  # noqa: E402
+
 CCTV_INFO_CSV = ROOT_DIR / "dataset" / "100_cameras" / "cctv_info.csv"
 CCTV_METADATA_CSV = DATA_ENG_DIR / "cctv_images_metadata.csv"
 RAIL_GEOJSON = ROOT_DIR / "Apps" / "Camera-Map" / "static" / "bangkok_rail.geojson"
@@ -582,7 +585,7 @@ class DuckLakehouse:
         return summary
 
 
-def run_pipeline(reset: bool = False, force: bool = False):
+def run_pipeline(reset: bool = False, force: bool = False, scrape: bool = False, rescrape: bool = False):
     print("=" * 68)
     print(" BANGKOK CCTV DATA ENGINEERING: PYDUCKLAKE LAKEHOUSE PIPELINE")
     print("=" * 68)
@@ -611,7 +614,10 @@ def run_pipeline(reset: bool = False, force: bool = False):
     print("\n--- [Phase 2: Silver Layer Transformation & Spatial Enrichment] ---")
     silver_stats = lake.transform_silver()
 
-    # 6. Step 6: Pipeline Inspection & Report
+    # 6. Step 6: External web scraping sources (scrape -> bronze -> silver)
+    external_lakehouse.run(lake.catalog, scrape=scrape, force_scrape=rescrape, force_ingest=force)
+
+    # 7. Step 7: Pipeline Inspection & Report
     print("\n--- [Phase 3: Lakehouse Audit & Summary] ---")
     summary = lake.get_summary()
     print(f"Catalog DB:     {summary['catalog']}")
@@ -641,6 +647,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Bangkok CCTV PyDuckLake Lakehouse Pipeline")
     parser.add_argument("--reset", action="store_true", help="Recreate lakehouse database from scratch")
     parser.add_argument("--force", action="store_true", help="Force re-ingest all files bypassing file guards")
+    parser.add_argument("--scrape", action="store_true", help="Run web scrapers for missing raw files before ingestion")
+    parser.add_argument("--rescrape", action="store_true", help="Re-run every web scraper even if raw files exist")
     args = parser.parse_args()
 
-    run_pipeline(reset=args.reset, force=args.force)
+    run_pipeline(reset=args.reset, force=args.force, scrape=args.scrape, rescrape=args.rescrape)

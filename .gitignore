@@ -46,6 +46,7 @@ env/
 
 # Lakehouse storage (DataEngineering/lakehouse_pipeline.py)
 lakehouse/
+DataEngineering/WebScraping/raw/
 *.ducklake
 *.parquet
 
