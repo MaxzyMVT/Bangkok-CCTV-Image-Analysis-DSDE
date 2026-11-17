@@ -1,5 +1,5 @@
 {
-  "run": "runs/train/yolo11s_20261117_0910",
+  "run": "runs/train/yolo11s_20261117_1026",
   "base_model": "yolo11s.pt",
   "epochs": 80,
   "imgsz": 416,
@@ -9,22 +9,22 @@
     "2": "bus",
     "3": "truck"
   },
-  "trained_at": "2026-11-17T09:30:54",
-  "best_epoch": 36,
-  "val_mAP50": 0.6595,
-  "val_mAP50_95": 0.4936,
+  "trained_at": "2026-11-17T11:19:10",
+  "best_epoch": 35,
+  "val_mAP50": 0.6615,
+  "val_mAP50_95": 0.4835,
   "test": {
     "frames": 294,
     "source": "hand-reviewed core test set",
-    "mAP50": 0.5203,
-    "mAP50_95": 0.3495,
+    "mAP50": 0.5143,
+    "mAP50_95": 0.3435,
     "count_mae": {
-      "car": 1.4558,
-      "motorcycle": 1.1803,
-      "bus": 0.1224,
-      "truck": 0.4014,
-      "total": 2.2483
+      "car": 1.4014,
+      "motorcycle": 1.119,
+      "bus": 0.1565,
+      "truck": 0.6565,
+      "total": 1.9524
     }
   },
-  "note": "promoted 2026-11-17: achieves new best count error (2.25 vs 2.31) and higher test mAP50 (0.520 vs 0.508)"
+  "note": "promoted 2026-11-17: test count MAE 1.9524 (prev 2.2483), mAP50 0.5143 (prev 0.5203)"
 }
