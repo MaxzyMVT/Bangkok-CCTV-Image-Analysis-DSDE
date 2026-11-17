@@ -298,6 +298,11 @@ def evaluate(args):
     from ultralytics import YOLO
 
     if (TEST_SET_DIR / "labels").exists() and any((TEST_SET_DIR / "labels").glob("*.txt")):
+        # If test_set/images doesn't exist yet, build it automatically from dataset
+        if not (TEST_SET_DIR / "images").exists() or not any((TEST_SET_DIR / "images").glob("*.jpg")):
+            print("[*] Materializing test set images from dataset/...")
+            import subprocess
+            subprocess.run([sys.executable, str(ROOT_DIR / "DataEngineering" / "labeling" / "merge_test_set.py"), "--allow-unreviewed"], check=True)
         split_name, images, labels = "test", TEST_SET_DIR / "images", TEST_SET_DIR / "labels"
     else:
         print("[!] Test set not merged yet - evaluating on the val split instead.")
