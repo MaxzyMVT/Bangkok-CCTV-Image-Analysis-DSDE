@@ -17,9 +17,15 @@ DataEngineering/
 │   ├── bkk_cctv.ducklake        # PyDuckLake catalog database
 │   └── data/                    # Physical Parquet data files (Bronze & Silver partitions)
 └── WebScraping/                 # Geospatial and web extraction modules
-    ├── README.md                # Web extraction documentation
-    └── build_rail_geojson.py    # OpenStreetMap transit alignment extractor (BTS/MRT/ARL/SRT)
+    ├── README.md                # Web extraction documentation (sources, methods, silver columns)
+    ├── build_rail_geojson.py    # OpenStreetMap transit alignment extractor (BTS/MRT/ARL/SRT)
+    ├── sun_times.py, open_meteo.py, metar.py, osm_overpass.py, bma_open_data.py,
+    │   traffy_fondue.py, fm91_news.py, bma_drainage.py   # External source scrapers
+    ├── external_lakehouse.py    # Bronze -> Silver loader for the scraped sources
+    └── raw/                     # Scraper output files (ignored by git)
 ```
+
+External web scraping sources (weather, METAR, OSM, BMA open data, Traffy Fondue, FM91, BMA Drainage) are loaded into their own `bronze.<table>_raw` and `silver.<table>` tables by `python DataEngineering/lakehouse_pipeline.py --scrape`. See [`WebScraping/README.md`](WebScraping/README.md) for the full table list and columns.
 
 ---
 
