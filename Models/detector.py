@@ -53,12 +53,19 @@ class YOLOVehicleDetector:
     """
     def __init__(
         self,
-        model_name: str = "yolo11s.pt",
+        model_name: Optional[str] = None,
         vehicle_classes: Optional[Dict[int, str]] = None,
         confidence_threshold: float = 0.25,
         iou_threshold: float = 0.45,
         device: str = "cpu"
     ):
+        if model_name is None:
+            try:
+                from .model_registry import resolve_model
+                model_name = resolve_model()
+            except ImportError:
+                from model_registry import resolve_model
+                model_name = resolve_model()
         self.model_name = model_name
         self.vehicle_classes = vehicle_classes or DEFAULT_VEHICLE_CLASSES
         # Fine-tuned models have their own class ids (0=car, 1=motorcycle, ...);

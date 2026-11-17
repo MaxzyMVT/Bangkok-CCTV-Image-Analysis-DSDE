@@ -462,7 +462,8 @@ def evaluate(args):
 
     EVAL_DIR.mkdir(parents=True, exist_ok=True)
     common = dict(imgsz=args.imgsz, batch=8, device=args.device, conf=0.001, iou=0.6,
-                  project=str(EVAL_DIR), exist_ok=True, plots=False, verbose=False)
+                  project=str(EVAL_DIR), exist_ok=True, plots=False, verbose=False,
+                  workers=args.workers)
     report = {"split": split_name, "n_images": n_images, "models": {}}
 
     # pretrained COCO baseline: score only the 4 vehicle classes
