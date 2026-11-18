@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bangkok CCTV Lakehouse Explorer | PyDuckLake Medallion Architecture</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #070b14; color: #e2e8f0; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .glass-card { background: rgba(13, 20, 36, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-nav { background: rgba(10, 16, 30, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+    .accent-gradient { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%); }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #0b1120; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
+    .table-cell-truncate { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pulse-glow { box-shadow: 0 0 15px rgba(59, 130, 246, 0.35); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#070b14] text-slate-200">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="glass-nav sticky top-0 z-40 px-4 sm:px-6 py-3">
+    <div class="max-w-[1720px] mx-auto flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl accent-gradient flex items-center justify-center text-white shadow-lg shadow-purple-500/20">
+          <i class="fa-solid fa-database text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold text-white tracking-tight">Bangkok CCTV Lakehouse Explorer</h1>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono border border-purple-500/30">PyDuckLake ACID</span>
+          </div>
+          <p class="text-xs text-slate-400">Medallion Data Engineering • Bronze Raw Feeds & Silver Analytical Marts</p>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="hidden xl:flex items-center gap-2 text-xs font-mono">
+        <div class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+          <span class="text-slate-400"><i class="fa-regular fa-file-lines text-blue-400"></i> Parquet:</span>
+          <span id="metricParquetFiles" class="font-bold text-white">--</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+          <span class="text-slate-400"><i class="fa-solid fa-hard-drive text-emerald-400"></i> Size:</span>
+          <span id="metricStorageSize" class="font-bold text-emerald-300">-- MB</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+          <span class="text-slate-400"><i class="fa-solid fa-table text-purple-400"></i> Tables:</span>
+          <span id="metricTotalTables" class="font-bold text-purple-300">--</span>
+        </div>
+        <div class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+          <span class="text-slate-400"><i class="fa-solid fa-bars-staggered text-amber-400"></i> Records:</span>
+          <span id="metricTotalRecords" class="font-bold text-amber-300">--</span>
+        </div>
+      </div>
+
+      <!-- Actions & Navigation Links -->
+      <div class="flex items-center gap-2.5">
+        <!-- Re-Scrape / Ingest Trigger Button -->
+        <button id="openPipelineBtn" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-purple-600/25 transition">
+          <i class="fa-solid fa-cloud-arrow-down"></i>
+          <span>Scrape & Re-Ingest</span>
+        </button>
+
+        <!-- Link to Map -->
+        <a href="/" class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-700/80 bg-slate-800/80 text-xs font-medium text-slate-300 hover:text-white hover:border-cyan-500/60 transition">
+          <i class="fa-solid fa-map-location-dot text-cyan-400"></i>
+          <span class="hidden sm:inline">Camera Map</span>
+        </a>
+
+        <!-- Link to YOLO Detect -->
+        <a href="/inspect" class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-700/80 bg-slate-800/80 text-xs font-medium text-slate-300 hover:text-white hover:border-blue-500/60 transition">
+          <i class="fa-solid fa-video text-blue-400"></i>
+          <span class="hidden sm:inline">YOLO Vision</span>
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN BODY LAYOUT -->
+  <div class="flex-1 max-w-[1720px] w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+    
+    <!-- LEFT SIDEBAR: TABLES & SCHEMAS EXPLORER (3 Cols) -->
+    <aside class="lg:col-span-3 xl:col-span-3 flex flex-col glass-card rounded-2xl overflow-hidden shadow-xl max-h-[calc(100vh-120px)] sticky top-24">
+      
+      <!-- Sidebar Header -->
+      <div class="p-4 border-b border-slate-800/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-layer-group text-purple-400"></i> Lakehouse Tables
+          </h2>
+          <button id="refreshSummaryBtn" title="Refresh Table List" class="text-slate-400 hover:text-white text-xs transition">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+        </div>
+
+        <!-- Search Table Input -->
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+          <input type="text" id="tableFilterInput" placeholder="Filter tables or schemas..." class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition">
+        </div>
+
+        <!-- Schema Filter Chips -->
+        <div class="flex gap-1.5 text-[11px]">
+          <button data-schema="all" class="schema-filter-btn flex-1 py-1 rounded-lg font-medium text-center bg-purple-600 text-white transition">All</button>
+          <button data-schema="silver" class="schema-filter-btn flex-1 py-1 rounded-lg font-medium text-center bg-slate-800 text-slate-300 hover:bg-slate-700 transition">🥈 Silver</button>
+          <button data-schema="bronze" class="schema-filter-btn flex-1 py-1 rounded-lg font-medium text-center bg-slate-800 text-slate-300 hover:bg-slate-700 transition">🥉 Bronze</button>
+        </div>
+      </div>
+
+      <!-- Scrollable Tables List -->
+      <div id="tableListContainer" class="flex-1 overflow-y-auto p-3 space-y-4 custom-scroll">
+        <!-- Dynamically rendered categories and tables -->
+        <div class="text-center py-8 text-xs text-slate-500">
+          <i class="fa-solid fa-circle-notch fa-spin text-purple-400 text-lg mb-2"></i>
+          <p>Loading Lakehouse catalog...</p>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT MAIN PANEL: ACTIVE TABLE BROWSER & SQL WORKBENCH (9 Cols) -->
+    <main class="lg:col-span-9 xl:col-span-9 flex flex-col space-y-4 min-w-0">
+      
+      <!-- Top Action Bar for Active Table -->
+      <div class="glass-card rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+        <div class="flex items-center gap-3 min-w-0">
+          <div id="activeSchemaBadge" class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-bold text-xs flex-shrink-0">
+            SL
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 id="activeTableTitle" class="text-base font-bold text-white font-mono truncate">silver.vehicle_counts</h2>
+              <span id="activeTableCategory" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-sans">CCTV & Vehicle Detections</span>
+            </div>
+            <p id="activeTableStats" class="text-xs text-slate-400 font-mono">500 total rows • 12 columns</p>
+          </div>
+        </div>
+
+        <!-- View Tabs & Export -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+            <button id="tabDataBtn" class="px-3 py-1.5 rounded-lg font-medium bg-purple-600 text-white transition flex items-center gap-1.5">
+              <i class="fa-solid fa-table"></i> Data Preview
+            </button>
+            <button id="tabSchemaBtn" class="px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+              <i class="fa-solid fa-code"></i> Schema
+            </button>
+            <button id="tabSqlBtn" class="px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+              <i class="fa-solid fa-terminal"></i> SQL Console
+            </button>
+            <button id="tabLineageBtn" class="px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+              <i class="fa-solid fa-diagram-project"></i> Medallion Flow
+            </button>
+          </div>
+
+          <!-- Export Dropdown / Button -->
+          <button id="exportCsvBtn" title="Export as CSV" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-300 hover:text-white transition flex items-center gap-1.5">
+            <i class="fa-solid fa-download text-emerald-400"></i> Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= TAB 1: DATA PREVIEW ================= -->
+      <section id="viewDataSection" class="glass-card rounded-2xl p-4 space-y-4 shadow-xl flex-1 flex flex-col min-h-0">
+        
+        <!-- Controls Bar inside Data Preview -->
+        <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
+          <!-- In-table search input -->
+          <div class="relative w-72">
+            <i class="fa-solid fa-filter absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+            <input type="text" id="rowSearchInput" placeholder="Filter rows in active table..." class="w-full bg-slate-900/90 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition">
+          </div>
+
+          <!-- Pagination Controls -->
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 text-slate-400">
+              <span>Rows per page:</span>
+              <select id="pageSizeSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-200 focus:outline-none focus:border-purple-500">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+              </select>
+            </div>
+
+            <div class="flex items-center space-x-1 font-mono">
+              <button id="btnPrevPage" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+              </button>
+              <span id="pageIndicator" class="px-2 text-slate-300">1 / 1</span>
+              <button id="btnNextPage" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Grid Container -->
+        <div class="flex-1 overflow-x-auto overflow-y-auto border border-slate-800/80 rounded-xl bg-slate-950/40 custom-scroll min-h-[460px]">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="sticky top-0 bg-slate-900/95 border-b border-slate-800 text-slate-400 font-mono z-10" id="tableHeader">
+              <!-- Dynamically populated th -->
+            </thead>
+            <tbody id="tableBody" class="divide-y divide-slate-800/60 font-mono">
+              <!-- Dynamically populated tr -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono pt-1">
+          <span id="tableFootInfo">Showing records...</span>
+          <span>Storage: Apache Parquet Columnar</span>
+        </div>
+      </section>
+
+      <!-- ================= TAB 2: SCHEMA & DICTIONARY ================= -->
+      <section id="viewSchemaSection" class="glass-card rounded-2xl p-5 space-y-4 shadow-xl hidden">
+        <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-code text-purple-400"></i>
+              <span id="schemaTableName">silver.vehicle_counts</span> Data Schema
+            </h3>
+            <p class="text-xs text-slate-400">Column specifications, native DuckDB types, and nullability constraints.</p>
+          </div>
+          <span class="text-xs font-mono text-purple-300 bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20">DuckLake Schema</span>
+        </div>
+
+        <div class="overflow-x-auto border border-slate-800 rounded-xl">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-900/90 border-b border-slate-800 text-slate-400 font-mono">
+              <tr>
+                <th class="p-3">#</th>
+                <th class="p-3">Column Name</th>
+                <th class="p-3">Data Type</th>
+                <th class="p-3">Nullable</th>
+                <th class="p-3">Role / Purpose</th>
+              </tr>
+            </thead>
+            <tbody id="schemaTableBody" class="divide-y divide-slate-800/60 font-mono">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= TAB 3: SQL WORKBENCH ================= -->
+      <section id="viewSqlSection" class="glass-card rounded-2xl p-5 space-y-4 shadow-xl hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-terminal text-purple-400"></i> Interactive SQL Workbench
+            </h3>
+            <p class="text-xs text-slate-400">Execute ad-hoc analytical SQL queries against PyDuckLake tables.</p>
+          </div>
+
+          <!-- Query Preset Dropdown -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400">Preset Queries:</span>
+            <select id="sqlPresetSelect" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500">
+              <option value="">-- Choose Example Query --</option>
+              <option value="top_traffic">Top 10 Frames with Most Vehicles</option>
+              <option value="transit_prox">Nearest CCTV Cameras to Rapid Transit (BTS/MRT)</option>
+              <option value="rain_traffic">Rainfall vs Vehicle Congestion Correlation</option>
+              <option value="hourly_mix">Vehicle Classification Mix by Hour of Day</option>
+              <option value="bronze_audit">Bronze Audit Trail (SHA-256 Hashes & Ingestion)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SQL Editor Box -->
+        <div class="space-y-2">
+          <textarea id="sqlInput" rows="5" class="w-full bg-slate-950/80 border border-slate-700 rounded-xl p-3 font-mono text-xs text-purple-200 placeholder-slate-600 focus:outline-none focus:border-purple-500 custom-scroll leading-relaxed" placeholder="SELECT * FROM lake.silver.vehicle_counts LIMIT 10;"></textarea>
+          
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-500 font-mono">Tip: Press <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-300">Ctrl + Enter</kbd> to execute. Only read-only queries allowed.</span>
+            <button id="btnRunSql" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 font-semibold text-white shadow-lg shadow-purple-600/25 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-play text-xs"></i> Run Query
+            </button>
+          </div>
+        </div>
+
+        <!-- Query Output Container -->
+        <div class="space-y-2 pt-2 border-t border-slate-800/80">
+          <div class="flex items-center justify-between text-xs">
+            <span id="queryStats" class="text-slate-400 font-mono">Ready to execute</span>
+          </div>
+
+          <div id="queryResultWrapper" class="overflow-x-auto border border-slate-800 rounded-xl bg-slate-950/40 max-h-[380px] custom-scroll">
+            <div id="queryEmptyState" class="p-8 text-center text-xs text-slate-500">
+              Write a SQL query above and click "Run Query"
+            </div>
+            <table id="queryResultTable" class="w-full text-left border-collapse text-xs hidden">
+              <thead class="sticky top-0 bg-slate-900 border-b border-slate-800 text-slate-400 font-mono" id="queryResultHead"></thead>
+              <tbody id="queryResultBody" class="divide-y divide-slate-800/60 font-mono"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 4: MEDALLION FLOW ================= -->
+      <section id="viewLineageSection" class="glass-card rounded-2xl p-6 space-y-6 shadow-xl hidden">
+        <div class="border-b border-slate-800 pb-3">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-diagram-project text-purple-400"></i> Lakehouse Architecture & Lineage
+          </h3>
+          <p class="text-xs text-slate-400">End-to-end data pipeline flow from raw scraping to spatial analytics marts.</p>
+        </div>
+
+        <!-- Flow Visual Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <!-- Column 1: Sources & Bronze -->
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-box-archive"></i> Bronze Layer
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 font-mono border border-amber-500/20">Raw & Audit</span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              Stores raw text outputs verbatim with audit columns: <code class="text-amber-300">file_sha256</code>, <code class="text-amber-300">source_file</code>, <code class="text-amber-300">source_row_number</code>, and <code class="text-amber-300">ingested_at</code>.
+            </p>
+            <ul class="text-xs font-mono space-y-1 text-slate-300 pt-2 border-t border-slate-800">
+              <li>• bronze.cameras_raw</li>
+              <li>• bronze.cctv_images_raw</li>
+              <li>• bronze.vehicle_counts_raw</li>
+              <li>• bronze.transit_lines_raw</li>
+              <li>• bronze.transit_stations_raw</li>
+              <li>• bronze.weather_hourly_raw</li>
+              <li>• bronze.metar_observations_raw</li>
+            </ul>
+          </div>
+
+          <!-- Column 2: Silver Layer -->
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Silver Layer
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 font-mono border border-purple-500/20">Cleaned & Typed</span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              Strong typing (<code class="text-purple-300">TIMESTAMPTZ</code>, <code class="text-purple-300">INTEGER</code>, <code class="text-purple-300">DOUBLE</code>), null-handling, and composite key deduplication.
+            </p>
+            <ul class="text-xs font-mono space-y-1 text-slate-300 pt-2 border-t border-slate-800">
+              <li>• silver.cameras</li>
+              <li>• silver.cctv_frames</li>
+              <li>• silver.vehicle_counts</li>
+              <li>• silver.transit_lines</li>
+              <li>• silver.transit_stations</li>
+              <li>• silver.weather_hourly_bangkok</li>
+              <li>• silver.metar_observations</li>
+            </ul>
+          </div>
+
+          <!-- Column 3: Feature Marts -->
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-chart-line"></i> Analytics & Marts
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-mono border border-emerald-500/20">Enriched</span>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              Spatial proximity joins (Haversine distances between CCTV & BTS/MRT) and multimodal temporal models.
+            </p>
+            <ul class="text-xs font-mono space-y-1 text-slate-300 pt-2 border-t border-slate-800">
+              <li>• silver.camera_transit_proximity</li>
+              <li>• Rush Hour Congestion Index</li>
+              <li>• Weather-Traffic Correlations</li>
+              <li>• Map Rail GeoJSON Layer</li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ================= SCRAPE & RE-INGEST MODAL ================= -->
+  <div id="pipelineModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card max-w-xl w-full rounded-2xl border border-slate-700/80 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-purple-900/60 to-indigo-900/60 px-6 py-4 border-b border-purple-500/20 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300">
+            <i class="fa-solid fa-arrows-rotate text-purple-300 text-lg"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              Web Scraping & Lakehouse Pipeline
+            </h3>
+            <p class="text-xs text-slate-300">Re-scrape external feeds & populate Bronze/Silver layers</p>
+          </div>
+        </div>
+        <button id="closePipelineModalBtn" class="text-slate-400 hover:text-white text-lg transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4 text-xs text-slate-300">
+        
+        <p class="text-slate-400 text-xs">
+          Choose a pipeline execution mode. Running the scrapers will download live external datasets and automatically populate the Lakehouse and the Camera Map:
+        </p>
+
+        <!-- Mode Selection Radios -->
+        <div class="space-y-2.5">
+          <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/80 border border-purple-500/40 cursor-pointer hover:bg-slate-800/80 transition">
+            <input type="radio" name="pipelineMode" value="scrape_rail" checked class="mt-0.5 accent-purple-500">
+            <div class="space-y-0.5">
+              <div class="font-bold text-white flex items-center gap-2">
+                <span>🚆 Re-Scrape Bangkok Rail Transit (OpenStreetMap)</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-mono">Updates Map</span>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-normal">
+                Downloads fresh BTS / MRT / ARL / SRT alignments from OSM Overpass API, updates <code class="text-cyan-300 font-mono">Apps/Camera-Map/static/bangkok_rail.geojson</code>, and re-computes camera proximity.
+              </p>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/80 border border-slate-800 cursor-pointer hover:bg-slate-800/80 transition">
+            <input type="radio" name="pipelineMode" value="full_scrape" class="mt-0.5 accent-purple-500">
+            <div class="space-y-0.5">
+              <div class="font-bold text-white">
+                🌐 Full Web Scraping + Ingestion (All Feeds)
+              </div>
+              <p class="text-[11px] text-slate-400 leading-normal">
+                Scrapes OSM Rail + Open-Meteo weather + Don Mueang / Suvarnabhumi METAR + Sun times, then ingests all Bronze and transforms Silver.
+              </p>
+            </div>
+          </label>
+
+          <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/80 border border-slate-800 cursor-pointer hover:bg-slate-800/80 transition">
+            <input type="radio" name="pipelineMode" value="ingest_only" class="mt-0.5 accent-purple-500">
+            <div class="space-y-0.5">
+              <div class="font-bold text-white">
+                ⚡ Fast Ingestion Only (Existing Raw Files)
+              </div>
+              <p class="text-[11px] text-slate-400 leading-normal">
+                Skips downloading from web; immediately re-ingests already scraped CSVs/GeoJSON and recalculates all Silver tables in ~2 seconds.
+              </p>
+            </div>
+          </label>
+        </div>
+
+        <!-- Terminal Logs Container (Hidden until triggered) -->
+        <div id="pipelineLogContainer" class="hidden space-y-2 pt-2 border-t border-slate-800">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span id="pipelineStatusText" class="text-purple-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-spinner fa-spin"></i> Running pipeline...
+            </span>
+            <span id="pipelinePercent" class="font-mono text-white">0%</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700">
+            <div id="pipelineBar" class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full w-0 transition-all duration-300 rounded-full"></div>
+          </div>
+
+          <!-- Console Terminal -->
+          <div id="pipelineConsole" class="bg-black/80 rounded-xl p-3 border border-slate-800 font-mono text-[11px] text-slate-300 max-h-40 overflow-y-auto space-y-0.5 custom-scroll">
+            <div class="text-slate-500">// Pipeline logs will appear here...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-900/80 px-6 py-3.5 border-t border-slate-800 flex items-center justify-between">
+        <button id="cancelPipelineModalBtn" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white text-xs hover:bg-slate-800 transition">
+          Close
+        </button>
+        <button id="btnExecutePipeline" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs shadow-lg shadow-purple-600/30 transition flex items-center gap-2">
+          <i class="fa-solid fa-play text-xs"></i> Start Pipeline
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGIC -->
+  <script>
+    // State management
+    let LAKEHOUSE_SUMMARY = null;
+    let ACTIVE_SCHEMA = 'silver';
+    let ACTIVE_TABLE = 'vehicle_counts';
+    let CURRENT_PAGE = 1;
+    let CURRENT_PAGE_SIZE = 50;
+    let CURRENT_SORT_COL = '';
+    let CURRENT_SORT_DIR = 'ASC';
+    let CURRENT_SEARCH = '';
+    let SCHEMA_FILTER = 'all'; // 'all', 'silver', 'bronze'
+    let PIPELINE_POLL = null;
+
+    // Preset queries dictionary
+    const PRESETS = {
+      top_traffic: `SELECT camera_id, captured_at, car, motorcycle, bus, truck, total_vehicles\nFROM lake.silver.vehicle_counts\nORDER BY total_vehicles DESC\nLIMIT 10;`,
+      transit_prox: `SELECT camera_id, camera_name_th, nearest_station_th, transit_system, distance_meters, is_near_transit\nFROM lake.silver.camera_transit_proximity\nWHERE is_near_transit = TRUE\nORDER BY distance_meters ASC\nLIMIT 15;`,
+      rain_traffic: `SELECT w.datetime, w.precipitation_mean, w.precipitation_max, AVG(v.total_vehicles) AS avg_vehicles\nFROM lake.silver.weather_hourly_bangkok w\nLEFT JOIN lake.silver.vehicle_counts v ON date_trunc('hour', v.captured_at) = w.datetime\nGROUP BY w.datetime, w.precipitation_mean, w.precipitation_max\nORDER BY w.precipitation_max DESC\nLIMIT 10;`,
+      hourly_mix: `SELECT hour, ROUND(AVG(car), 1) as avg_cars, ROUND(AVG(motorcycle), 1) as avg_motos, ROUND(AVG(bus), 1) as avg_buses, ROUND(AVG(truck), 1) as avg_trucks, ROUND(AVG(total_vehicles), 1) as avg_total\nFROM lake.silver.vehicle_counts\nGROUP BY hour\nORDER BY hour ASC;`,
+      bronze_audit: `SELECT image_file, camera_id, source_file, file_sha256, ingested_at\nFROM lake.bronze.vehicle_counts_raw\nORDER BY ingested_at DESC\nLIMIT 10;`
+    };
+
+    // Load initial summary
+    async function loadSummary() {
+      try {
+        const res = await fetch('/api/lakehouse/summary');
+        if (!res.ok) throw new Error('Failed loading lakehouse summary');
+        const data = await res.json();
+        LAKEHOUSE_SUMMARY = data;
+
+        // Populate top metrics
+        document.getElementById('metricParquetFiles').textContent = data.parquet_files.toLocaleString();
+        document.getElementById('metricStorageSize').textContent = `${data.total_size_mb} MB`;
+        document.getElementById('metricTotalTables').textContent = data.total_tables;
+        document.getElementById('metricTotalRecords').textContent = data.total_records.toLocaleString();
+
+        renderTableList();
+
+        // If active table exists in data, load it; else default to first table
+        const exists = data.tables.some(t => t.schema === ACTIVE_SCHEMA && t.name === ACTIVE_TABLE);
+        if (!exists && data.tables.length > 0) {
+          ACTIVE_SCHEMA = data.tables[0].schema;
+          ACTIVE_TABLE = data.tables[0].name;
+        }
+        loadActiveTableData();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('tableListContainer').innerHTML = `
+          <div class="p-4 text-center text-red-400 text-xs">
+            <i class="fa-solid fa-triangle-exclamation text-base mb-1"></i>
+            <p>Error connecting to Lakehouse catalog</p>
+            <p class="text-[11px] text-slate-500 mt-1">${err.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    // Render left sidebar table list
+    function renderTableList() {
+      if (!LAKEHOUSE_SUMMARY) return;
+      const container = document.getElementById('tableListContainer');
+      const filterText = document.getElementById('tableFilterInput').value.trim().toLowerCase();
+
+      // Filter tables by schema chip and search input
+      let filtered = LAKEHOUSE_SUMMARY.tables.filter(t => {
+        if (SCHEMA_FILTER !== 'all' && t.schema !== SCHEMA_FILTER) return false;
+        if (filterText) {
+          const matchName = t.name.toLowerCase().includes(filterText);
+          const matchSchema = t.schema.toLowerCase().includes(filterText);
+          const matchCat = t.category.toLowerCase().includes(filterText);
+          return matchName || matchSchema || matchCat;
+        }
+        return true;
+      });
+
+      // Group by category
+      const groups = {};
+      filtered.forEach(t => {
+        if (!groups[t.category]) groups[t.category] = [];
+        groups[t.category].push(t);
+      });
+
+      let html = '';
+      for (const [catName, tbls] of Object.entries(groups)) {
+        html += `
+          <div class="space-y-1">
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-1 flex items-center justify-between">
+              <span>${catName}</span>
+              <span class="text-slate-500">${tbls.length}</span>
+            </div>
+            <div class="space-y-1">
+        `;
+
+        tbls.forEach(t => {
+          const isActive = t.schema === ACTIVE_SCHEMA && t.name === ACTIVE_TABLE;
+          const isSilver = t.schema === 'silver';
+          const badgeColor = isSilver ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+          const activeClass = isActive 
+            ? 'bg-purple-600/30 border-purple-500/70 text-white font-semibold' 
+            : 'bg-slate-900/60 hover:bg-slate-800/80 border-slate-800 text-slate-300';
+
+          html += `
+            <button onclick="selectTable('${t.schema}', '${t.name}')" class="w-full text-left p-2.5 rounded-xl border ${activeClass} transition flex items-center justify-between group">
+              <div class="min-w-0 pr-2">
+                <div class="text-xs font-mono truncate flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full ${isSilver ? 'bg-purple-400' : 'bg-amber-400'}"></span>
+                  <span>${t.name}</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border ${badgeColor}">${t.schema.toUpperCase()}</span>
+                <span class="text-[10px] font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">${t.row_count.toLocaleString()}</span>
+              </div>
+            </button>
+          `;
+        });
+
+        html += `</div></div>`;
+      }
+
+      if (filtered.length === 0) {
+        html = `<div class="p-6 text-center text-slate-500 text-xs">No tables match your filter</div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function selectTable(schema, table) {
+      ACTIVE_SCHEMA = schema;
+      ACTIVE_TABLE = table;
+      CURRENT_PAGE = 1;
+      CURRENT_SEARCH = '';
+      document.getElementById('rowSearchInput').value = '';
+      renderTableList();
+      loadActiveTableData();
+      loadActiveTableSchema();
+    }
+
+    // Load active table data for preview
+    async function loadActiveTableData() {
+      const titleEl = document.getElementById('activeTableTitle');
+      const badgeEl = document.getElementById('activeSchemaBadge');
+      const statsEl = document.getElementById('activeTableStats');
+      const categoryEl = document.getElementById('activeTableCategory');
+      const thead = document.getElementById('tableHeader');
+      const tbody = document.getElementById('tableBody');
+
+      titleEl.textContent = `${ACTIVE_SCHEMA}.${ACTIVE_TABLE}`;
+      badgeEl.textContent = ACTIVE_SCHEMA === 'silver' ? 'SL' : 'BR';
+      badgeEl.className = ACTIVE_SCHEMA === 'silver' 
+        ? 'w-8 h-8 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-bold text-xs flex-shrink-0'
+        : 'w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center font-bold text-xs flex-shrink-0';
+
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="100" class="p-8 text-center text-slate-400">
+            <i class="fa-solid fa-circle-notch fa-spin text-purple-400 text-lg mb-2"></i>
+            <p>Querying table data...</p>
+          </td>
+        </tr>
+      `;
+
+      try {
+        const queryParams = new URLSearchParams({
+          schema: ACTIVE_SCHEMA,
+          table: ACTIVE_TABLE,
+          page: CURRENT_PAGE,
+          page_size: CURRENT_PAGE_SIZE,
+          search: CURRENT_SEARCH,
+          sort_col: CURRENT_SORT_COL,
+          sort_dir: CURRENT_SORT_DIR
+        });
+
+        const res = await fetch(`/api/lakehouse/data?${queryParams.toString()}`);
+        if (!res.ok) throw new Error('Failed fetching table data');
+        const data = await res.json();
+
+        statsEl.textContent = `${data.total_rows.toLocaleString()} total rows • ${data.columns.length} columns`;
+        categoryEl.textContent = getCategoryName(ACTIVE_TABLE);
+
+        // Render header
+        let headHtml = '<tr><th class="p-3 w-12 text-slate-500 font-mono">#</th>';
+        data.columns.forEach(col => {
+          const isSorted = CURRENT_SORT_COL === col;
+          const sortIcon = isSorted ? (CURRENT_SORT_DIR === 'ASC' ? '▲' : '▼') : '';
+          headHtml += `
+            <th class="p-3 cursor-pointer hover:text-white transition select-none" onclick="toggleSort('${col}')">
+              <div class="flex items-center gap-1.5">
+                <span>${col}</span>
+                <span class="text-purple-400 text-[10px]">${sortIcon}</span>
+              </div>
+            </th>
+          `;
+        });
+        headHtml += '</tr>';
+        thead.innerHTML = headHtml;
+
+        // Render rows
+        if (data.rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="${data.columns.length + 1}" class="p-8 text-center text-slate-500">No records found matching query</td></tr>`;
+        } else {
+          let bodyHtml = '';
+          const startIdx = (data.page - 1) * data.page_size;
+          data.rows.forEach((r, idx) => {
+            bodyHtml += `<tr class="hover:bg-slate-900/60 transition"><td class="p-3 text-slate-600 font-mono">${startIdx + idx + 1}</td>`;
+            data.columns.forEach(c => {
+              const val = r[c];
+              let displayVal = val === null ? '<span class="text-slate-600 italic">null</span>' : val;
+              if (typeof val === 'boolean') {
+                displayVal = val 
+                  ? '<span class="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px]">TRUE</span>'
+                  : '<span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-[10px]">FALSE</span>';
+              }
+              bodyHtml += `<td class="p-3 table-cell-truncate" title="${val !== null ? String(val).replace(/"/g, '&quot;') : ''}">${displayVal}</td>`;
+            });
+            bodyHtml += '</tr>';
+          });
+          tbody.innerHTML = bodyHtml;
+        }
+
+        // Pagination updates
+        document.getElementById('pageIndicator').textContent = `${data.page} / ${data.total_pages}`;
+        document.getElementById('btnPrevPage').disabled = data.page <= 1;
+        document.getElementById('btnNextPage').disabled = data.page >= data.total_pages;
+        document.getElementById('tableFootInfo').textContent = `Showing ${data.rows.length} rows of ${data.total_rows.toLocaleString()} total`;
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="100" class="p-8 text-center text-red-400">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    function toggleSort(col) {
+      if (CURRENT_SORT_COL === col) {
+        CURRENT_SORT_DIR = CURRENT_SORT_DIR === 'ASC' ? 'DESC' : 'ASC';
+      } else {
+        CURRENT_SORT_COL = col;
+        CURRENT_SORT_DIR = 'ASC';
+      }
+      loadActiveTableData();
+    }
+
+    function getCategoryName(name) {
+      const n = name.toLowerCase();
+      if (n.includes('vehicle') || n.includes('camera') || n.includes('frame')) return 'CCTV & Vehicle Detections';
+      if (n.includes('transit') || n.includes('station') || n.includes('proximity')) return 'Rapid Transit & Spatial Hubs';
+      if (n.includes('weather') || n.includes('metar') || n.includes('sun')) return 'Weather & Atmospheric';
+      if (n.includes('drainage') || n.includes('flood')) return 'BMA Drainage & Flood Sensors';
+      return 'Urban & Municipal Context';
+    }
+
+    // Load active table schema definition
+    async function loadActiveTableSchema() {
+      document.getElementById('schemaTableName').textContent = `${ACTIVE_SCHEMA}.${ACTIVE_TABLE}`;
+      const tbody = document.getElementById('schemaTableBody');
+      try {
+        const res = await fetch(`/api/lakehouse/schema?schema=${ACTIVE_SCHEMA}&table=${ACTIVE_TABLE}`);
+        if (!res.ok) throw new Error('Failed loading schema');
+        const data = await res.json();
+
+        let html = '';
+        data.columns.forEach((c, idx) => {
+          let roleDesc = 'Data attribute';
+          if (c.name.includes('sha256')) roleDesc = 'SHA-256 Audit Hash (Idempotency Guard)';
+          else if (c.name.includes('ingested_at')) roleDesc = 'Ingestion Audit Timestamp';
+          else if (c.name.includes('camera_id')) roleDesc = 'Camera Surveillance Identifier';
+          else if (c.name.includes('distance')) roleDesc = 'Geodesic Distance in Meters';
+          else if (c.name.includes('vehicles') || c.name === 'car' || c.name === 'motorcycle') roleDesc = 'YOLO11 Detected Count';
+
+          html += `
+            <tr class="hover:bg-slate-900/60 transition">
+              <td class="p-3 text-slate-600">${idx + 1}</td>
+              <td class="p-3 font-bold text-white">${c.name}</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-800 text-purple-300 font-mono text-[11px] border border-slate-700">${c.type}</span></td>
+              <td class="p-3">${c.nullable ? '<span class="text-slate-400">Optional</span>' : '<span class="text-amber-400 font-semibold">Required</span>'}</td>
+              <td class="p-3 text-slate-400 text-[11px]">${roleDesc}</td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">Failed to load schema: ${err.message}</td></tr>`;
+      }
+    }
+
+    // Execute Custom SQL Query
+    async function runSqlQuery() {
+      const sql = document.getElementById('sqlInput').value.trim();
+      const statsEl = document.getElementById('queryStats');
+      const tableHead = document.getElementById('queryResultHead');
+      const tableBody = document.getElementById('queryResultBody');
+      const emptyState = document.getElementById('queryEmptyState');
+      const resultTable = document.getElementById('queryResultTable');
+      const btn = document.getElementById('btnRunSql');
+
+      if (!sql) return;
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running...';
+      statsEl.innerHTML = '<span class="text-purple-400">Executing DuckDB query...</span>';
+
+      try {
+        const res = await fetch('/api/lakehouse/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: sql })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'SQL execution failed');
+
+        statsEl.innerHTML = `✓ Executed in <strong class="text-emerald-300 font-mono">${data.execution_ms} ms</strong> • Returned <strong class="text-white font-mono">${data.row_count} rows</strong>`;
+        emptyState.classList.add('hidden');
+        resultTable.classList.remove('hidden');
+
+        // Header
+        let headHtml = '<tr><th class="p-2.5 text-slate-500 font-mono">#</th>';
+        data.columns.forEach(c => { headHtml += `<th class="p-2.5 text-slate-300 font-mono">${c}</th>`; });
+        headHtml += '</tr>';
+        tableHead.innerHTML = headHtml;
+
+        // Rows
+        let bodyHtml = '';
+        data.rows.forEach((r, idx) => {
+          bodyHtml += `<tr class="hover:bg-slate-900/60 transition"><td class="p-2.5 text-slate-600 font-mono">${idx + 1}</td>`;
+          data.columns.forEach(c => {
+            const v = r[c];
+            bodyHtml += `<td class="p-2.5 table-cell-truncate" title="${v !== null ? String(v).replace(/"/g, '&quot;') : ''}">${v !== null ? v : '<span class="text-slate-600 italic">null</span>'}</td>`;
+          });
+          bodyHtml += '</tr>';
+        });
+        tableBody.innerHTML = bodyHtml;
+
+      } catch (err) {
+        statsEl.innerHTML = `<span class="text-red-400 font-semibold">❌ Error: ${err.message}</span>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-play text-xs"></i> Run Query';
+      }
+    }
+
+    // Pipeline modal management
+    const pipelineModal = document.getElementById('pipelineModal');
+    const openPipelineBtn = document.getElementById('openPipelineBtn');
+    const closePipelineModalBtn = document.getElementById('closePipelineModalBtn');
+    const cancelPipelineModalBtn = document.getElementById('cancelPipelineModalBtn');
+    const btnExecutePipeline = document.getElementById('btnExecutePipeline');
+    const pipelineLogContainer = document.getElementById('pipelineLogContainer');
+    const pipelineConsole = document.getElementById('pipelineConsole');
+    const pipelineBar = document.getElementById('pipelineBar');
+    const pipelinePercent = document.getElementById('pipelinePercent');
+    const pipelineStatusText = document.getElementById('pipelineStatusText');
+
+    function showPipelineModal() {
+      pipelineModal.classList.remove('hidden');
+      checkPipelineStatus();
+    }
+    function hidePipelineModal() {
+      pipelineModal.classList.add('hidden');
+    }
+
+    openPipelineBtn.addEventListener('click', showPipelineModal);
+    closePipelineModalBtn.addEventListener('click', hidePipelineModal);
+    cancelPipelineModalBtn.addEventListener('click', hidePipelineModal);
+
+    btnExecutePipeline.addEventListener('click', async () => {
+      const mode = document.querySelector('input[name="pipelineMode"]:checked').value;
+      btnExecutePipeline.disabled = true;
+      pipelineLogContainer.classList.remove('hidden');
+      pipelineBar.style.width = '5%';
+      pipelinePercent.textContent = '5%';
+      pipelineStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Triggering pipeline worker...';
+
+      try {
+        const res = await fetch('/api/lakehouse/pipeline/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: mode })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to start pipeline');
+        startPipelinePolling();
+      } catch (err) {
+        alert('Could not start pipeline: ' + err.message);
+        btnExecutePipeline.disabled = false;
+      }
+    });
+
+    function startPipelinePolling() {
+      if (PIPELINE_POLL) clearInterval(PIPELINE_POLL);
+      PIPELINE_POLL = setInterval(checkPipelineStatus, 1000);
+    }
+
+    async function checkPipelineStatus() {
+      try {
+        const res = await fetch('/api/lakehouse/pipeline/status');
+        if (!res.ok) return;
+        const st = await res.json();
+
+        if (st.running) {
+          btnExecutePipeline.disabled = true;
+          pipelineLogContainer.classList.remove('hidden');
+          pipelineBar.style.width = `${st.percent || 10}%`;
+          pipelinePercent.textContent = `${Math.round(st.percent || 10)}%`;
+          pipelineStatusText.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-purple-400"></i> ${st.message}`;
+
+          if (st.logs && st.logs.length > 0) {
+            pipelineConsole.innerHTML = st.logs.map(l => `<div>${l}</div>`).join('');
+            pipelineConsole.scrollTop = pipelineConsole.scrollHeight;
+          }
+
+          if (!PIPELINE_POLL) startPipelinePolling();
+        } else {
+          if (PIPELINE_POLL) {
+            clearInterval(PIPELINE_POLL);
+            PIPELINE_POLL = null;
+          }
+          btnExecutePipeline.disabled = false;
+
+          if (st.stage === 'complete') {
+            pipelineBar.style.width = '100%';
+            pipelinePercent.textContent = '100%';
+            pipelineStatusText.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> Pipeline Completed!';
+            if (st.logs && st.logs.length > 0) {
+              pipelineConsole.innerHTML = st.logs.map(l => `<div>${l}</div>`).join('');
+              pipelineConsole.scrollTop = pipelineConsole.scrollHeight;
+            }
+            // Reload lakehouse summary & table data
+            loadSummary();
+          } else if (st.stage === 'error') {
+            pipelineStatusText.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-400"></i> ${st.error}`;
+          }
+        }
+      } catch (e) {
+        console.warn('Pipeline status poll error:', e);
+      }
+    }
+
+    // Setup event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSummary();
+
+      // Table filter search
+      document.getElementById('tableFilterInput').addEventListener('input', renderTableList);
+
+      // Schema filter buttons
+      document.querySelectorAll('.schema-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.schema-filter-btn').forEach(b => {
+            b.className = 'schema-filter-btn flex-1 py-1 rounded-lg font-medium text-center bg-slate-800 text-slate-300 hover:bg-slate-700 transition';
+          });
+          btn.className = 'schema-filter-btn flex-1 py-1 rounded-lg font-medium text-center bg-purple-600 text-white transition';
+          SCHEMA_FILTER = btn.getAttribute('data-schema');
+          renderTableList();
+        });
+      });
+
+      // Pagination
+      document.getElementById('pageSizeSelect').addEventListener('change', e => {
+        CURRENT_PAGE_SIZE = parseInt(e.target.value);
+        CURRENT_PAGE = 1;
+        loadActiveTableData();
+      });
+      document.getElementById('btnPrevPage').addEventListener('click', () => {
+        if (CURRENT_PAGE > 1) {
+          CURRENT_PAGE--;
+          loadActiveTableData();
+        }
+      });
+      document.getElementById('btnNextPage').addEventListener('click', () => {
+        CURRENT_PAGE++;
+        loadActiveTableData();
+      });
+
+      // In-table search input
+      let searchTimeout;
+      document.getElementById('rowSearchInput').addEventListener('input', e => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          CURRENT_SEARCH = e.target.value.trim();
+          CURRENT_PAGE = 1;
+          loadActiveTableData();
+        }, 300);
+      });
+
+      // View Tab Switching
+      const tabDataBtn = document.getElementById('tabDataBtn');
+      const tabSchemaBtn = document.getElementById('tabSchemaBtn');
+      const tabSqlBtn = document.getElementById('tabSqlBtn');
+      const tabLineageBtn = document.getElementById('tabLineageBtn');
+
+      const viewData = document.getElementById('viewDataSection');
+      const viewSchema = document.getElementById('viewSchemaSection');
+      const viewSql = document.getElementById('viewSqlSection');
+      const viewLineage = document.getElementById('viewLineageSection');
+
+      function switchTab(activeBtn, activeView) {
+        [tabDataBtn, tabSchemaBtn, tabSqlBtn, tabLineageBtn].forEach(b => {
+          b.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5';
+        });
+        activeBtn.className = 'px-3 py-1.5 rounded-lg font-medium bg-purple-600 text-white transition flex items-center gap-1.5';
+        
+        [viewData, viewSchema, viewSql, viewLineage].forEach(v => v.classList.add('hidden'));
+        activeView.classList.remove('hidden');
+      }
+
+      tabDataBtn.addEventListener('click', () => switchTab(tabDataBtn, viewData));
+      tabSchemaBtn.addEventListener('click', () => {
+        switchTab(tabSchemaBtn, viewSchema);
+        loadActiveTableSchema();
+      });
+      tabSqlBtn.addEventListener('click', () => switchTab(tabSqlBtn, viewSql));
+      tabLineageBtn.addEventListener('click', () => switchTab(tabLineageBtn, viewLineage));
+
+      // Preset SQL queries selector
+      document.getElementById('sqlPresetSelect').addEventListener('change', e => {
+        const val = e.target.value;
+        if (PRESETS[val]) {
+          document.getElementById('sqlInput').value = PRESETS[val];
+        }
+      });
+
+      // Run SQL on button click or Ctrl+Enter
+      document.getElementById('btnRunSql').addEventListener('click', runSqlQuery);
+      document.getElementById('sqlInput').addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          runSqlQuery();
+        }
+      });
+
+      // CSV Export
+      document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        window.location.href = `/api/lakehouse/export?schema=${ACTIVE_SCHEMA}&table=${ACTIVE_TABLE}&limit=5000`;
+      });
+
+      // Summary refresh
+      document.getElementById('refreshSummaryBtn').addEventListener('click', loadSummary);
+    });
+  </script>
+</body>
+</html>
