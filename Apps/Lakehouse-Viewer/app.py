@@ -516,6 +516,9 @@ def handle_lakehouse_get(handler, path: str, query: dict) -> bool:
 
 def handle_lakehouse_post(handler, path: str) -> bool:
     """Routes POST requests for the Lakehouse Viewer. Returns True if handled."""
+    if not (path.startswith("/api/lakehouse/") or path == "/api/lakehouse"):
+        return False
+
     content_len = int(handler.headers.get("Content-Length", 0))
     raw_body = handler.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
     try:
