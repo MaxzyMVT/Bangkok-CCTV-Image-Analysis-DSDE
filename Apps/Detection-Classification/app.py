@@ -3,6 +3,7 @@ import sys
 import json
 import base64
 import argparse
+import threading
 import urllib.parse
 from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -35,6 +36,97 @@ METADATA_LOOKUP = load_cctv_metadata(CCTV_INFO_CSV)
 
 # Cache camera image index for fast navigation
 CAMERA_INDEX = {}
+
+# Background Lakehouse Pipeline state
+PIPELINE_STATE = {
+    "running": False,
+    "progress": 0,
+    "total": 0,
+    "percent": 0.0,
+    "stage": "idle",  # "idle", "inference", "lakehouse_ingest", "complete", "error"
+    "message": "Pipeline idle",
+    "last_file": "",
+    "error": None,
+    "limit": None,
+    "stats": None
+}
+PIPELINE_LOCK = threading.Lock()
+
+
+def _run_lakehouse_pipeline_worker(limit=None):
+    global PIPELINE_STATE
+    try:
+        with PIPELINE_LOCK:
+            PIPELINE_STATE["running"] = True
+            PIPELINE_STATE["progress"] = 0
+            PIPELINE_STATE["total"] = 0
+            PIPELINE_STATE["percent"] = 0.0
+            PIPELINE_STATE["stage"] = "inference"
+            PIPELINE_STATE["message"] = f"Initializing YOLO inference on {'all frames' if not limit else f'{limit} frames'}..."
+            PIPELINE_STATE["last_file"] = ""
+            PIPELINE_STATE["error"] = None
+            PIPELINE_STATE["limit"] = limit
+            PIPELINE_STATE["stats"] = None
+
+        from Models.pipeline import run_batch_pipeline
+        import torch
+
+        dev = "0" if torch.cuda.is_available() else "cpu"
+        out_csv = ROOT_DIR / "DataEngineering" / "vehicle_counts.csv"
+
+        def on_progress(cur, tot, fname):
+            with PIPELINE_LOCK:
+                PIPELINE_STATE["progress"] = cur
+                PIPELINE_STATE["total"] = tot
+                PIPELINE_STATE["percent"] = round((cur / tot) * 100, 1) if tot > 0 else 0.0
+                PIPELINE_STATE["last_file"] = fname
+                PIPELINE_STATE["message"] = f"YOLO inference: {cur:,}/{tot:,} frames ({PIPELINE_STATE['percent']}%)"
+
+        print(f"[App Pipeline] Starting YOLO batch pipeline (limit={limit}, device={dev})...")
+        run_batch_pipeline(
+            input_dir=DATASET_DIR,
+            output_csv=out_csv,
+            cctv_info_csv=CCTV_INFO_CSV,
+            limit=limit,
+            device=dev,
+            progress_callback=on_progress
+        )
+
+        with PIPELINE_LOCK:
+            PIPELINE_STATE["stage"] = "lakehouse_ingest"
+            PIPELINE_STATE["message"] = "Ingesting predictions into Lakehouse Bronze & Silver layers..."
+        print("[App Pipeline] Ingesting into DuckLakehouse Bronze & Silver...")
+
+        from DataEngineering.lakehouse_pipeline import DuckLakehouse
+        lake = DuckLakehouse(reset=False)
+        lake.initialize_tables()
+        bronze_stats = lake.ingest_bronze(force=True)
+        silver_stats = lake.transform_silver()
+        try:
+            lake.catalog.connection.close()
+        except Exception:
+            pass
+
+        with PIPELINE_LOCK:
+            PIPELINE_STATE["running"] = False
+            PIPELINE_STATE["stage"] = "complete"
+            PIPELINE_STATE["percent"] = 100.0
+            PIPELINE_STATE["message"] = "Pipeline completed successfully!"
+            PIPELINE_STATE["stats"] = {
+                "bronze_ingested": bronze_stats.get("vehicle_counts_raw", 0),
+                "silver_transformed": silver_stats.get("vehicle_counts", 0)
+            }
+        print(f"[App Pipeline] Completed! Bronze: {bronze_stats}, Silver: {silver_stats}")
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        with PIPELINE_LOCK:
+            PIPELINE_STATE["running"] = False
+            PIPELINE_STATE["stage"] = "error"
+            PIPELINE_STATE["error"] = str(e)
+            PIPELINE_STATE["message"] = f"Pipeline failed: {str(e)}"
+
 
 def frame_belongs_to_camera(camera_id, filename):
     """True if filename is a dataset frame named for camera_id (e.g. '915_..._20260831_210012.jpg')."""
@@ -308,6 +400,13 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
             })
             return
 
+        # 7. Lakehouse Pipeline Status
+        elif path == "/api/pipeline/status":
+            with PIPELINE_LOCK:
+                state_copy = dict(PIPELINE_STATE)
+            self._send_json(state_copy)
+            return
+
         self.send_error(404, "Endpoint not found")
 
     def do_POST(self):
@@ -439,6 +538,26 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
                 })
 
             self._send_json({"results": results, "total_processed": len(results)})
+            return
+
+        # 3. Trigger Batch Pipeline to Lakehouse
+        elif path == "/api/pipeline/start":
+            with PIPELINE_LOCK:
+                if PIPELINE_STATE["running"]:
+                    self._send_json({"error": "Pipeline is already running", "state": PIPELINE_STATE}, status=409)
+                    return
+            limit = req_data.get("limit")
+            if limit is not None:
+                try:
+                    limit = int(limit)
+                    if limit <= 0:
+                        limit = None
+                except (ValueError, TypeError):
+                    limit = None
+
+            t = threading.Thread(target=_run_lakehouse_pipeline_worker, args=(limit,), daemon=True)
+            t.start()
+            self._send_json({"status": "started", "limit": limit, "message": f"Pipeline started with limit={limit}"})
             return
 
         self.send_error(404, "Endpoint not found")

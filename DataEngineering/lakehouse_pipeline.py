@@ -66,6 +66,7 @@ import external_lakehouse  # noqa: E402
 CCTV_INFO_CSV = ROOT_DIR / "dataset" / "100_cameras" / "cctv_info.csv"
 CCTV_METADATA_CSV = DATA_ENG_DIR / "cctv_images_metadata.csv"
 RAIL_GEOJSON = ROOT_DIR / "Apps" / "Camera-Map" / "static" / "bangkok_rail.geojson"
+VEHICLE_COUNTS_CSV = DATA_ENG_DIR / "vehicle_counts.csv"
 
 
 def compute_sha256(file_path: Path) -> str:
@@ -157,6 +158,28 @@ BRONZE_STATIONS_SCHEMA = Schema.of(
     required("ingested_at", TimestampTZType()),
 )
 
+BRONZE_VEHICLE_COUNTS_SCHEMA = Schema.of(
+    optional("image_file", StringType()),
+    optional("camera_id", StringType()),
+    optional("timestamp", StringType()),
+    optional("date", StringType()),
+    optional("hour", StringType()),
+    optional("minute", StringType()),
+    optional("latitude", StringType()),
+    optional("longitude", StringType()),
+    optional("location_en", StringType()),
+    optional("total_vehicles", StringType()),
+    optional("car", StringType()),
+    optional("motorcycle", StringType()),
+    optional("bus", StringType()),
+    optional("truck", StringType()),
+    optional("bicycle", StringType()),
+    required("source_file", StringType()),
+    required("source_row_number", IntegerType()),
+    required("file_sha256", StringType()),
+    required("ingested_at", TimestampTZType()),
+)
+
 
 # -------------------------------------------------------------------------
 # Schemas: Silver Layer (Strongly typed, validated, enriched)
@@ -217,6 +240,21 @@ SILVER_PROXIMITY_SCHEMA = Schema.of(
     required("is_near_transit", BooleanType()),
 )
 
+SILVER_VEHICLE_COUNTS_SCHEMA = Schema.of(
+    required("image_file", StringType()),
+    required("camera_id", StringType()),
+    required("captured_at", TimestampTZType()),
+    required("capture_date", DateType()),
+    required("hour", IntegerType()),
+    required("minute", IntegerType()),
+    required("total_vehicles", IntegerType()),
+    required("car", IntegerType()),
+    required("motorcycle", IntegerType()),
+    required("bus", IntegerType()),
+    required("truck", IntegerType()),
+    required("bicycle", IntegerType()),
+)
+
 
 # -------------------------------------------------------------------------
 # Lakehouse Core Engine
@@ -266,6 +304,8 @@ class DuckLakehouse:
                 self.catalog.create_table(("bronze", "transit_lines_raw"), BRONZE_LINES_SCHEMA)
             if "transit_stations_raw" not in bronze_tables:
                 self.catalog.create_table(("bronze", "transit_stations_raw"), BRONZE_STATIONS_SCHEMA)
+            if "vehicle_counts_raw" not in bronze_tables:
+                self.catalog.create_table(("bronze", "vehicle_counts_raw"), BRONZE_VEHICLE_COUNTS_SCHEMA)
 
             # Silver Tables
             if "cameras" not in silver_tables:
@@ -278,6 +318,8 @@ class DuckLakehouse:
                 self.catalog.create_table(("silver", "transit_stations"), SILVER_STATIONS_SCHEMA)
             if "camera_transit_proximity" not in silver_tables:
                 self.catalog.create_table(("silver", "camera_transit_proximity"), SILVER_PROXIMITY_SCHEMA)
+            if "vehicle_counts" not in silver_tables:
+                self.catalog.create_table(("silver", "vehicle_counts"), SILVER_VEHICLE_COUNTS_SCHEMA)
 
         print("[✓] Initialized Bronze & Silver schemas in PyDuckLake catalog")
 
@@ -412,6 +454,50 @@ class DuckLakehouse:
                 stats["transit_lines_raw"] = len(line_features)
                 stats["transit_stations_raw"] = len(station_features)
                 print(f"[✓] Ingested {len(line_features)} transit lines and {len(station_features)} stations into bronze")
+
+        # 4. Ingest vehicle_counts.csv if it exists
+        if VEHICLE_COUNTS_CSV.exists():
+            sha = compute_sha256(VEHICLE_COUNTS_CSV)
+            fname = VEHICLE_COUNTS_CSV.name
+            already_loaded = False
+            if not force:
+                chk = con.execute("SELECT count(*) FROM lake.bronze.vehicle_counts_raw WHERE file_sha256 = ?", [sha]).fetchone()[0]
+                already_loaded = chk > 0
+
+            if already_loaded:
+                print(f"[!] File guard: {fname} already ingested into bronze.vehicle_counts_raw (skipped)")
+            else:
+                escaped = str(VEHICLE_COUNTS_CSV).replace("\\", "/").replace("'", "''")
+                with self.catalog.begin_transaction():
+                    self.catalog.set_commit_message(f"bronze: ingest vehicle counts ({fname})")
+                    con.execute(f"""
+                        DELETE FROM lake.bronze.vehicle_counts_raw WHERE file_sha256 = '{sha}';
+                        INSERT INTO lake.bronze.vehicle_counts_raw
+                        SELECT
+                            image_file,
+                            camera_id,
+                            timestamp,
+                            date,
+                            hour,
+                            minute,
+                            latitude,
+                            longitude,
+                            location_en,
+                            total_vehicles,
+                            car,
+                            motorcycle,
+                            bus,
+                            truck,
+                            bicycle,
+                            '{fname}' AS source_file,
+                            CAST(ROW_NUMBER() OVER () AS INTEGER) AS source_row_number,
+                            '{sha}' AS file_sha256,
+                            CAST('{now_ts}' AS TIMESTAMPTZ) AS ingested_at
+                        FROM read_csv('{escaped}', header=true, all_varchar=true);
+                    """)
+                cnt = con.execute("SELECT count(*) FROM lake.bronze.vehicle_counts_raw WHERE file_sha256 = ?", [sha]).fetchone()[0]
+                stats["vehicle_counts_raw"] = cnt
+                print(f"[✓] Ingested {cnt:,} vehicle detection records into bronze.vehicle_counts_raw")
 
         return stats
 
@@ -566,7 +652,38 @@ class DuckLakehouse:
         p_cnt = con.execute("SELECT count(*) FROM lake.silver.camera_transit_proximity").fetchone()[0]
         stats["camera_transit_proximity"] = p_cnt
 
-        print(f"[✓] Silver transformation complete: {c_cnt} cameras, {f_cnt} frames, {l_cnt} transit lines, {s_cnt} stations, {p_cnt} proximity links")
+        # 6. Clean and type vehicle counts if bronze exists and has data
+        v_cnt = 0
+        has_vc = con.execute("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'bronze' AND table_name = 'vehicle_counts_raw'").fetchone()[0] > 0
+        if has_vc and con.execute("SELECT count(*) FROM lake.bronze.vehicle_counts_raw").fetchone()[0] > 0:
+            with self.catalog.begin_transaction():
+                self.catalog.set_commit_message("silver: clean, type & deduplicate vehicle counts")
+                con.execute("""
+                    DELETE FROM lake.silver.vehicle_counts;
+                    INSERT INTO lake.silver.vehicle_counts
+                    SELECT
+                        image_file,
+                        camera_id,
+                        TRY_CAST(timestamp AS TIMESTAMPTZ) AS captured_at,
+                        TRY_CAST(date AS DATE) AS capture_date,
+                        TRY_CAST(hour AS INTEGER) AS hour,
+                        TRY_CAST(minute AS INTEGER) AS minute,
+                        COALESCE(TRY_CAST(total_vehicles AS INTEGER), 0) AS total_vehicles,
+                        COALESCE(TRY_CAST(car AS INTEGER), 0) AS car,
+                        COALESCE(TRY_CAST(motorcycle AS INTEGER), 0) AS motorcycle,
+                        COALESCE(TRY_CAST(bus AS INTEGER), 0) AS bus,
+                        COALESCE(TRY_CAST(truck AS INTEGER), 0) AS truck,
+                        COALESCE(TRY_CAST(bicycle AS INTEGER), 0) AS bicycle
+                    FROM lake.bronze.vehicle_counts_raw
+                    WHERE image_file IS NOT NULL
+                      AND camera_id IS NOT NULL
+                      AND TRY_CAST(timestamp AS TIMESTAMPTZ) IS NOT NULL
+                    QUALIFY ROW_NUMBER() OVER (PARTITION BY camera_id, image_file ORDER BY ingested_at DESC) = 1;
+                """)
+            v_cnt = con.execute("SELECT count(*) FROM lake.silver.vehicle_counts").fetchone()[0]
+            stats["vehicle_counts"] = v_cnt
+
+        print(f"[✓] Silver transformation complete: {c_cnt} cameras, {f_cnt} frames, {l_cnt} transit lines, {s_cnt} stations, {p_cnt} proximity links, {v_cnt} vehicle counts")
         return stats
 
     def get_summary(self) -> Dict[str, Any]:
