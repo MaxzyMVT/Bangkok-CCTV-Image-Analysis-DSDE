@@ -76,7 +76,10 @@ def overlap_pairs(boxes, iou_min: float = OVERLAP_IOU) -> list[tuple[int, int]]:
             if _iou(boxes[i], boxes[j]) >= iou_min]
 
 
-CAR, MOTORCYCLE = 0, 1
+CAR, MOTORCYCLE, TRUCK = 0, 1, 3
+# car + truck on one vehicle is almost always a pickup: people chose car in 97 % of 257 reviewed pairs.
+# So car is kept unless YOLO scored the truck more than this much higher (then a person decides).
+CAR_TRUCK_MARGIN = 0.2
 
 
 def _pick_drop(a, b) -> int | None:
@@ -89,7 +92,8 @@ def _pick_drop(a, b) -> int | None:
     if keep is None:                               # e.g. bus + truck: no team rule, a person decides
         return None
     k, other = (a, b) if ca == keep else (b, a)
-    if k[5] <= other[5]:                           # YOLO preferred the other class: rule only ~55 % right
+    margin = CAR_TRUCK_MARGIN if {ca, cb} == {CAR, TRUCK} else 0.0
+    if k[5] <= other[5] - margin:                  # YOLO clearly preferred the other class: a person decides
         return None
     return 1 if other is b else 0
 

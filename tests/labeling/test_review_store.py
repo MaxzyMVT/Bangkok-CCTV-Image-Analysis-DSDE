@@ -37,6 +37,21 @@ class ResolveOverlapsTest(unittest.TestCase):
         pair = [(self.CAR, .5, .5, .2, .2, .40), (self.TRUCK, .505, .5, .21, .2, .70)]
         self.assertEqual(resolve_overlaps(pair), (pair, 0))
 
+    def test_car_plus_truck_merges_when_truck_only_slightly_ahead(self):
+        # car + truck on one vehicle was a car 97 % of the time (257 reviewed pairs), so car is kept
+        # unless YOLO scored the truck clearly higher (more than 0.2)
+        boxes, n = resolve_overlaps([(self.CAR, .5, .5, .2, .2, .50), (self.TRUCK, .505, .5, .21, .2, .65)])
+        self.assertEqual((n, [b[0] for b in boxes]), (1, [self.CAR]))
+
+    def test_car_plus_truck_with_truck_clearly_ahead_is_left_for_a_person(self):
+        pair = [(self.CAR, .5, .5, .2, .2, .40), (self.TRUCK, .505, .5, .21, .2, .65)]
+        self.assertEqual(resolve_overlaps(pair), (pair, 0))
+
+    def test_margin_only_for_car_and_truck(self):
+        # bus + car keeps the strict rule: car must score higher than the bus
+        pair = [(self.CAR, .5, .5, .3, .3, .50), (self.BUS, .505, .5, .31, .3, .60)]
+        self.assertEqual(resolve_overlaps(pair), (pair, 0))
+
     def test_motorcycle_wins_over_car(self):
         boxes, n = resolve_overlaps([(self.CAR, .5, .5, .1, .2, .50), (self.MOTO, .5, .505, .1, .21, .60)])
         self.assertEqual((n, [b[0] for b in boxes]), (1, [self.MOTO]))
