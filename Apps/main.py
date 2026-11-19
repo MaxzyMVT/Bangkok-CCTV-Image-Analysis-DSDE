@@ -95,6 +95,14 @@ class CombinedHandler(detect_app.CCTVAnalysisHandler):
         pass
 
 
+class SilentThreadingHTTPServer(ThreadingHTTPServer):
+    def handle_error(self, request, client_address):
+        exc_type, _, _ = sys.exc_info()
+        if exc_type in (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+            return
+        super().handle_error(request, client_address)
+
+
 def start_server(port=8080):
     # Same startup as the Detect app: fetch dataset if missing, load metadata, index frames
     detect_app.ensure_dataset()
@@ -103,7 +111,7 @@ def start_server(port=8080):
     detect_app.build_camera_index()
     map_app.load_cameras()
 
-    server = ThreadingHTTPServer(("", port), CombinedHandler)
+    server = SilentThreadingHTTPServer(("", port), CombinedHandler)
     active_model = detect_app.resolve_model()
     print("=" * 64)
     print(" Bangkok CCTV: Camera Map + YOLO11 Detect + Lakehouse Explorer")

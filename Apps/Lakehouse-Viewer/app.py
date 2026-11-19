@@ -415,15 +415,18 @@ def _run_pipeline_worker(mode: str = "ingest_only"):
 
 
 def _send(handler, content: bytes, content_type: str = "text/html; charset=utf-8", status: int = 200, headers: dict = None):
-    handler.send_response(status)
-    handler.send_header("Content-Type", content_type)
-    handler.send_header("Content-Length", str(len(content)))
-    handler.send_header("Access-Control-Allow-Origin", "*")
-    if headers:
-        for k, v in headers.items():
-            handler.send_header(k, v)
-    handler.end_headers()
-    handler.wfile.write(content)
+    try:
+        handler.send_response(status)
+        handler.send_header("Content-Type", content_type)
+        handler.send_header("Content-Length", str(len(content)))
+        handler.send_header("Access-Control-Allow-Origin", "*")
+        if headers:
+            for k, v in headers.items():
+                handler.send_header(k, v)
+        handler.end_headers()
+        handler.wfile.write(content)
+    except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+        pass
 
 
 def _send_json(handler, data, status: int = 200):
