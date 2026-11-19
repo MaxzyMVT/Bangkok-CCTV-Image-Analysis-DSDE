@@ -12,15 +12,23 @@ All external sources cover **25–31 August 2026** (the CCTV dataset week). Each
 | :--- | :--- | :--- | :--- |
 | `sun_times.py` | archive-api.open-meteo.com | REST API | Daily sunrise / sunset times in Bangkok |
 | `open_meteo.py` | archive-api.open-meteo.com | REST API | Hourly rain (mm), temperature, humidity, wind, cloud at 9 points across Bangkok |
-| `metar.py` | mesonet.agron.iastate.edu (Iowa State Mesonet) | REST API | METAR airport reports (Don Mueang VTBD, Suvarnabhumi VTBS): weather codes (rain, heavy rain, thunderstorm), visibility, wind, cloud |
+| `metar.py` | mesonet.agron.iastate.edu (Iowa State Mesonet) | BeautifulSoup | METAR airport reports (Don Mueang VTBD, Suvarnabhumi VTBS) from the daily observation-history pages: weather codes (rain, heavy rain, thunderstorm), visibility, wind, cloud |
 | `osm_overpass.py` | overpass-api.de (OpenStreetMap) | REST API | POIs (schools, hospitals, malls, markets), bus stops, BTS/MRT stations, footbridges, traffic signals, major roads with lane counts |
 | `bma_open_data.py` | data.bangkok.go.th, cpudgiportal.bangkok.go.th | REST API | Population by district, district boundaries (GeoJSON), hawker & street-vendor zones |
 | `traffy_fondue.py` | publicapi.traffy.in.th | REST API | Citizen complaints: text, coordinates, time, status, before/after photos (1,000 per page, paged with `offset`) |
 | `fm91_news.py` | fm91bkk.com (FM91 Traffic Radio) | BeautifulSoup | Traffic, accident and flood news per article with date/time; road and intersection names extracted from the text |
+| `tmd_weekly_summary.py` | tmd.go.th (Thai Meteorological Department) | BeautifulSoup | Weekly weather summary per region (incl. Bangkok and vicinity): % of area with rain, heavy rain / flood reports, highest rainfall with location and date |
+| `bot_holidays.py` | bot.or.th (Bank of Thailand) | Selenium | Official holidays (public, substitution and special days) and a daily calendar of days off |
 | `bma_drainage.py` | weather.bangkok.go.th (BMA Drainage and Sewerage Dept.) | Playwright | Hourly rain per gauge station (all districts), road flood levels, canal water levels |
 | `build_rail_geojson.py` | overpass-api.de (OpenStreetMap) | REST API | BTS / MRT / ARL / SRT line alignments and stations (see below) |
 
 **Why Playwright for `bma_drainage.py`:** the historical data is only available through interactive search forms. The browser picks a date and time, submits the form, expands the paginated result table and reads every row — one hour of data per search (168 searches per system for the week).
+
+**Why Selenium for `bot_holidays.py`:** the Bank of Thailand page renders the holiday list with JavaScript and returns a "website is under maintenance" page to non-browser clients. Selenium opens the page in a headless browser, switches the year with the page's arrow buttons, and BeautifulSoup reads the rendered list.
+
+**Why BeautifulSoup for `tmd_weekly_summary.py`:** the TMD weekly summaries are static HTML pages. The script reads the week list from the drop-down on the summary page, opens every week that overlaps 25–31 Aug (4 pages: 21–27 Aug, 24–30 Aug, 28 Aug–3 Sep, 30 Aug–5 Sep) and extracts one row per region. TMD only fills the temperature columns in the hot and cold seasons, so only rainfall is kept.
+
+**Why BeautifulSoup for `metar.py`:** the observation-history page is plain HTML (one page per airport per day, 14 pages). Its table rows contain a stray `</div>`, so the `lxml` parser is used. Wind and temperature are read from the METAR text itself, and relative humidity is computed from temperature and dew point with the Ambaum (2020) formula, which reproduces the IEM values exactly.
 
 > Sunrise and sunset times come from Open-Meteo instead of timeanddate.com, whose pages state that scripts and programs that download content are not allowed without permission.
 
@@ -51,7 +59,7 @@ python DataEngineering/WebScraping/fm91_news.py
 python DataEngineering/WebScraping/bma_drainage.py --only rain,flood
 ```
 
-Approximate run time of a full scrape: 30–60 minutes (FM91 reads ~380 article pages; BMA Drainage performs one search per hour of data, and one search per canal for canal levels). Playwright uses the installed Microsoft Edge (`channel="msedge"`) and falls back to Playwright's Chromium.
+Approximate run time of a full scrape from an empty `raw/` folder: about 2 hours 15 minutes (measured). Most of it is BMA Drainage canal levels (~75 minutes, one search per canal for each 12-hour slot) and the Overpass API (~25 minutes, depending on mirror load); FM91 reads ~380 article pages. Later runs skip sources whose files already exist. Playwright uses the installed Microsoft Edge (`channel="msedge"`) and falls back to Playwright's Chromium. Selenium uses Microsoft Edge (falls back to Chrome); Selenium Manager downloads the matching driver automatically.
 
 ---
 
@@ -60,11 +68,12 @@ Approximate run time of a full scrape: 30–60 minutes (FM91 reads ~380 article 
 ```mermaid
 flowchart LR
     subgraph Scrapers ["WebScraping/*.py"]
-        A1["REST API<br/>Open-Meteo, METAR, Overpass,<br/>BMA Open Data, Traffy Fondue"]
-        A2["BeautifulSoup<br/>FM91 news"]
+        A1["REST API<br/>Open-Meteo, Overpass,<br/>BMA Open Data, Traffy Fondue"]
+        A2["BeautifulSoup<br/>FM91 news, METAR,<br/>TMD weekly summary"]
+        A4["Selenium<br/>Bank of Thailand holidays"]
         A3["Playwright<br/>BMA Drainage"]
     end
-    A1 & A2 & A3 --> R[("raw/&lt;source&gt;/*.csv, *.geojson")]
+    A1 & A2 & A4 & A3 --> R[("raw/&lt;source&gt;/*.csv, *.geojson")]
     R -->|"SHA-256 file guard<br/>all columns as text + audit columns"| B[("bronze.&lt;table&gt;_raw")]
     B -->|"TRY_CAST typing, TRIM, latest file only,<br/>dedupe by key (QUALIFY ROW_NUMBER)"| S[("silver.&lt;table&gt;")]
 ```
@@ -79,6 +88,9 @@ flowchart LR
 | `silver.weather_hourly_points` | `open_meteo/weather_hourly_points.csv` | point, datetime | 1,512 |
 | `silver.weather_hourly_bangkok` | `open_meteo/weather_hourly_bangkok.csv` | datetime | 168 |
 | `silver.metar_observations` | `metar/metar_hourly.csv` | station, datetime | 672 |
+| `silver.tmd_weekly_summary` | `tmd_weekly_summary/tmd_weekly_summary.csv` | week_start, region | 28 (4 weeks x 7 regions) |
+| `silver.thai_holidays` | `bot_holidays/thai_holidays.csv` | date, holiday_name | ~21 (whole year) |
+| `silver.calendar_features` | `bot_holidays/calendar_features.csv` | date | 7 |
 | `silver.osm_poi` | `openstreetmap/osm_poi.csv` | category, osm_type, osm_id | ~12,400 |
 | `silver.osm_roads` | `openstreetmap/osm_roads.csv` | osm_id | ~19,600 |
 | `silver.district_population` | `bma_open_data/bma_population_district.csv` | district_name | 50 |
@@ -136,7 +148,7 @@ All times are Bangkok local time.
 - `latitude`, `longitude` — airport coordinates
 - `datetime` — report time
 - `temp_c` — temperature (°C)
-- `rh` — relative humidity (%)
+- `rh` — relative humidity (%), computed from temperature and dew point
 - `wind_kt` — wind speed (knots)
 - `visibility_km` — visibility (km)
 - `sky_cover` — lowest cloud layer (FEW, SCT, BKN, OVC)
@@ -146,6 +158,36 @@ All times are Bangkok local time.
 - `is_heavy_rain` — 1 = code contains + (heavy)
 - `is_thunderstorm` — 1 = code contains TS
 - `is_shower` — 1 = code contains SH
+
+### `silver.tmd_weekly_summary`
+- `week_start`, `week_end` — period of the weekly summary (TMD publishes overlapping weeks)
+- `region` — region (กรุงเทพและปริมณฑล = Bangkok and vicinity, ภาคกลาง, ภาคเหนือ, ...)
+- `summary` — TMD narrative for the region
+- `rain_area_pct_min`, `rain_area_pct_max` — lowest / highest "% of area with rain" mentioned in the narrative
+- `mentions_heavy_rain` — 1 = heavy rain reported
+- `mentions_very_heavy_rain` — 1 = very heavy rain reported
+- `mentions_flood` — 1 = flooding reported
+- `mentions_flash_flood` — 1 = flash flood reported
+- `max_rain_mm` — highest daily rainfall in the region that week (mm)
+- `max_rain_location` — station / district of the highest rainfall
+- `max_rain_date` — date of the highest rainfall
+- `url` — source page
+
+### `silver.thai_holidays`
+- `date` — holiday date
+- `holiday_name` — holiday name (Thai), including substitution and special holidays
+- `source` — bot.or.th
+
+### `silver.calendar_features`
+- `date` — calendar date
+- `day_of_week` — Monday ... Sunday
+- `is_weekend` — 1 = Saturday or Sunday
+- `holiday_name` — holiday name, empty on normal days
+- `is_public_holiday` — 1 = official holiday
+- `is_day_off` — 1 = weekend or holiday
+- `is_long_weekend` — 1 = part of 3+ consecutive days off
+- `is_workday_before_holiday` — 1 = workday followed by a day off
+- `is_workday_after_holiday` — 1 = workday right after a day off
 
 ### `silver.osm_poi`
 - `category` — school, hospital, mall, market, bus_stop, rail_station, footbridge, traffic_signals
@@ -328,4 +370,4 @@ The generated `bangkok_rail.geojson` file is formatted as a standard GeoJSON `Fe
 - OpenStreetMap data © OpenStreetMap contributors (ODbL).
 - Open-Meteo data: CC BY 4.0.
 - METAR: Iowa Environmental Mesonet, Iowa State University.
-- BMA Open Data, BMA Drainage and Sewerage Department, Traffy Fondue, FM91: public data from the respective agencies; used for non-commercial education.
+- BMA Open Data, BMA Drainage and Sewerage Department, Traffy Fondue, FM91, Thai Meteorological Department, Bank of Thailand: public data from the respective agencies; used for non-commercial education.

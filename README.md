@@ -64,7 +64,8 @@ Bangkok-CCTV-Image-Analysis-DSDE/
 │       ├── README.md                    # Web extraction documentation
 │       ├── build_rail_geojson.py        # OpenStreetMap Overpass extractor for transit
 │       ├── sun_times.py, open_meteo.py, metar.py, osm_overpass.py, bma_open_data.py,
-│       │   traffy_fondue.py, fm91_news.py, bma_drainage.py   # External source scrapers
+│       │   traffy_fondue.py, fm91_news.py, tmd_weekly_summary.py, bot_holidays.py,
+│       │   bma_drainage.py              # External source scrapers
 │       └── external_lakehouse.py        # Bronze -> Silver loader for scraped sources
 ├── Models/                              # Computer Vision & Inference Pipelines
 │   ├── README.md                        # Modeling documentation
@@ -96,7 +97,7 @@ conda create -n dsde python=3.11 -y
 conda activate dsde
 
 # Install required dependencies
-pip install ultralytics opencv-python-headless pillow requests gdown beautifulsoup4 pandas playwright duckdb pyducklake pytz
+pip install ultralytics opencv-python-headless pillow requests gdown beautifulsoup4 lxml selenium pandas playwright duckdb pyducklake pytz
 python -m playwright install chromium
 ```
 
@@ -123,7 +124,7 @@ Scrape all external sources (Aug 25–31, 2026) and load them into the lakehouse
 ```bash
 python DataEngineering/lakehouse_pipeline.py --scrape
 ```
-Scrapers only run for raw files that are missing. Re-scrape every source with `--rescrape`, rebuild the lakehouse from scratch with `--reset`. The full first run takes about 30–60 minutes. See [`DataEngineering/WebScraping/README.md`](DataEngineering/WebScraping/README.md) for the sources, methods, and output columns.
+Scrapers only run for raw files that are missing. Re-scrape every source with `--rescrape`, rebuild the lakehouse from scratch with `--reset`. The full first run takes about 2 hours 15 minutes, mostly BMA Drainage canal levels and the Overpass API. See [`DataEngineering/WebScraping/README.md`](DataEngineering/WebScraping/README.md) for the sources, methods, and output columns.
 
 ---
 

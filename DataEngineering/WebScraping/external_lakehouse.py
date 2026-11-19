@@ -12,7 +12,7 @@ WEB_DIR = Path(__file__).resolve().parent
 RAW_DIR = WEB_DIR / "raw"
 SCRAPERS = [
     "sun_times.py", "open_meteo.py", "metar.py", "osm_overpass.py", "bma_open_data.py",
-    "traffy_fondue.py", "fm91_news.py", "bma_drainage.py",
+    "traffy_fondue.py", "fm91_news.py", "tmd_weekly_summary.py", "bot_holidays.py", "bma_drainage.py",
 ]
 
 V, D, I, B, TS = "VARCHAR", "DOUBLE", "INTEGER", "BIGINT", "TIMESTAMP"
@@ -21,6 +21,16 @@ TABLES = [
     {
         "name": "sun_times", "file": "sun_times/sun_times_daily.csv", "key": ["date"],
         "columns": [("date", "DATE"), ("sunrise", TS), ("sunset", TS), ("daylight_hours", D)],
+    },
+    {
+        "name": "thai_holidays", "file": "bot_holidays/thai_holidays.csv", "key": ["date", "holiday_name"],
+        "columns": [("date", "DATE"), ("holiday_name", V), ("source", V)],
+    },
+    {
+        "name": "calendar_features", "file": "bot_holidays/calendar_features.csv", "key": ["date"],
+        "columns": [("date", "DATE"), ("day_of_week", V), ("is_weekend", I), ("holiday_name", V),
+                    ("is_public_holiday", I), ("is_day_off", I), ("is_long_weekend", I),
+                    ("is_workday_before_holiday", I), ("is_workday_after_holiday", I)],
     },
     {
         "name": "osm_poi", "file": "openstreetmap/osm_poi.csv", "key": ["category", "osm_type", "osm_id"],
@@ -88,6 +98,14 @@ TABLES = [
                     ("temp_c", D), ("rh", D), ("wind_kt", D), ("visibility_km", D), ("sky_cover", V),
                     ("wxcodes", V), ("metar", V), ("is_rain", I), ("is_heavy_rain", I),
                     ("is_thunderstorm", I), ("is_shower", I)],
+    },
+    {
+        "name": "tmd_weekly_summary", "file": "tmd_weekly_summary/tmd_weekly_summary.csv",
+        "key": ["week_start", "region"],
+        "columns": [("week_start", "DATE"), ("week_end", "DATE"), ("region", V), ("summary", V),
+                    ("rain_area_pct_min", I), ("rain_area_pct_max", I), ("mentions_heavy_rain", I),
+                    ("mentions_very_heavy_rain", I), ("mentions_flood", I), ("mentions_flash_flood", I),
+                    ("max_rain_mm", D), ("max_rain_location", V), ("max_rain_date", "DATE"), ("url", V)],
     },
     {
         "name": "drainage_rain_hourly", "file": "bma_drainage/dds_rain_hourly.csv", "key": ["station_code", "datetime"],
