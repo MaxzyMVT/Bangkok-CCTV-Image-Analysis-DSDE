@@ -27,6 +27,25 @@ class BuildImageListTest(unittest.TestCase):
         entries = [("x.jpg", "2 0.5 0.5 0.3 0.3\n"), ("y.jpg", "0 0.5 0.5 0.1 0.1\n")]
         self.assertEqual(build_image_list(entries, oversample_bus=1), ["x.jpg", "y.jpg"])
 
+    def test_oversample_minority_and_human(self):
+        entries = [
+            ("moto.jpg", "1 0.5 0.5 0.1 0.1\n", False),
+            ("truck.jpg", "3 0.5 0.5 0.2 0.2\n", False),
+            ("human.jpg", "0 0.5 0.5 0.1 0.1\n", True),
+            ("car.jpg", "0 0.5 0.5 0.1 0.1\n", False),
+        ]
+        out = build_image_list(
+            entries,
+            oversample_bus=1,
+            oversample_moto=2,
+            oversample_truck=3,
+            oversample_human=4,
+        )
+        self.assertEqual(out.count("moto.jpg"), 2)
+        self.assertEqual(out.count("truck.jpg"), 3)
+        self.assertEqual(out.count("human.jpg"), 4)
+        self.assertEqual(out.count("car.jpg"), 1)
+
 
 class StretchCopyTest(unittest.TestCase):
     def test_stretched_copy_changes_width_only_and_keeps_labels(self):

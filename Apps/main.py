@@ -82,8 +82,10 @@ def start_server(port=8080):
     map_app.load_cameras()
 
     server = ThreadingHTTPServer(("", port), CombinedHandler)
+    active_model = detect_app.resolve_model()
     print("=" * 64)
-    print(" Bangkok CCTV: Camera Map + Detect")
+    print(" Bangkok CCTV: Camera Map + YOLO11 Detect")
+    print(f" Model:   {active_model}")
     print(f" Cameras: {len(map_app.CAMERAS)}")
     print(f" Map:     http://localhost:{port}/")
     print(f" Detect:  http://localhost:{port}/inspect")

@@ -24,11 +24,15 @@ Usage (conda activate dsde):
 """
 import argparse
 import json
+import os
 import random
 import shutil
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+
+# Prevent crash on Windows when both PyTorch and OpenCV / torchvision load OpenMP runtimes
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 import pandas as pd
 import yaml
@@ -98,17 +102,34 @@ def select_frames(picked: pd.DataFrame, pool: pd.DataFrame, statuses: dict[str, 
     return out
 
 
-BUS = 2  # target class id (common.TARGET_CLASSES)
+CAR, MOTO, BUS, TRUCK = 0, 1, 2, 3  # target class ids (common.TARGET_CLASSES)
 STRETCH_RANGE = (0.8, 1.2)
 
 
-def build_image_list(entries: list[tuple[str, str]], oversample_bus: int) -> list[str]:
-    """Train image list: (image path, label text) pairs -> paths, with frames whose label
-    contains a bus listed oversample_bus times (Ultralytics keeps duplicate lines)."""
+def build_image_list(
+    entries: list[tuple],
+    oversample_bus: int = 2,
+    oversample_moto: int = 1,
+    oversample_truck: int = 1,
+    oversample_human: int = 1
+) -> list[str]:
+    """Train image list: (image path, label text[, is_human]) tuples -> paths.
+    Oversamples minority classes (bus, motorcycle, truck) and high-quality human-verified frames."""
     out = []
-    for path, label in entries:
-        has_bus = any(line.split()[0] == str(BUS) for line in label.splitlines() if line.strip())
-        out += [path] * (max(oversample_bus, 1) if has_bus else 1)
+    for item in entries:
+        path, label = item[0], item[1]
+        is_human = item[2] if len(item) > 2 else False
+        classes = {int(line.split()[0]) for line in label.splitlines() if line.strip()}
+        weight = 1
+        if BUS in classes:
+            weight = max(weight, oversample_bus)
+        if MOTO in classes:
+            weight = max(weight, oversample_moto)
+        if TRUCK in classes:
+            weight = max(weight, oversample_truck)
+        if is_human:
+            weight = max(weight, oversample_human)
+        out += [path] * weight
     return out
 
 
@@ -164,29 +185,47 @@ def build(args):
             lines = [f"{c} {x:.6f} {y:.6f} {w:.6f} {h:.6f}" for c, x, y, w, h in store.read_labels("train", r.stem) or []]
             lbl_dst.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
         else:
-            res = teacher.predict(str(img_dst), conf=args.teacher_conf, iou=0.5, imgsz=640,
-                                  classes=list(COCO_TO_TARGET), device=args.device, verbose=False)[0]
-            lines = [f"{COCO_TO_TARGET[int(c)]} {x:.6f} {y:.6f} {w:.6f} {h:.6f}"
-                     for c, (x, y, w, h) in zip(res.boxes.cls.tolist(), res.boxes.xywhn.tolist())]
-            lbl_dst.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+            cached_pre = store.read_prelabel("train", r.stem)
+            if cached_pre:
+                lines = [f"{int(c)} {x:.6f} {y:.6f} {w:.6f} {h:.6f}" for c, x, y, w, h, *_ in cached_pre]
+                lbl_dst.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+            else:
+                res = teacher.predict(str(img_dst), conf=args.teacher_conf, iou=0.5, imgsz=640,
+                                      classes=list(COCO_TO_TARGET), device=args.device, verbose=False)[0]
+                lines = [f"{COCO_TO_TARGET[int(c)]} {x:.6f} {y:.6f} {w:.6f} {h:.6f}"
+                         for c, (x, y, w, h) in zip(res.boxes.cls.tolist(), res.boxes.xywhn.tolist())]
+                lbl_dst.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
         n_boxes.append(sum(1 for _ in lbl_dst.read_text(encoding="utf-8").splitlines()))
     picked["n_boxes"] = n_boxes
 
-    # train-split augmentation on disk: stretched copies + bus oversampling. Val is untouched.
+    # train-split augmentation on disk: stretched copies + minority / human oversampling. Val is untouched.
     train_imgs, train_lbls = TRAIN_SET_DIR / "images" / "train", TRAIN_SET_DIR / "labels" / "train"
     originals = sorted(train_imgs.glob("*.jpg"))
+    human_stems = set(picked.loc[picked["label_source"] == "human", "stem"])
     if args.stretch:
         srng = random.Random(args.seed)
         for img in originals:
             factor = srng.uniform(*STRETCH_RANGE)
             stretch_copy(img, train_lbls / f"{img.stem}.txt", train_imgs / f"{img.stem}_stretch.jpg",
                          train_lbls / f"{img.stem}_stretch.txt", factor)
-    entries = [(f"./images/train/{img.name}", (train_lbls / f"{img.stem}.txt").read_text(encoding="utf-8"))
-               for img in sorted(train_imgs.glob("*.jpg"))]
-    image_list = build_image_list(entries, args.oversample_bus)
+    entries = []
+    for img in sorted(train_imgs.glob("*.jpg")):
+        base_stem = img.stem.replace("_stretch", "")
+        is_human = base_stem in human_stems
+        lbl_text = (train_lbls / f"{img.stem}.txt").read_text(encoding="utf-8")
+        entries.append((f"./images/train/{img.name}", lbl_text, is_human))
+
+    image_list = build_image_list(
+        entries,
+        oversample_bus=args.oversample_bus,
+        oversample_moto=args.oversample_moto,
+        oversample_truck=args.oversample_truck,
+        oversample_human=args.oversample_human,
+    )
     (TRAIN_SET_DIR / "train.txt").write_text("\n".join(image_list) + "\n", encoding="utf-8")
     print(f"[*] train.txt: {len(originals)} frames, {len(entries) - len(originals)} stretched copies, "
-          f"{len(image_list)} lines (bus frames x{args.oversample_bus})")
+          f"{len(image_list)} lines (bus x{args.oversample_bus}, moto x{args.oversample_moto}, "
+          f"truck x{args.oversample_truck}, human x{args.oversample_human})")
 
     with open(TRAIN_SET_DIR / "dataset.yaml", "w", encoding="utf-8") as f:
         yaml.safe_dump({"path": str(TRAIN_SET_DIR.resolve()).replace("\\", "/"),
@@ -199,19 +238,131 @@ def build(args):
     print(f"[+] {sum(n_boxes)} boxes -> {TRAIN_SET_DIR / 'dataset.yaml'}")
 
 
+def patch_ultralytics_save_model():
+    """Patches Ultralytics checkpoint saving on Windows to prevent 'I/O operation on closed file'
+    errors caused by antivirus scans, flush delays, or closed BytesIO buffers during retries."""
+    import io
+    import time
+    from copy import deepcopy
+    import torch
+    from ultralytics.engine.trainer import BaseTrainer
+    from ultralytics.utils import __version__, GIT
+    from ultralytics.utils.torch_utils import (
+        convert_optimizer_state_dict_to_fp16,
+        qat_state,
+        strip_qat,
+        unwrap_model,
+    )
+
+    def safe_save_model(self):
+        ema = self.ema.ema
+        if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
+            model_sd = unwrap_model(self.model).state_dict()
+            for k, v in ema.state_dict().items():
+                if isinstance(v, torch.Tensor) and not torch.isfinite(v).all() and torch.isfinite(model_sd[k]).all():
+                    v.copy_(model_sd[k])
+        modelopt = qat_state(ema)
+        ema = deepcopy(ema).half().to(memory_format=torch.contiguous_format)
+        if hasattr(ema, "criterion"):
+            ema.criterion = None
+        for v in ema.state_dict().values():
+            if isinstance(v, torch.Tensor) and v.is_floating_point():
+                torch.nan_to_num_(v)
+
+        strip_qat(ema)
+        ckpt = {
+            "epoch": self.epoch,
+            "best_fitness": self.best_fitness,
+            "stopper": {"best_fitness": self.stopper.best_fitness, "best_epoch": self.stopper.best_epoch},
+            "model": None,
+            "ema": ema,
+            "updates": self.ema.updates,
+            "modelopt": modelopt,
+            "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
+            "scaler": self.scaler.state_dict(),
+            "train_args": vars(self.args),
+            "train_metrics": {**self.metrics, "fitness": self.fitness},
+            "train_results": self.read_results_csv(),
+            "date": datetime.now().astimezone().isoformat(),
+            "version": __version__,
+            "git": {
+                "root": str(GIT.root),
+                "branch": GIT.branch,
+                "commit": GIT.commit,
+                "message": GIT.message,
+                "origin": GIT.origin,
+            },
+            "license": "AGPL-3.0 (https://ultralytics.com/license)",
+            "docs": "https://docs.ultralytics.com",
+        }
+
+        # Robust serialization with fresh BytesIO buffer on every attempt
+        serialized_ckpt = None
+        for attempt in range(5):
+            try:
+                if torch.cuda.is_available():
+                    torch.cuda.synchronize()
+                buf = io.BytesIO()
+                torch.save(ckpt, buf)
+                serialized_ckpt = buf.getvalue()
+                break
+            except Exception as e:
+                if attempt == 4:
+                    raise
+                time.sleep(1.0)
+
+        # Robust checkpoint write to disk with retry against file locks
+        self.wdir.mkdir(parents=True, exist_ok=True)
+        for attempt in range(5):
+            try:
+                self.last.write_bytes(serialized_ckpt)
+                if self.best_fitness == self.fitness:
+                    self.best.write_bytes(serialized_ckpt)
+                if (self.save_period > 0) and (self.epoch % self.save_period == 0):
+                    (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)
+                break
+            except Exception as e:
+                if attempt == 4:
+                    raise
+                time.sleep(1.0)
+        return True
+
+    BaseTrainer.save_model = safe_save_model
+
+
 # ----------------------------------------------------------------------------- train
 def train(args):
+    patch_ultralytics_save_model()
     from ultralytics import YOLO
 
     data = TRAIN_SET_DIR / "dataset.yaml"
     if not data.exists():
         sys.exit("[x] No training dataset. Run the 'build' stage first.")
-    name = args.name or f"{Path(args.model).stem}_{datetime.now():%Y%m%d_%H%M}"
-    model = YOLO(args.model)
-    model.train(data=str(data), epochs=args.epochs, imgsz=args.imgsz, batch=args.batch,
-                patience=args.patience, device=args.device, workers=args.workers,
-                project=str(RUNS_DIR), name=name, exist_ok=True, seed=args.seed,
-                plots=True, **AUGMENT)
+    if getattr(args, "resume", None):
+        resume_ckpt = Path(args.resume)
+        if not resume_ckpt.exists():
+            sys.exit(f"[x] Resume checkpoint not found: {resume_ckpt}")
+        name = resume_ckpt.parents[1].name
+        model = YOLO(str(resume_ckpt))
+        model.train(resume=True, workers=args.workers, device=args.device)
+    else:
+        name = args.name or f"{Path(args.model).stem}_{datetime.now():%Y%m%d_%H%M}"
+        model = YOLO(args.model)
+
+        train_kwargs = dict(
+            data=str(data), epochs=args.epochs, imgsz=args.imgsz, batch=args.batch,
+            patience=args.patience, device=args.device, workers=args.workers,
+            project=str(RUNS_DIR), name=name, exist_ok=True, seed=args.seed,
+            plots=True, **AUGMENT
+        )
+        if getattr(args, "cos_lr", False):
+            train_kwargs["cos_lr"] = True
+        if getattr(args, "label_smoothing", 0.0) > 0:
+            train_kwargs["label_smoothing"] = args.label_smoothing
+        if getattr(args, "warmup_epochs", None) is not None:
+            train_kwargs["warmup_epochs"] = args.warmup_epochs
+
+        model.train(**train_kwargs)
 
     run_dir = RUNS_DIR / name
     best = run_dir / "weights" / "best.pt"
@@ -234,6 +385,8 @@ def train(args):
     WEIGHTS_DIR.mkdir(parents=True, exist_ok=True)
     if BEST_MODEL.exists():
         shutil.copy2(BEST_MODEL, WEIGHTS_DIR / "best_prev.pt")
+    if BEST_MODEL_INFO.exists():
+        shutil.copy2(BEST_MODEL_INFO, WEIGHTS_DIR / "best_prev.json")
     shutil.copy2(best, BEST_MODEL)
     BEST_MODEL_INFO.write_text(json.dumps({
         "run": str(run_dir.relative_to(ROOT_DIR)).replace("\\", "/"),
@@ -241,7 +394,7 @@ def train(args):
         "classes": TARGET_CLASSES, "trained_at": datetime.now().isoformat(timespec="seconds"),
         **metrics,
     }, indent=2), encoding="utf-8")
-    print(f"[+] Promoted to {BEST_MODEL} - the App will use it on next start.")
+    print(f"[+] Promoted to {BEST_MODEL} - evaluating against test set...")
     return best
 
 
@@ -294,6 +447,11 @@ def evaluate(args):
     from ultralytics import YOLO
 
     if (TEST_SET_DIR / "labels").exists() and any((TEST_SET_DIR / "labels").glob("*.txt")):
+        # If test_set/images doesn't exist yet, build it automatically from dataset
+        if not (TEST_SET_DIR / "images").exists() or not any((TEST_SET_DIR / "images").glob("*.jpg")):
+            print("[*] Materializing test set images from dataset/...")
+            import subprocess
+            subprocess.run([sys.executable, str(ROOT_DIR / "DataEngineering" / "labeling" / "merge_test_set.py"), "--allow-unreviewed"], check=True)
         split_name, images, labels = "test", TEST_SET_DIR / "images", TEST_SET_DIR / "labels"
     else:
         print("[!] Test set not merged yet - evaluating on the val split instead.")
@@ -304,7 +462,8 @@ def evaluate(args):
 
     EVAL_DIR.mkdir(parents=True, exist_ok=True)
     common = dict(imgsz=args.imgsz, batch=8, device=args.device, conf=0.001, iou=0.6,
-                  project=str(EVAL_DIR), exist_ok=True, plots=False, verbose=False)
+                  project=str(EVAL_DIR), exist_ok=True, plots=False, verbose=False,
+                  workers=args.workers)
     report = {"split": split_name, "n_images": n_images, "models": {}}
 
     # pretrained COCO baseline: score only the 4 vehicle classes
@@ -329,6 +488,58 @@ def evaluate(args):
         report["models"][f"finetuned:{Path(fine_path).name}"] = _scores(m, fine.names)
         report["models"][f"finetuned:{Path(fine_path).name}"]["count_mae"] = _frame_counts(
             fine, images, labels, None, args.device)
+
+        # Auto-update best.json if the evaluated model is BEST_MODEL
+        if Path(fine_path).resolve() == BEST_MODEL.resolve() and BEST_MODEL_INFO.exists():
+            try:
+                curr_info = json.loads(BEST_MODEL_INFO.read_text(encoding="utf-8"))
+                finetuned_key = f"finetuned:{Path(fine_path).name}"
+                if finetuned_key in report["models"]:
+                    scores = report["models"][finetuned_key]
+                    new_mae = scores.get("count_mae", {}).get("total")
+                    new_map50 = scores.get("mAP50")
+                    new_map50_95 = scores.get("mAP50_95")
+
+                    # Compare against previous best if available
+                    prev_info_file = WEIGHTS_DIR / "best_prev.json"
+                    is_better = True
+                    prev_mae, prev_map50 = None, None
+                    if prev_info_file.exists():
+                        try:
+                            prev_info = json.loads(prev_info_file.read_text(encoding="utf-8"))
+                            prev_test = prev_info.get("test", {})
+                            prev_mae = prev_test.get("count_mae", {}).get("total")
+                            prev_map50 = prev_test.get("mAP50")
+                            if prev_mae is not None and new_mae is not None:
+                                # Improvement if count MAE is strictly better, or MAE tied with better mAP50
+                                if new_mae > prev_mae and (new_map50 is None or prev_map50 is None or new_map50 <= prev_map50):
+                                    is_better = False
+                        except Exception:
+                            pass
+
+                    if is_better:
+                        if prev_mae is not None:
+                            print(f"\n[+] PERFORMANCE GAIN: New model beats previous best (Count MAE: {new_mae} vs {prev_mae}, mAP50: {new_map50} vs {prev_map50})!")
+                        curr_info["test"] = {
+                            "frames": n_images,
+                            "source": f"hand-reviewed core {split_name} set",
+                            "mAP50": new_map50,
+                            "mAP50_95": new_map50_95,
+                            "count_mae": scores.get("count_mae")
+                        }
+                        note_txt = f"promoted {datetime.now():%Y-%m-%d}: test count MAE {new_mae}"
+                        if prev_mae is not None:
+                            note_txt += f" (prev {prev_mae}), mAP50 {new_map50} (prev {prev_map50})"
+                        curr_info["note"] = note_txt
+                        BEST_MODEL_INFO.write_text(json.dumps(curr_info, indent=2), encoding="utf-8")
+                    else:
+                        print(f"\n[!] MODEL REVERT: New run underperformed previous best (Count MAE: {new_mae} vs {prev_mae}, mAP50: {new_map50} vs {prev_map50}).")
+                        if (WEIGHTS_DIR / "best_prev.pt").exists():
+                            shutil.copy2(WEIGHTS_DIR / "best_prev.pt", BEST_MODEL)
+                            BEST_MODEL_INFO.write_text(json.dumps(prev_info, indent=2), encoding="utf-8")
+                            print(f"[+] Preserved previous best model ({WEIGHTS_DIR / 'best_prev.pt'}) as {BEST_MODEL}.")
+            except Exception as e:
+                print(f"[!] Warning checking promotion metrics: {e}")
     else:
         print("[!] No fine-tuned weights yet - only the baseline was scored.")
 
@@ -358,6 +569,12 @@ def main():
     ap.add_argument("--teacher-conf", type=float, default=0.35)
     ap.add_argument("--oversample-bus", type=int, default=2,
                     help="List train frames that contain a bus this many times in train.txt (1 = off).")
+    ap.add_argument("--oversample-moto", type=int, default=1,
+                    help="List train frames that contain a motorcycle this many times in train.txt.")
+    ap.add_argument("--oversample-truck", type=int, default=1,
+                    help="List train frames that contain a truck this many times in train.txt.")
+    ap.add_argument("--oversample-human", type=int, default=1,
+                    help="List human-verified train frames this many times in train.txt.")
     ap.add_argument("--stretch", action=argparse.BooleanOptionalAction, default=True,
                     help="Add one horizontally stretched/squeezed copy (x0.8-1.2) of each train image.")
     # train
@@ -366,7 +583,13 @@ def main():
     ap.add_argument("--imgsz", type=int, default=416, help="Frames are 352x288; 416 keeps small vehicles visible.")
     ap.add_argument("--batch", type=int, default=16)
     ap.add_argument("--patience", type=int, default=20)
-    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--cos-lr", action="store_true", default=False,
+                    help="Use cosine learning rate scheduler instead of linear.")
+    ap.add_argument("--label-smoothing", type=float, default=0.0,
+                    help="Label smoothing factor (e.g. 0.05) to regularize against noisy pseudo-labels.")
+    ap.add_argument("--warmup-epochs", type=float, default=3.0, help="Warmup epochs.")
+    ap.add_argument("--workers", type=int, default=0, help="Dataloader workers (0 = main process, safest on Windows).")
+    ap.add_argument("--resume", default=None, help="Resume training from weights/last.pt checkpoint.")
     ap.add_argument("--name", default=None, help="Run name under runs/train/.")
     ap.add_argument("--no-promote", action="store_true", help="Don't overwrite Models/weights/best.pt.")
     # eval
