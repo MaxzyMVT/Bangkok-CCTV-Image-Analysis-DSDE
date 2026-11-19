@@ -24,6 +24,68 @@ CLASS_COLORS = {
 }
 DEFAULT_BOX_COLOR = (0, 255, 255)  # Yellow fallback
 
+# Day/Night solar lookup table (populated from scraped sun_times_daily.csv or fallback)
+SUN_TIMES_CSV = Path(__file__).resolve().parent.parent / "DataEngineering" / "WebScraping" / "raw" / "sun_times" / "sun_times_daily.csv"
+SUN_TIMES_TABLE: Dict[str, Tuple[int, int]] = {}
+
+
+def load_sun_times_lookup() -> Dict[str, Tuple[int, int]]:
+    """Loads date -> (sunrise_minute_of_day, sunset_minute_of_day) from scraped sun_times_daily.csv."""
+    global SUN_TIMES_TABLE
+    if SUN_TIMES_TABLE:
+        return SUN_TIMES_TABLE
+    if SUN_TIMES_CSV.exists():
+        try:
+            import pandas as pd
+            df = pd.read_csv(SUN_TIMES_CSV)
+            for _, r in df.iterrows():
+                d_str = str(r["date"]).strip()
+                sr_dt = pd.to_datetime(r["sunrise"])
+                ss_dt = pd.to_datetime(r["sunset"])
+                sr_min = sr_dt.hour * 60 + sr_dt.minute
+                ss_min = ss_dt.hour * 60 + ss_dt.minute
+                SUN_TIMES_TABLE[d_str] = (sr_min, ss_min)
+        except Exception as e:
+            print(f"[detector] Warning loading sun times lookup: {e}")
+    return SUN_TIMES_TABLE
+
+
+def is_daytime(date_str: Optional[str] = None, time_str: Optional[str] = None, hour: Optional[int] = None, minute: Optional[int] = None) -> bool:
+    """
+    Determines if the given timestamp corresponds to daytime in Bangkok using scraped solar data.
+    Default Bangkok solar window: ~06:06 to ~18:30 (sunrise to sunset).
+    """
+    if hour is not None:
+        m = minute if minute is not None else 0
+        cur_min = hour * 60 + m
+    elif time_str:
+        parts = time_str.replace("T", ":").split(":")
+        h = int(parts[0]) if len(parts) > 0 else 12
+        m = int(parts[1]) if len(parts) > 1 else 0
+        cur_min = h * 60 + m
+    else:
+        return True  # default to daytime if unknown
+
+    lookup = load_sun_times_lookup()
+    if date_str and date_str in lookup:
+        sr_min, ss_min = lookup[date_str]
+        return sr_min <= cur_min <= ss_min
+
+    # Default fallback solar window for Bangkok (~13.7N)
+    return (6 * 60 + 6) <= cur_min <= (18 * 60 + 30)
+
+
+def get_adaptive_confidence(
+    date_str: Optional[str] = None,
+    time_str: Optional[str] = None,
+    hour: Optional[int] = None,
+    minute: Optional[int] = None,
+    conf_day: float = 0.28,
+    conf_night: float = 0.20
+) -> float:
+    """Returns adaptive confidence threshold based on daytime vs night/headlight conditions."""
+    return conf_day if is_daytime(date_str=date_str, time_str=time_str, hour=hour, minute=minute) else conf_night
+
 def imread_unicode(path: Union[str, Path]) -> Optional[np.ndarray]:
     """Reads image safely supporting non-ASCII / Thai Unicode filepaths on Windows."""
     try:
@@ -100,7 +162,10 @@ class YOLOVehicleDetector:
         image_input: Union[str, Path, np.ndarray],
         conf: Optional[float] = None,
         iou: Optional[float] = None,
-        draw_annotations: bool = True
+        draw_annotations: bool = True,
+        timestamp: Optional[str] = None,
+        date_str: Optional[str] = None,
+        adaptive_threshold: bool = True
     ) -> Dict:
         """
         Runs object detection on a single image.
@@ -110,6 +175,10 @@ class YOLOVehicleDetector:
             conf: Optional confidence threshold override.
             iou: Optional IoU threshold override.
             draw_annotations: If True, draws bounding boxes, labels, and statistics HUD.
+            timestamp: Optional ISO or HH:MM:SS string for adaptive day/night thresholding.
+            date_str: Optional YYYY-MM-DD string.
+            adaptive_threshold: If True and conf is not explicitly specified, adjusts
+                                confidence dynamically based on solar sunrise/sunset data.
             
         Returns:
             Dictionary containing:
@@ -118,7 +187,21 @@ class YOLOVehicleDetector:
                 - 'annotated_image': np.ndarray (BGR) with annotations if requested
                 - 'orig_shape': (height, width)
         """
-        conf = conf if conf is not None else self.confidence_threshold
+        if conf is None:
+            if adaptive_threshold and (timestamp or date_str or isinstance(image_input, (str, Path))):
+                # Try inferring timestamp from filename if path is given
+                t_str = timestamp
+                d_str = date_str
+                if not t_str and isinstance(image_input, (str, Path)):
+                    p_name = Path(image_input).name
+                    # Standard BMA pattern: e.g. ..._YYYYMMDD_HHMMSS.jpg
+                    parts = p_name.replace(".jpg", "").replace(".jpeg", "").split("_")
+                    if len(parts) >= 2 and len(parts[-2]) == 8 and len(parts[-1]) == 6 and parts[-2].isdigit() and parts[-1].isdigit():
+                        d_str = f"{parts[-2][:4]}-{parts[-2][4:6]}-{parts[-2][6:]}"
+                        t_str = f"{parts[-1][:2]}:{parts[-1][2:4]}:{parts[-1][4:]}"
+                conf = get_adaptive_confidence(date_str=d_str, time_str=t_str)
+            else:
+                conf = self.confidence_threshold
         iou = iou if iou is not None else self.iou_threshold
 
         # Load image if file path is provided

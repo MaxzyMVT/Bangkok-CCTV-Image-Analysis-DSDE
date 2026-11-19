@@ -76,6 +76,43 @@ def overlap_pairs(boxes, iou_min: float = OVERLAP_IOU) -> list[tuple[int, int]]:
             if _iou(boxes[i], boxes[j]) >= iou_min]
 
 
+CAR, MOTORCYCLE = 0, 1
+
+
+def _pick_drop(a, b) -> int | None:
+    """One vehicle boxed twice: a, b = (cls, x, y, w, h, conf).
+    Return 0 to drop a, 1 to drop b, or None to keep both for a person to decide."""
+    ca, cb = int(a[0]), int(b[0])
+    if ca == cb:                                   # same class twice: keep the more confident box
+        return 0 if a[5] < b[5] else 1
+    keep = MOTORCYCLE if MOTORCYCLE in (ca, cb) else CAR if CAR in (ca, cb) else None
+    if keep is None:                               # e.g. bus + truck: no team rule, a person decides
+        return None
+    k, other = (a, b) if ca == keep else (b, a)
+    if k[5] <= other[5]:                           # YOLO preferred the other class: rule only ~55 % right
+        return None
+    return 1 if other is b else 0
+
+
+def resolve_overlaps(boxes, iou_min: float = OVERLAP_IOU) -> tuple[list, int]:
+    """Merge boxes that are one vehicle boxed twice, where the team rule is safe to apply on its own.
+    boxes carry a confidence: (cls, x, y, w, h, conf). Returns (kept boxes in original order, number dropped).
+    Strongest overlaps are settled first, and a box already dropped can't drop another."""
+    boxes = list(boxes)
+    pairs = sorted(((_iou(boxes[i], boxes[j]), i, j)
+                    for i in range(len(boxes)) for j in range(i + 1, len(boxes))), reverse=True)
+    dropped = set()
+    for iou, i, j in pairs:
+        if iou < iou_min:
+            break
+        if i in dropped or j in dropped:
+            continue
+        drop = _pick_drop(boxes[i], boxes[j])
+        if drop is not None:
+            dropped.add(i if drop == 0 else j)
+    return [b for k, b in enumerate(boxes) if k not in dropped], len(dropped)
+
+
 def same_as_prelabel(pre: list[Box], boxes: list[Box], iou_min: float = IOU_MIN) -> bool:
     """True when every box matches a pre-label box of the same class with IoU >= iou_min (one-to-one)."""
     if len(pre) != len(boxes):
@@ -152,8 +189,13 @@ class ReviewStore:
         return json.loads(p.read_text(encoding="utf-8"))
 
     def current_boxes(self, set_name, stem) -> list[Box]:
+        """Saved labels, or for an unreviewed frame the pre-label with clear double boxes already merged
+        (resolve_overlaps); doubtful pairs stay for the reviewer. The pre-label file itself is never changed."""
         saved = self.read_labels(set_name, stem)
-        return saved if saved is not None else [tuple(b[:5]) for b in self.read_prelabel(set_name, stem)]
+        if saved is not None:
+            return saved
+        merged, _ = resolve_overlaps(self.read_prelabel(set_name, stem))
+        return [tuple(b[:5]) for b in merged]
 
     def all_status(self, set_name, strict: bool = False) -> dict[str, str]:
         """stem -> status for every saved frame. A broken file (e.g. git conflict markers) is skipped

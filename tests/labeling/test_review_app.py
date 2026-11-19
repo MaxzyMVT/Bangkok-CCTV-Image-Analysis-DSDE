@@ -88,7 +88,8 @@ class ReviewAppTest(unittest.TestCase):
 
     def test_queue_flags_overlaps_and_val(self):
         stem = load_items("test")["stem"].iloc[3]
-        self.store.write_prelabel("test", stem, [(0, .5, .5, .2, .2, .9), (3, .505, .5, .21, .2, .6)], overwrite=True)
+        # truck scored higher than car: too doubtful to merge automatically, so it stays flagged
+        self.store.write_prelabel("test", stem, [(0, .5, .5, .2, .2, .6), (3, .505, .5, .21, .2, .9)], overwrite=True)
         try:
             items = {i["stem"]: i for i in self._json("/api/queue?set=test")["items"]}
             self.assertEqual(items[stem]["n_overlaps"], 1)

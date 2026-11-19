@@ -1,31 +1,31 @@
 class,time_period,n_frames,mae,mean_signed_error
-bus,Early Morning,60,0.117,0.017
+bus,Early Morning,60,0.133,0.0
 bus,Evening Rush,59,0.136,0.034
-bus,Late Evening,56,0.107,0.036
+bus,Late Evening,57,0.123,0.053
 bus,Midday,61,0.197,-0.066
-bus,Morning Rush,58,0.069,0.034
-bus,all,294,0.126,0.01
-car,Early Morning,60,0.767,-0.7
+bus,Morning Rush,58,0.086,0.052
+bus,all,295,0.136,0.014
+car,Early Morning,60,0.783,-0.717
 car,Evening Rush,59,2.254,-2.254
-car,Late Evening,56,1.0,-0.821
+car,Late Evening,57,1.0,-0.825
 car,Midday,61,2.475,-2.475
-car,Morning Rush,58,1.966,-1.966
-car,all,294,1.701,-1.653
-motorcycle,Early Morning,60,1.233,-1.233
+car,Morning Rush,58,2.086,-2.086
+car,all,295,1.725,-1.678
+motorcycle,Early Morning,60,1.317,-1.317
 motorcycle,Evening Rush,59,1.492,-1.492
-motorcycle,Late Evening,56,1.071,-1.071
+motorcycle,Late Evening,57,1.123,-1.123
 motorcycle,Midday,61,1.066,-1.066
-motorcycle,Morning Rush,58,1.724,-1.69
-motorcycle,all,294,1.316,-1.31
-total,Early Morning,60,1.6,-1.4
-total,Evening Rush,59,3.068,-2.932
-total,Late Evening,56,1.75,-1.714
-total,Midday,61,2.361,-2.033
-total,Morning Rush,58,2.621,-2.552
-total,all,294,2.282,-2.126
-truck,Early Morning,60,0.517,0.517
-truck,Evening Rush,59,0.78,0.78
-truck,Late Evening,56,0.143,0.143
-truck,Midday,61,1.607,1.574
-truck,Morning Rush,58,1.103,1.069
-truck,all,294,0.84,0.827
+motorcycle,Morning Rush,58,1.81,-1.776
+motorcycle,all,295,1.359,-1.353
+total,Early Morning,60,1.633,-1.433
+total,Evening Rush,59,3.034,-2.831
+total,Late Evening,57,1.807,-1.737
+total,Midday,61,2.295,-1.934
+total,Morning Rush,58,2.724,-2.655
+total,all,295,2.298,-2.115
+truck,Early Morning,60,0.6,0.6
+truck,Evening Rush,59,0.881,0.881
+truck,Late Evening,57,0.158,0.158
+truck,Midday,61,1.705,1.672
+truck,Morning Rush,58,1.19,1.155
+truck,all,295,0.915,0.902
