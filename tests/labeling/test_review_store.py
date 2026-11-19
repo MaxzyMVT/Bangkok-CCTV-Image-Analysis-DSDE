@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "DataEngineering" / "labeling"))
 
-from review_store import ReviewStore, clean_boxes, counts, overlap_pairs  # noqa: E402
+from review_store import ReviewStore, clean_boxes, counts, overlap_pairs, resolve_overlaps  # noqa: E402
 
 STEM = "cam0001_img00001"
 
@@ -22,6 +22,39 @@ class OverlapTest(unittest.TestCase):
         self.assertEqual(overlap_pairs([]), [])
 
 
+class ResolveOverlapsTest(unittest.TestCase):
+    """Team rule for one vehicle boxed twice: keep one box, car (motorcycle if one box is a motorcycle).
+    Applied automatically only when YOLO itself scored that class higher (~98 % right on reviewed frames);
+    otherwise both boxes stay for a person to decide."""
+    CAR, MOTO, BUS, TRUCK = 0, 1, 2, 3
+
+    def test_car_more_confident_than_truck_is_merged_to_car(self):
+        boxes, n = resolve_overlaps([(self.CAR, .5, .5, .2, .2, .80), (self.TRUCK, .505, .5, .21, .2, .50)])
+        self.assertEqual(n, 1)
+        self.assertEqual([b[0] for b in boxes], [self.CAR])
+
+    def test_truck_more_confident_is_left_for_a_person(self):
+        pair = [(self.CAR, .5, .5, .2, .2, .40), (self.TRUCK, .505, .5, .21, .2, .70)]
+        self.assertEqual(resolve_overlaps(pair), (pair, 0))
+
+    def test_motorcycle_wins_over_car(self):
+        boxes, n = resolve_overlaps([(self.CAR, .5, .5, .1, .2, .50), (self.MOTO, .5, .505, .1, .21, .60)])
+        self.assertEqual((n, [b[0] for b in boxes]), (1, [self.MOTO]))
+
+    def test_bus_and_truck_without_car_is_left_alone(self):
+        pair = [(self.BUS, .5, .5, .3, .3, .90), (self.TRUCK, .5, .5, .31, .3, .40)]
+        self.assertEqual(resolve_overlaps(pair), (pair, 0))
+
+    def test_same_class_twice_keeps_the_more_confident_box(self):
+        boxes, n = resolve_overlaps([(self.CAR, .5, .5, .2, .2, .40), (self.CAR, .505, .5, .21, .2, .90)])
+        self.assertEqual((n, len(boxes)), (1, 1))
+        self.assertAlmostEqual(boxes[0][5], .90)
+
+    def test_separate_vehicles_untouched(self):
+        boxes = [(self.CAR, .2, .2, .1, .1, .9), (self.TRUCK, .7, .7, .2, .2, .9)]
+        self.assertEqual(resolve_overlaps(boxes), (boxes, 0))
+
+
 class ReviewStoreTest(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -32,6 +65,12 @@ class ReviewStoreTest(unittest.TestCase):
 
     def _pre(self, boxes):
         self.store.write_prelabel("test", STEM, boxes)
+
+    def test_pending_frame_shows_merged_prelabel(self):
+        # car scored higher than the truck on the same spot: the page opens with one car box
+        self._pre([(0, .5, .5, .2, .2, .8), (3, .505, .5, .21, .2, .5), (1, .1, .1, .05, .1, .7)])
+        self.assertEqual(sorted(b[0] for b in self.store.current_boxes("test", STEM)), [0, 1])
+        self.assertEqual(len(self.store.read_prelabel("test", STEM)), 3)   # the pre-label file is untouched
 
     def test_save_unchanged_is_approved(self):
         self._pre([(0, .5, .5, .1, .1, .9)])
