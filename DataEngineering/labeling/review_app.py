@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import find_image, resolve_dataset_root  # noqa: E402
 from prelabel import load_items  # noqa: E402
-from review_store import VALID_SETS, ReviewStore, counts  # noqa: E402
+from review_store import VALID_SETS, ReviewStore, counts, overlap_pairs  # noqa: E402
 
 TEMPLATE = Path(__file__).resolve().parent / "templates" / "review.html"
 META_COLS = ["camera_id", "timestamp", "time_period", "location_en"]
@@ -63,13 +63,17 @@ class ReviewApp:
             if camera and str(r["camera_id"]) != str(camera):
                 continue
             pre = self.store.read_prelabel(set_name, stem)
+            boxes = self.store.current_boxes(set_name, stem)
             out.append({"stem": stem, "camera_id": int(r["camera_id"]), "timestamp": r["timestamp"],
                         "time_period": r["time_period"], "status": statuses.get(stem, "pending"),
-                        "n_boxes": len(self.store.current_boxes(set_name, stem)),
+                        "n_boxes": len(boxes),
+                        "n_overlaps": len(overlap_pairs(boxes)),
                         "min_conf": round(min((b[5] for b in pre), default=1.0), 4),
                         "has_bus": any(int(b[0]) == BUS for b in pre),
                         "has_truck": any(int(b[0]) == TRUCK for b in pre),
-                        "core": bool(r.get("core", False))})
+                        "core": bool(r.get("core", False)),
+                        # train_manifest.csv `split`: the 31 Aug frames the trainer scores every epoch
+                        "val": r.get("split") == "val"})
         return {"items": out}
 
     def item(self, set_name, stem):
@@ -112,7 +116,8 @@ class ReviewApp:
             raise BadRequest(f"bad boxes: {e}")
         with self.lock:
             status = self.store.save(set_name, stem, boxes, action)
-        return {**status, "counts": counts(self.store.current_boxes(set_name, stem))}
+        boxes = self.store.current_boxes(set_name, stem)
+        return {**status, "counts": counts(boxes), "n_overlaps": len(overlap_pairs(boxes))}
 
 
 def make_server(port: int, store: ReviewStore, dataset_root: Path) -> ThreadingHTTPServer:

@@ -54,8 +54,9 @@
   <label>Camera <select id="camera"><option value="">all</option></select></label>
   <label>Show <select id="filter">
     <option value="pending">pending</option><option value="all">all</option><option value="approved">approved</option>
-    <option value="corrected">corrected</option><option value="rejected">rejected</option></select></label>
-  <label>Sort <select id="sort"><option value="time">camera / time</option><option value="conf">lowest confidence first</option><option value="bustruck">bus/truck first</option></select></label>
+    <option value="corrected">corrected</option><option value="rejected">rejected</option>
+    <option value="val">val (31 Aug) to do</option><option value="overlap">⚠ overlapping boxes</option></select></label>
+  <label>Sort <select id="sort"><option value="time">camera / time</option><option value="conf">lowest confidence first</option><option value="bustruck">bus/truck first</option><option value="spread">one per camera first</option></select></label>
   <div class="progress"><div class="bar" id="bar"></div><span id="progressText">–</span></div>
 </header>
 <main>
@@ -93,6 +94,9 @@
       <kbd>Backspace</kbd><span>reset to YOLO boxes</span>
       <kbd>← →</kbd><span>previous / next without saving</span>
       <kbd>H</kbd><span>hide boxes</span>
+      <kbd>wheel</kbd><span>zoom in / out at the cursor (also <b>+</b> / <b>−</b>)</span>
+      <kbd>right-drag</kbd><span>pan while zoomed (or Space + drag)</span>
+      <kbd>0</kbd><span>zoom back to the whole frame</span>
       <kbd>Ctrl+Z</kbd><span>undo</span>
     </div>
     <h2>Rules</h2>
@@ -117,6 +121,27 @@ const store = {
 
 let queue = [], view = [], pos = -1, item = null, boxes = [], img = null;
 let selected = -1, drawClass = 0, hidden = false, undo = [], drag = null, busy = false;
+// View: canvas pixels on screen = (world - offset) * zoom. Boxes, drags and saves all stay in world
+// coordinates (the full canvas at zoom 1), so zooming never changes a label.
+const MAX_ZOOM = 8;
+let zoom = 1, ox = 0, oy = 0, panning = null, spaceDown = false;
+// Two boxes this similar are almost always one vehicle boxed twice (car + truck on a pickup).
+// Same threshold as review_store.OVERLAP_IOU.
+const OVERLAP_IOU = 0.6;
+let overlapWarned = null;  // stem whose save was held back once because of overlaps
+
+function iou(a, b) {
+  const ix = Math.max(0, Math.min(a[1] + a[3] / 2, b[1] + b[3] / 2) - Math.max(a[1] - a[3] / 2, b[1] - b[3] / 2));
+  const iy = Math.max(0, Math.min(a[2] + a[4] / 2, b[2] + b[4] / 2) - Math.max(a[2] - a[4] / 2, b[2] - b[4] / 2));
+  const inter = ix * iy, union = a[3] * a[4] + b[3] * b[4] - inter;
+  return union > 0 ? inter / union : 0;
+}
+function overlapping(bs) {
+  const out = new Set();
+  for (let i = 0; i < bs.length; i++)
+    for (let j = i + 1; j < bs.length; j++) if (iou(bs[i], bs[j]) >= OVERLAP_IOU) { out.add(i); out.add(j); }
+  return out;
+}
 // Decisions made in this browser tab, newest last: {set, stem, prevStatus, prevBoxes, newStatus}
 const decisions = [];
 
@@ -148,13 +173,47 @@ function fillCameras() {
   if (cams.includes(Number(cur))) sel.value = cur;
 }
 
+// Round-robin over cameras so reviews spread across all of them: round 1 = one frame from every camera,
+// round 2 = a second one, ... Cameras with the fewest reviewed frames go first in each round, and within
+// a camera, time periods it has no review for yet come first.
+function spreadOrder(items, all) {
+  const doneCount = new Map(), donePeriods = new Map();
+  for (const i of all) if (i.status !== "pending") {
+    doneCount.set(i.camera_id, (doneCount.get(i.camera_id) || 0) + 1);
+    if (!donePeriods.has(i.camera_id)) donePeriods.set(i.camera_id, new Set());
+    donePeriods.get(i.camera_id).add(i.time_period);
+  }
+  const PERIODS = ["Early Morning", "Morning Rush", "Midday", "Evening Rush", "Late Evening"];
+  const byCam = new Map();
+  for (const i of items) { if (!byCam.has(i.camera_id)) byCam.set(i.camera_id, []); byCam.get(i.camera_id).push(i); }
+  const cams = [...byCam.keys()].sort((a, b) => (doneCount.get(a) || 0) - (doneCount.get(b) || 0) || a - b);
+  cams.forEach((cam, k) => {
+    const list = byCam.get(cam), seen = donePeriods.get(cam) || new Set(), out = [];
+    // new periods first, one frame each; the starting period rotates per camera so round 1 mixes
+    // morning, midday and night instead of every camera's earliest frame
+    const order = PERIODS.map((_, j) => PERIODS[(j + k) % PERIODS.length]).filter(p => !seen.has(p));
+    for (const p of order) { const i = list.find(x => x.time_period === p); if (i) out.push(i); }
+    for (const i of list) if (!out.includes(i)) out.push(i);
+    byCam.set(cam, out);
+  });
+  const out = [];
+  for (let r = 0; out.length < items.length; r++)
+    for (const c of cams) if (byCam.get(c)[r]) out.push(byCam.get(c)[r]);
+  return out;
+}
+
 function applyView(keepStem) {
   const f = $("filter").value;
   const coreOnly = setName() === "test" && $("subset").value === "core";
-  view = queue.filter(i => (f === "all" || i.status === f) && (!coreOnly || i.core));
+  const keep = i =>
+    f === "val" ? i.val && i.status === "pending" :                // val frames still to review
+    f === "overlap" ? i.n_overlaps > 0 && i.status !== "rejected" : // two boxes on one vehicle
+    f === "all" || i.status === f;
+  view = queue.filter(i => keep(i) && (!coreOnly || i.core));
   if ($("sort").value === "conf") view.sort((a, b) => a.min_conf - b.min_conf);
   // frames whose pre-label has a bus or truck first (stable: camera / time order kept within each group)
   if ($("sort").value === "bustruck") view.sort((a, b) => (b.has_bus || b.has_truck) - (a.has_bus || a.has_truck));
+  if ($("sort").value === "spread") view = spreadOrder(view, queue);
   const k = keepStem ? view.findIndex(i => i.stem === keepStem) : -1;
   show(k >= 0 ? k : 0);
 }
@@ -173,7 +232,8 @@ async function load(p) {
   item = await api(`/api/item?set=${setName()}&stem=${stem}`);
   pos = p;
   boxes = item.boxes.map(b => b.slice());
-  selected = -1; undo = [];
+  selected = -1; undo = []; overlapWarned = null;
+  zoom = 1; ox = 0; oy = 0; panning = null;  // every frame starts fully zoomed out
   const m = item.meta;
   $("meta").innerHTML = `<div><b>cam ${m.camera_id}</b> · ${m.timestamp.replace("T", " ")}</div>
     <div>${m.location_en || ""}</div><div style="color:var(--muted)">${m.time_period} · ${stem}</div>`;
@@ -195,22 +255,64 @@ function toCanvas(b) {
 }
 
 function draw() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, cv.width, cv.height);
-  if (img) { ctx.imageSmoothingEnabled = true; ctx.drawImage(img, 0, 0, cv.width, cv.height); }
+  // Everything below is drawn in world coordinates; sizes that should look the same on screen are / zoom.
+  ctx.setTransform(zoom, 0, 0, zoom, -ox * zoom, -oy * zoom);
+  const px = 1 / zoom;
+  if (img) { ctx.imageSmoothingEnabled = zoom < 3; ctx.drawImage(img, 0, 0, cv.width, cv.height); }
   else { ctx.fillStyle = "#222"; ctx.fillRect(0, 0, cv.width, cv.height); }
   if (!hidden) boxes.forEach((b, i) => {
     const r = toCanvas(b), c = CLASSES[b[0]].color;
-    ctx.lineWidth = i === selected ? 3 : 2; ctx.strokeStyle = c; ctx.strokeRect(r.x, r.y, r.w, r.h);
-    ctx.fillStyle = c; ctx.font = "bold 13px system-ui";
-    ctx.fillText(CLASSES[b[0]].name[0].toUpperCase(), r.x + 3, r.y + 14);
-    if (i === selected) corners(r).forEach(([x, y]) => { ctx.fillStyle = "#fff"; ctx.fillRect(x - 4, y - 4, 8, 8); });
+    ctx.lineWidth = (i === selected ? 3 : 2) * px; ctx.strokeStyle = c; ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.fillStyle = c; ctx.font = `bold ${13 * px}px system-ui`;
+    ctx.fillText(CLASSES[b[0]].name[0].toUpperCase(), r.x + 3 * px, r.y + 14 * px);
+    if (i === selected) corners(r).forEach(([x, y]) => { ctx.fillStyle = "#fff"; ctx.fillRect(x - 4 * px, y - 4 * px, 8 * px, 8 * px); });
+  });
+  // Red dashed outline around boxes that sit on top of another box: probably one vehicle boxed twice.
+  const dup = hidden ? new Set() : overlapping(boxes);
+  dup.forEach(i => {
+    const r = toCanvas(boxes[i]), pad = 4 * px;
+    ctx.setLineDash([5 * px, 3 * px]); ctx.strokeStyle = "#ff3b3b"; ctx.lineWidth = 2 * px;
+    ctx.strokeRect(r.x - pad, r.y - pad, r.w + 2 * pad, r.h + 2 * pad); ctx.setLineDash([]);
   });
   if (drag && drag.mode === "draw") {
-    ctx.setLineDash([6, 4]); ctx.strokeStyle = CLASSES[drawClass].color; ctx.lineWidth = 2;
+    ctx.setLineDash([6 * px, 4 * px]); ctx.strokeStyle = CLASSES[drawClass].color; ctx.lineWidth = 2 * px;
     ctx.strokeRect(drag.x0, drag.y0, drag.x - drag.x0, drag.y - drag.y0); ctx.setLineDash([]);
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (zoom > 1) {  // zoom badge in the corner, in screen pixels
+    ctx.fillStyle = "rgba(0,0,0,.6)"; ctx.fillRect(8, 8, 150, 26);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 14px system-ui";
+    ctx.fillText(`×${zoom.toFixed(1)}  ·  0 = reset`, 16, 26);
+  }
+  if (dup.size) {  // banner at the bottom, in screen pixels
+    const text = `⚠ ${dup.size} boxes overlap: same vehicle boxed twice? Delete the wrong one.`;
+    ctx.font = "bold 15px system-ui";
+    const w = ctx.measureText(text).width + 24;
+    ctx.fillStyle = "rgba(160,0,0,.85)"; ctx.fillRect(8, cv.height - 38, w, 30);
+    ctx.fillStyle = "#fff"; ctx.fillText(text, 20, cv.height - 18);
   }
   renderCounts();
 }
+
+// Keep the zoomed view on the image (no empty space past its edges).
+function clampView() {
+  // The visible area is cv.width / zoom wide, so the left edge can go from 0 to (width - visible width).
+  // At zoom 1 both ranges are 0, which also undoes any shift left over from panning.
+  ox = Math.min(Math.max(ox, 0), cv.width - cv.width / zoom);
+  oy = Math.min(Math.max(oy, 0), cv.height - cv.height / zoom);
+}
+
+function zoomAt(p, factor) {
+  // p: canvas pixel under the cursor. Keep the world point under it fixed while zooming.
+  const wx = p.x / zoom + ox, wy = p.y / zoom + oy;
+  zoom = Math.min(MAX_ZOOM, Math.max(1, zoom * factor));
+  ox = wx - p.x / zoom; oy = wy - p.y / zoom;
+  clampView(); draw();
+}
+
+function setCursor() { cv.style.cursor = panning ? "grabbing" : spaceDown ? "grab" : "crosshair"; }
 
 function corners(r) { return [[r.x, r.y], [r.x + r.w, r.y], [r.x, r.y + r.h], [r.x + r.w, r.y + r.h]]; }
 
@@ -222,9 +324,16 @@ function renderCounts() {
   $("drawClass").innerHTML = `<span style="color:${CLASSES[drawClass].color}">${drawClass + 1} ${CLASSES[drawClass].name}</span>`;
 }
 
-function mousePos(e) {
+// Canvas pixel under the mouse (the canvas is scaled down by CSS on small screens).
+function canvasPos(e) {
   const r = cv.getBoundingClientRect();
   return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height };
+}
+
+// World point under the mouse: what boxes are measured in.
+function mousePos(e) {
+  const p = canvasPos(e);
+  return { x: p.x / zoom + ox, y: p.y / zoom + oy };
 }
 
 function fromRect(cls, x1, y1, x2, y2) {
@@ -234,12 +343,28 @@ function fromRect(cls, x1, y1, x2, y2) {
   return [cls, (ax + bx) / 2 / W, (ay + by) / 2 / H, (bx - ax) / W, (by - ay) / H];
 }
 
+// Right-drag pans, so the browser's right-click menu would only get in the way on the image.
+cv.addEventListener("contextmenu", e => e.preventDefault());
+
+cv.addEventListener("wheel", e => {
+  if (!item) return;
+  e.preventDefault();  // zoom the image, don't scroll the page
+  zoomAt(canvasPos(e), e.deltaY < 0 ? 1.25 : 0.8);
+}, { passive: false });
+
 cv.addEventListener("mousedown", e => {
   if (!item) return;
-  const p = mousePos(e);
+  // Right button, or left button while Space is held: pan instead of editing.
+  if (e.button === 2 || (e.button === 0 && spaceDown)) {
+    e.preventDefault();
+    const c = canvasPos(e);
+    panning = { x: c.x, y: c.y, ox, oy }; setCursor(); return;
+  }
+  if (e.button !== 0) return;
+  const p = mousePos(e), handle = HANDLE / zoom;
   if (selected >= 0 && !hidden) {
     const r = toCanvas(boxes[selected]);
-    const ci = corners(r).findIndex(([x, y]) => Math.abs(p.x - x) <= HANDLE && Math.abs(p.y - y) <= HANDLE);
+    const ci = corners(r).findIndex(([x, y]) => Math.abs(p.x - x) <= handle && Math.abs(p.y - y) <= handle);
     if (ci >= 0) {
       const opp = corners(r)[3 - ci]; snapshot();
       drag = { mode: "resize", ax: opp[0], ay: opp[1] }; return;
@@ -258,6 +383,11 @@ cv.addEventListener("mousedown", e => {
 });
 
 window.addEventListener("mousemove", e => {
+  if (panning) {
+    const c = canvasPos(e);
+    ox = panning.ox - (c.x - panning.x) / zoom; oy = panning.oy - (c.y - panning.y) / zoom;
+    clampView(); draw(); return;
+  }
   if (!drag) return;
   const p = mousePos(e);
   if (drag.mode === "draw") { drag.x = p.x; drag.y = p.y; }
@@ -272,8 +402,11 @@ window.addEventListener("mousemove", e => {
 });
 
 window.addEventListener("mouseup", () => {
+  if (panning) { panning = null; setCursor(); return; }
   if (!drag) return;
-  if (drag.mode === "draw" && Math.abs(drag.x - drag.x0) > 5 && Math.abs(drag.y - drag.y0) > 5) {
+  // 5 screen pixels, so tiny far-away vehicles can be boxed when zoomed in
+  const min = 5 / zoom;
+  if (drag.mode === "draw" && Math.abs(drag.x - drag.x0) > min && Math.abs(drag.y - drag.y0) > min) {
     snapshot(); boxes.push(fromRect(drawClass, drag.x0, drag.y0, drag.x, drag.y)); selected = boxes.length - 1;
   }
   if (drag.mode === "move" && !drag.moved) undo.pop();  // plain click: nothing changed
@@ -283,13 +416,19 @@ window.addEventListener("mouseup", () => {
 async function save(action) {
   if (!item || busy) return;
   if (action === "save" && !img) { msg("Wait for the image (or reject the frame if it is missing) — nothing saved."); return; }
+  // Overlapping boxes: hold the first Enter back once, so a doubled box isn't approved by habit.
+  if (action === "save" && overlapping(boxes).size && overlapWarned !== item.stem) {
+    overlapWarned = item.stem;
+    msg("⚠ Boxes overlap (red outline). Delete the extra box, or press Enter again to save anyway — nothing saved yet.");
+    return;
+  }
   if (action === "reset" && item.status !== "pending" &&
       !confirm(`Delete the saved review of ${item.stem} and go back to YOLO's boxes?`)) return;
   busy = true;
   const stem = item.stem, p = pos, prev = { status: item.status, boxes: item.boxes.map(b => b.slice()) };
   try {
     const res = await api("/api/save", { set: setName(), stem, boxes, action });
-    markStatus(stem, res.status, res.counts.total);
+    markStatus(stem, res.status, res.counts.total, res.n_overlaps);
     if (action !== "reset") {
       decisions.push({ set: setName(), stem, prevStatus: prev.status, prevBoxes: prev.boxes, newStatus: res.status });
       if (decisions.length > 50) decisions.shift();
@@ -303,10 +442,14 @@ async function save(action) {
   finally { busy = false; }
 }
 
-function markStatus(stem, status, nBoxes) {
+function markStatus(stem, status, nBoxes, nOverlaps) {
   for (const list of [view, queue]) {
     const it = list.find(i => i.stem === stem);
-    if (it) { it.status = status; if (nBoxes !== undefined) it.n_boxes = nBoxes; }
+    if (it) {
+      it.status = status;
+      if (nBoxes !== undefined) it.n_boxes = nBoxes;
+      if (nOverlaps !== undefined) it.n_overlaps = nOverlaps;
+    }
   }
   refreshStats();
 }
@@ -386,9 +529,15 @@ document.addEventListener("keydown", e => {
   else if (e.key === "ArrowLeft") { show(pos - 1); }
   else if (e.key === "h" || e.key === "H") { hidden = !hidden; $("btnHide").textContent = hidden ? "Show boxes" : "Hide boxes"; draw(); }
   else if (e.key === "Escape") { selected = -1; draw(); }
+  else if (e.key === " ") { if (!spaceDown) { spaceDown = true; setCursor(); } }
+  else if (e.key === "0") { zoom = 1; ox = 0; oy = 0; draw(); }
+  else if (e.key === "+" || e.key === "=") { zoomAt({ x: cv.width / 2, y: cv.height / 2 }, 1.25); }
+  else if (e.key === "-") { zoomAt({ x: cv.width / 2, y: cv.height / 2 }, 0.8); }
   else return;
   e.preventDefault();
 });
+document.addEventListener("keyup", e => { if (e.key === " ") { spaceDown = false; setCursor(); } });
+window.addEventListener("blur", () => { spaceDown = false; panning = null; setCursor(); });
 
 $("btnSave").onclick = () => save("save");
 $("btnReject").onclick = () => save("reject");

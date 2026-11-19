@@ -49,11 +49,22 @@ git add DataEngineering/reviews && git commit -m "data(reviews): review batch" &
 | `Backspace` with nothing selected | go back to YOLO's boxes — on a saved frame it asks first, then **deletes that saved review** |
 | `←` `→` | previous / next frame without saving |
 | `H` | hide boxes to see the vehicles underneath |
+| mouse wheel / `+` `−` | zoom in and out at the cursor; `0` shows the whole frame again |
+| right-drag (or `Space` + drag) | move around while zoomed |
 | `Ctrl+Z` | undo |
 
 After `Enter` the frame is **approved** if you changed nothing (YOLO was right) or **corrected** if you did.
 Both count as reviewed. Use *Sort → lowest confidence first* to do the doubtful frames first, or
-*Sort → bus/truck first* to do the frames whose pre-label has a bus or truck first (rare classes; many "trucks" are pickups = car).
+*Sort → bus/truck first* to do the frames whose pre-label has a bus or truck first (rare classes; many "trucks" are pickups = car),
+or *Sort → one per camera first* to spread your reviews over all 100 cameras and all times of day.
+
+**Two boxes on one vehicle.** YOLO often leaves a car box *and* a truck box on the same pickup. Boxes that overlap
+that much get a **red dashed outline** and a warning; the first `Enter` on such a frame is held back. Delete the
+wrong box (click it, `Del`), or press `Enter` again if they really are two vehicles.
+*Show → ⚠ overlapping boxes* lists every frame that still has them, reviewed or not.
+
+**Val frames.** *Show → val (31 Aug) to do* lists the train-set frames from 31 Aug that are still pending. The
+trainer scores the model on these after every epoch to pick the best one, so human labels here matter most.
 
 ## Rules
 

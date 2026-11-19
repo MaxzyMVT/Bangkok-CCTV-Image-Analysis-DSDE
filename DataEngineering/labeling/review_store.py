@@ -66,6 +66,16 @@ def _iou(a: Box, b: Box) -> float:
     return inter / union if union > 0 else 0.0
 
 
+OVERLAP_IOU = 0.6
+
+
+def overlap_pairs(boxes, iou_min: float = OVERLAP_IOU) -> list[tuple[int, int]]:
+    """Index pairs of boxes that overlap so much they are almost surely one vehicle boxed twice
+    (YOLO keeps a car box and a truck box on the same pickup because it suppresses per class)."""
+    return [(i, j) for i in range(len(boxes)) for j in range(i + 1, len(boxes))
+            if _iou(boxes[i], boxes[j]) >= iou_min]
+
+
 def same_as_prelabel(pre: list[Box], boxes: list[Box], iou_min: float = IOU_MIN) -> bool:
     """True when every box matches a pre-label box of the same class with IoU >= iou_min (one-to-one)."""
     if len(pre) != len(boxes):
