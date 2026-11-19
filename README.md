@@ -62,7 +62,10 @@ Bangkok-CCTV-Image-Analysis-DSDE/
 │   ├── cctv_images_metadata.csv         # Full catalog of 61,319 images with 27 attributes
 │   └── WebScraping/                     # Web extraction modules
 │       ├── README.md                    # Web extraction documentation
-│       └── build_rail_geojson.py        # OpenStreetMap Overpass extractor for transit
+│       ├── build_rail_geojson.py        # OpenStreetMap Overpass extractor for transit
+│       ├── sun_times.py, open_meteo.py, metar.py, osm_overpass.py, bma_open_data.py,
+│       │   traffy_fondue.py, fm91_news.py, bma_drainage.py   # External source scrapers
+│       └── external_lakehouse.py        # Bronze -> Silver loader for scraped sources
 ├── Models/                              # Computer Vision & Inference Pipelines
 │   ├── README.md                        # Modeling documentation
 │   ├── detector.py                      # YOLOVehicleDetector class (inference & telemetry)
@@ -93,7 +96,8 @@ conda create -n dsde python=3.11 -y
 conda activate dsde
 
 # Install required dependencies
-pip install ultralytics opencv-python-headless pillow requests gdown
+pip install ultralytics opencv-python-headless pillow requests gdown beautifulsoup4 pandas playwright duckdb pyducklake pytz
+python -m playwright install chromium
 ```
 
 ### 2. Launch the Unified Web Application
@@ -113,6 +117,13 @@ python Apps/main.py --port 9000
 
 > [!NOTE]
 > On the initial launch, if the CCTV image archive is not found locally, `dataset_downloader.py` automatically fetches and extracts the dataset files into `dataset/100_cameras/`.
+
+### 3. Run the Web Scraping & Lakehouse Pipeline
+Scrape all external sources (Aug 25–31, 2026) and load them into the lakehouse (Bronze → Silver) in one command:
+```bash
+python DataEngineering/lakehouse_pipeline.py --scrape
+```
+Scrapers only run for raw files that are missing. Re-scrape every source with `--rescrape`, rebuild the lakehouse from scratch with `--reset`. The full first run takes about 30–60 minutes. See [`DataEngineering/WebScraping/README.md`](DataEngineering/WebScraping/README.md) for the sources, methods, and output columns.
 
 ---
 

@@ -41,9 +41,10 @@ def _load_module(name, path):
     return module
 
 
-# Folder names contain dashes, so load the two apps by file path
+# Folder names contain dashes, so load the apps by file path
 detect_app = _load_module("detect_app", APPS_DIR / "Detection-Classification" / "app.py")
 map_app = _load_module("camera_map_app", APPS_DIR / "Camera-Map" / "app.py")
+lakehouse_app = _load_module("lakehouse_app", APPS_DIR / "Lakehouse-Viewer" / "app.py")
 
 # One YOLO model is shared by all requests; run inference one request at a time
 PREDICT_LOCK = threading.Lock()
@@ -55,22 +56,51 @@ class CombinedHandler(detect_app.CCTVAnalysisHandler):
         path = urllib.parse.unquote(url.path)
         query = urllib.parse.parse_qs(url.query)
 
-        # Map owns "/", "/api/map/*" and "/images/*"; everything else goes to Detect
+        # Normalization redirects
         if path == "/inspect/":
             self.send_response(301)
             self.send_header("Location", "/inspect" + (f"?{url.query}" if url.query else ""))
             self.end_headers()
             return
+        if path == "/lakehouse/":
+            self.send_response(301)
+            self.send_header("Location", "/lakehouse" + (f"?{url.query}" if url.query else ""))
+            self.end_headers()
+            return
+
+        # 1. Lakehouse Viewer routes (/lakehouse, /api/lakehouse/*)
+        if lakehouse_app.handle_lakehouse_get(self, path, query):
+            return
+
+        # 2. Map routes ("/", "/api/map/*", "/images/*", "/static/map/*")
         if map_app.handle_map_get(self, path, query):
             return
+
+        # 3. Detect & YOLO routes
         super().do_GET()
 
     def do_POST(self):
+        url = urllib.parse.urlparse(self.path)
+        path = urllib.parse.unquote(url.path)
+
+        # 1. Lakehouse Viewer POST endpoints (/api/lakehouse/query, /api/lakehouse/pipeline/run)
+        if lakehouse_app.handle_lakehouse_post(self, path):
+            return
+
+        # 2. YOLO Predict & detection POST endpoints (protected by PREDICT_LOCK)
         with PREDICT_LOCK:
             super().do_POST()
 
     def log_message(self, fmt, *args):
         pass
+
+
+class SilentThreadingHTTPServer(ThreadingHTTPServer):
+    def handle_error(self, request, client_address):
+        exc_type, _, _ = sys.exc_info()
+        if exc_type in (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+            return
+        super().handle_error(request, client_address)
 
 
 def start_server(port=8080):
@@ -81,14 +111,15 @@ def start_server(port=8080):
     detect_app.build_camera_index()
     map_app.load_cameras()
 
-    server = ThreadingHTTPServer(("", port), CombinedHandler)
+    server = SilentThreadingHTTPServer(("", port), CombinedHandler)
     active_model = detect_app.resolve_model()
     print("=" * 64)
-    print(" Bangkok CCTV: Camera Map + YOLO11 Detect")
-    print(f" Model:   {active_model}")
-    print(f" Cameras: {len(map_app.CAMERAS)}")
-    print(f" Map:     http://localhost:{port}/")
-    print(f" Detect:  http://localhost:{port}/inspect")
+    print(" Bangkok CCTV: Camera Map + YOLO11 Detect + Lakehouse Explorer")
+    print(f" Model:     {active_model}")
+    print(f" Cameras:   {len(map_app.CAMERAS)}")
+    print(f" Map:       http://localhost:{port}/")
+    print(f" Detect:    http://localhost:{port}/inspect")
+    print(f" Lakehouse: http://localhost:{port}/lakehouse")
     print(" Press Ctrl+C to stop")
     print("=" * 64)
     try:

@@ -39,6 +39,16 @@
       </div>
 
       <div class="flex items-center gap-2">
+      <!-- Link to Lakehouse Explorer -->
+      <a href="/lakehouse" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-purple-500/40 bg-purple-950/40 text-xs font-medium text-purple-200 hover:text-white hover:bg-purple-900/60 focus:outline-none transition">
+        <i class="fa-solid fa-layer-group text-purple-400"></i> Lakehouse Explorer
+      </a>
+
+      <!-- Pipeline to Lakehouse Modal Trigger -->
+      <button id="navPipelineBtn" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-purple-500/40 bg-purple-950/40 text-xs font-medium text-purple-200 hover:text-white hover:bg-purple-900/60 focus:outline-none transition">
+        <i class="fa-solid fa-database text-purple-400"></i> Pipeline to Lakehouse
+      </button>
+
       <!-- Back to the camera map -->
       <a href="/" id="navMapLink" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700/60 bg-slate-800/80 text-xs font-medium text-slate-300 hover:text-white hover:border-blue-500/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition">
         <i class="fa-solid fa-map-location-dot text-blue-400"></i> แผนที่กล้อง
@@ -216,6 +226,22 @@
           <button id="runBtn" class="w-full py-3 px-4 rounded-xl font-semibold text-white accent-gradient shadow-lg shadow-blue-500/25 hover:opacity-95 transition flex items-center justify-center gap-2 text-sm">
             <i class="fa-solid fa-play"></i> Run YOLO11 Detection (R)
           </button>
+
+          <!-- Lakehouse Pipeline Ingestion Action -->
+          <div class="border-t border-slate-800/80 pt-3">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-semibold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-database text-purple-400"></i> Lakehouse Ingestion
+              </span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">Bronze → Silver</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mb-2.5 leading-relaxed">
+              Batch-predict vehicle counts and ingest into PyDuckLake Medallion Lakehouse tables.
+            </p>
+            <button id="openPipelineModalBtn" class="w-full py-2.5 px-3 rounded-xl font-medium text-xs text-white bg-purple-600 hover:bg-purple-500 shadow-md shadow-purple-500/20 transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-layer-group"></i> Pipeline to Lakehouse...
+            </button>
+          </div>
 
           <!-- Custom File Upload Dropzone -->
           <div class="border-t border-slate-800 pt-3">
@@ -1057,11 +1083,257 @@
       }
     }
 
+    // ==========================================
+    // Lakehouse Batch Pipeline Modal & Controls
+    // ==========================================
+    const pipelineModal = document.getElementById('pipelineModal');
+    const openPipelineModalBtn = document.getElementById('openPipelineModalBtn');
+    const navPipelineBtn = document.getElementById('navPipelineBtn');
+    const closePipelineModalBtn = document.getElementById('closePipelineModalBtn');
+    const btnDismissPipelineModal = document.getElementById('btnDismissPipelineModal');
+    const btnRunDemoPipeline = document.getElementById('btnRunDemoPipeline');
+    const btnRunFullPipeline = document.getElementById('btnRunFullPipeline');
+    const pipelineProgressSection = document.getElementById('pipelineProgressSection');
+    const pipelineProgressBar = document.getElementById('pipelineProgressBar');
+    const pipelineProgressPercent = document.getElementById('pipelineProgressPercent');
+    const pipelineStatusStage = document.getElementById('pipelineStatusStage');
+    const pipelineCountsLabel = document.getElementById('pipelineCountsLabel');
+    const pipelineCurrentFile = document.getElementById('pipelineCurrentFile');
+    const pipelineSuccessCard = document.getElementById('pipelineSuccessCard');
+    const pipelineSuccessDetails = document.getElementById('pipelineSuccessDetails');
+    const pipelineActionButtons = document.getElementById('pipelineActionButtons');
+
+    let pipelinePollInterval = null;
+
+    function showPipelineModal() {
+      if (pipelineModal) {
+        pipelineModal.classList.remove('hidden');
+        checkPipelineStatus();
+      }
+    }
+
+    function hidePipelineModal() {
+      if (pipelineModal) pipelineModal.classList.add('hidden');
+    }
+
+    if (openPipelineModalBtn) openPipelineModalBtn.addEventListener('click', showPipelineModal);
+    if (navPipelineBtn) navPipelineBtn.addEventListener('click', showPipelineModal);
+    if (closePipelineModalBtn) closePipelineModalBtn.addEventListener('click', hidePipelineModal);
+    if (btnDismissPipelineModal) btnDismissPipelineModal.addEventListener('click', hidePipelineModal);
+
+    async function triggerPipeline(limit) {
+      if (btnRunDemoPipeline) btnRunDemoPipeline.disabled = true;
+      if (btnRunFullPipeline) btnRunFullPipeline.disabled = true;
+      if (pipelineProgressSection) pipelineProgressSection.classList.remove('hidden');
+      if (pipelineSuccessCard) pipelineSuccessCard.classList.add('hidden');
+      if (pipelineProgressBar) pipelineProgressBar.style.width = '0%';
+      if (pipelineProgressPercent) pipelineProgressPercent.textContent = '0%';
+      if (pipelineStatusStage) pipelineStatusStage.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Triggering pipeline...';
+      if (pipelineCountsLabel) pipelineCountsLabel.textContent = 'Preparing images...';
+      if (pipelineCurrentFile) pipelineCurrentFile.textContent = 'Starting worker...';
+
+      try {
+        const res = await fetch('/api/pipeline/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ limit: limit })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          alert('Could not start pipeline: ' + (data.error || 'Server error'));
+          if (btnRunDemoPipeline) btnRunDemoPipeline.disabled = false;
+          if (btnRunFullPipeline) btnRunFullPipeline.disabled = false;
+          return;
+        }
+        startPipelinePolling();
+      } catch (err) {
+        alert('Network error triggering pipeline: ' + err.message);
+        if (btnRunDemoPipeline) btnRunDemoPipeline.disabled = false;
+        if (btnRunFullPipeline) btnRunFullPipeline.disabled = false;
+      }
+    }
+
+    if (btnRunDemoPipeline) {
+      btnRunDemoPipeline.addEventListener('click', () => {
+        if (confirm('Run Demo Batch of 100 images? This will perform YOLO inference on 100 frames and ingest them into Bronze -> Silver Lakehouse tables.')) {
+          triggerPipeline(100);
+        }
+      });
+    }
+
+    if (btnRunFullPipeline) {
+      btnRunFullPipeline.addEventListener('click', () => {
+        if (confirm('⚠️ Run Full Dataset Pipeline?\n\nThis will process all ~61,000+ CCTV frames across all 100 cameras. On GPU this takes ~25-40 minutes; on CPU several hours.\n\nAre you sure you want to proceed?')) {
+          triggerPipeline(null);
+        }
+      });
+    }
+
+    function startPipelinePolling() {
+      if (pipelinePollInterval) clearInterval(pipelinePollInterval);
+      pipelinePollInterval = setInterval(checkPipelineStatus, 800);
+    }
+
+    async function checkPipelineStatus() {
+      try {
+        const res = await fetch('/api/pipeline/status');
+        if (!res.ok) return;
+        const state = await res.json();
+
+        if (state.running) {
+          if (btnRunDemoPipeline) btnRunDemoPipeline.disabled = true;
+          if (btnRunFullPipeline) btnRunFullPipeline.disabled = true;
+          if (pipelineProgressSection) pipelineProgressSection.classList.remove('hidden');
+          if (pipelineSuccessCard) pipelineSuccessCard.classList.add('hidden');
+          const pct = state.percent || 0;
+          if (pipelineProgressBar) pipelineProgressBar.style.width = `${pct}%`;
+          if (pipelineProgressPercent) pipelineProgressPercent.textContent = `${pct}%`;
+          if (pipelineCountsLabel) pipelineCountsLabel.textContent = `Frames: ${(state.progress || 0).toLocaleString()} / ${(state.total || 0).toLocaleString()}`;
+          if (pipelineCurrentFile) pipelineCurrentFile.textContent = state.last_file || 'Processing...';
+
+          if (state.stage === 'lakehouse_ingest') {
+            if (pipelineStatusStage) pipelineStatusStage.innerHTML = '<i class="fa-solid fa-database fa-bounce text-purple-400"></i> Ingesting into Bronze & Silver...';
+          } else {
+            if (pipelineStatusStage) pipelineStatusStage.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-400"></i> ${state.message}`;
+          }
+
+          if (!pipelinePollInterval) {
+            startPipelinePolling();
+          }
+        } else {
+          if (pipelinePollInterval) {
+            clearInterval(pipelinePollInterval);
+            pipelinePollInterval = null;
+          }
+          if (btnRunDemoPipeline) btnRunDemoPipeline.disabled = false;
+          if (btnRunFullPipeline) btnRunFullPipeline.disabled = false;
+
+          if (state.stage === 'complete') {
+            if (pipelineProgressSection) pipelineProgressSection.classList.remove('hidden');
+            if (pipelineProgressBar) pipelineProgressBar.style.width = '100%';
+            if (pipelineProgressPercent) pipelineProgressPercent.textContent = '100%';
+            if (pipelineStatusStage) pipelineStatusStage.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> Completed!';
+            if (pipelineSuccessCard) pipelineSuccessCard.classList.remove('hidden');
+            const b = state.stats ? state.stats.bronze_ingested : 0;
+            const s = state.stats ? state.stats.silver_transformed : 0;
+            if (pipelineSuccessDetails) {
+              pipelineSuccessDetails.textContent = `Successfully processed ${state.total || state.progress} frames. Ingested ${b.toLocaleString()} records into bronze.vehicle_counts_raw and ${s.toLocaleString()} records into silver.vehicle_counts.`;
+            }
+          } else if (state.stage === 'error') {
+            if (pipelineProgressSection) pipelineProgressSection.classList.remove('hidden');
+            if (pipelineStatusStage) pipelineStatusStage.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-400"></i> Error: ${state.error}`;
+          }
+        }
+      } catch (err) {
+        console.warn('Status poll error:', err);
+      }
+    }
+
     // Startup
     window.addEventListener('DOMContentLoaded', () => {
       loadAllCameras();
       loadModelInfo();
     });
   </script>
+  <!-- LAKEHOUSE PIPELINE WARNING & RUN MODAL -->
+  <div id="pipelineModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-card max-w-lg w-full rounded-2xl border border-slate-700/80 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-purple-900/60 to-indigo-900/60 px-6 py-4 border-b border-purple-500/20 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300">
+            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              Batch Pipeline to Lakehouse
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono">Bronze → Silver</span>
+            </h3>
+            <p class="text-xs text-slate-300">PyDuckLake Medallion Architecture Ingestion</p>
+          </div>
+        </div>
+        <button id="closePipelineModalBtn" class="text-slate-400 hover:text-white text-lg transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4 text-xs text-slate-300">
+        
+        <!-- Warning Alert Box -->
+        <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 flex gap-3 items-start">
+          <i class="fa-solid fa-bell text-amber-400 text-base mt-0.5 flex-shrink-0"></i>
+          <div class="space-y-1">
+            <div class="font-bold text-amber-300">Resource & Time Warning</div>
+            <p class="text-[11px] leading-relaxed text-amber-200/90">
+              Processing the full Bangkok CCTV repository (<strong>~61,000+ high-resolution frames</strong> across 100 cameras) performs continuous deep neural network inference (YOLO11). On GPU (CUDA), this takes approximately <strong>25–40 minutes</strong>; on CPU it may take several hours.
+            </p>
+          </div>
+        </div>
+
+        <div class="space-y-2 bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+          <div class="font-semibold text-slate-200 flex items-center gap-1.5">
+            <i class="fa-solid fa-diagram-project text-purple-400"></i> What happens during this pipeline?
+          </div>
+          <ol class="list-decimal list-inside space-y-1 text-slate-400 text-[11px] pl-1 leading-normal">
+            <li><strong>Batch YOLO Inference:</strong> Detects & counts vehicles (car, motorcycle, bus, truck, bicycle) with temporal metadata.</li>
+            <li><strong>Bronze Lakehouse Ingestion:</strong> Stores raw structured predictions into <code class="text-purple-300 font-mono">bronze.vehicle_counts_raw</code> with audit hash & timestamp.</li>
+            <li><strong>Silver Lakehouse Transformation:</strong> Types, cleans, validates, and deduplicates records into <code class="text-purple-300 font-mono">silver.vehicle_counts</code>.</li>
+          </ol>
+        </div>
+
+        <!-- Progress Tracker Section (Hidden until active) -->
+        <div id="pipelineProgressSection" class="hidden space-y-3 pt-2">
+          <div class="flex items-center justify-between text-xs font-semibold">
+            <span id="pipelineStatusStage" class="text-purple-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-spinner fa-spin"></i> Initializing Pipeline...
+            </span>
+            <span id="pipelineProgressPercent" class="font-mono text-white">0%</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
+            <div id="pipelineProgressBar" class="bg-gradient-to-r from-purple-500 to-indigo-500 h-full w-0 transition-all duration-300 rounded-full"></div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+            <span id="pipelineCountsLabel">Frames: 0 / 0</span>
+            <span id="pipelineCurrentFile" class="truncate max-w-[220px] text-slate-500">Preparing...</span>
+          </div>
+
+          <!-- Summary Stats when completed -->
+          <div id="pipelineSuccessCard" class="hidden p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 space-y-1">
+            <div class="font-bold flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-check text-emerald-400"></i> Pipeline Completed!
+            </div>
+            <p id="pipelineSuccessDetails" class="text-[11px] text-emerald-200/90">
+              Successfully ingested into lakehouse.
+            </p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div id="pipelineActionButtons" class="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button id="btnRunDemoPipeline" class="py-2.5 px-4 rounded-xl font-semibold text-white bg-slate-800 hover:bg-slate-700 border border-slate-600 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-bolt text-amber-400"></i> Run Demo Batch (100)
+          </button>
+          <button id="btnRunFullPipeline" class="py-2.5 px-4 rounded-xl font-semibold text-white bg-purple-600 hover:bg-purple-500 shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-forward-fast"></i> Run Full Pipeline (~61k)
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-900/60 px-6 py-3 border-t border-slate-800/80 flex items-center justify-between">
+        <span class="text-[11px] text-slate-500">Hardware: GPU CUDA Acceleration</span>
+        <button id="btnDismissPipelineModal" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white text-xs hover:bg-slate-800 transition">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
 </body>
 </html>

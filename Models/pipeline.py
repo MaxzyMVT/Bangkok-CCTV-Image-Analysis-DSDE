@@ -94,7 +94,8 @@ def run_batch_pipeline(
     conf_threshold: float = 0.25,
     model_name: Optional[str] = None,
     device: str = "cpu",
-    frozen_csv: Optional[Path] = DEFAULT_FROZEN_CSV
+    frozen_csv: Optional[Path] = DEFAULT_FROZEN_CSV,
+    progress_callback = None
 ):
     """
     Processes all CCTV images in input_dir, extracts vehicle detections,
@@ -177,6 +178,12 @@ def run_batch_pipeline(
                 out_img_path = annotated_output_dir / f"pred_{img_p.name}"
                 imwrite_unicode(out_img_path, res["annotated_image"])
 
+            if progress_callback:
+                try:
+                    progress_callback(idx, len(image_paths), img_p.name)
+                except Exception:
+                    pass
+
             if idx % 50 == 0 or idx == len(image_paths):
                 print(f"[{idx}/{len(image_paths)}] Processed: {img_p.name} -> Total Vehicles: {counts.get('total_vehicles', 0)}")
 
@@ -191,9 +198,13 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, default=None, help="Limit number of images to process")
     parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
     parser.add_argument("--model", type=str, default=None, help="YOLO weights (default: Models/weights/best.pt if present, else yolo11s.pt)")
+    parser.add_argument("--device", type=str, default=None, help="Device to run on ('0' for GPU, 'cpu', default: auto)")
     parser.add_argument("--keep-frozen", action="store_true",
                         help="Also count frames from frozen camera feeds (skipped by default)")
     args = parser.parse_args()
+
+    import torch
+    dev = args.device or ("0" if torch.cuda.is_available() else "cpu")
 
     ann_dir = Path(args.save_annotated) if args.save_annotated else None
     run_batch_pipeline(
@@ -204,5 +215,6 @@ if __name__ == "__main__":
         limit=args.limit,
         conf_threshold=args.conf,
         model_name=resolve_model(args.model),
+        device=dev,
         frozen_csv=None if args.keep_frozen else DEFAULT_FROZEN_CSV
     )

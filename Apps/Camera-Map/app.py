@@ -212,13 +212,16 @@ def _resolve_static(rel):
 
 
 def _send(handler, body, content_type, status=200, cache=False):
-    handler.send_response(status)
-    handler.send_header("Content-Type", content_type)
-    handler.send_header("Content-Length", str(len(body)))
-    if cache:
-        handler.send_header("Cache-Control", "public, max-age=86400")
-    handler.end_headers()
-    handler.wfile.write(body)
+    try:
+        handler.send_response(status)
+        handler.send_header("Content-Type", content_type)
+        handler.send_header("Content-Length", str(len(body)))
+        if cache:
+            handler.send_header("Cache-Control", "public, max-age=86400")
+        handler.end_headers()
+        handler.wfile.write(body)
+    except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+        pass
 
 
 def _send_json(handler, data, status=200):
