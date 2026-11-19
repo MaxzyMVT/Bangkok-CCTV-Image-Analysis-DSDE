@@ -123,7 +123,7 @@ def fetch_stations() -> pd.DataFrame:
         water.assign(system="water").rename(columns={"water_code": "station_code", "water_shortname": "station"}),
     ]
     return pd.concat([p[["system", "station_code", "station", "district_name", "latitude", "longitude"]]
-                      for p in parts], ignore_index=True)
+                      for p in parts], ignore_index=True).sort_values(["system", "station_code"], ignore_index=True)
 
 
 def launch_browser(p):
