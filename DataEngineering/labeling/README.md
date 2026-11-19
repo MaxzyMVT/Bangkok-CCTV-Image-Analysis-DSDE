@@ -63,6 +63,12 @@ that much get a **red dashed outline** and a warning; the first `Enter` on such 
 wrong box (click it, `Del`), or press `Enter` again if they really are two vehicles.
 *Show → ⚠ overlapping boxes* lists every frame that still has them, reviewed or not.
 
+Clear cases are merged for you before you see the frame (team rule: keep one box, **car**, or **motorcycle**
+if one of the two is a motorcycle), but only when YOLO itself scored that class higher than the other one.
+On 261 reviewed pairs that was right ~98 % of the time; when YOLO scored the truck/bus higher the rule was right
+only ~55 %, so those pairs stay red for you to decide. Already-reviewed frames get the same treatment with
+`python DataEngineering/labeling/fix_overlaps.py --set train` (dry run; add `--apply` to write).
+
 **Val frames.** *Show → val (31 Aug) to do* lists the train-set frames from 31 Aug that are still pending. The
 trainer scores the model on these after every epoch to pick the best one, so human labels here matter most.
 
