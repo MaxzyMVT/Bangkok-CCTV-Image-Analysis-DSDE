@@ -6,9 +6,20 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "DataEngineering" / "labeling"))
 
-from review_store import ReviewStore, clean_boxes, counts  # noqa: E402
+from review_store import ReviewStore, clean_boxes, counts, overlap_pairs  # noqa: E402
 
 STEM = "cam0001_img00001"
+
+
+class OverlapTest(unittest.TestCase):
+    def test_same_vehicle_two_classes_is_flagged(self):
+        # YOLO's per-class NMS leaves a car box and a truck box on one pickup
+        self.assertEqual(overlap_pairs([(0, .5, .5, .2, .2), (3, .505, .5, .21, .2)]), [(0, 1)])
+
+    def test_neighbouring_vehicles_are_not_flagged(self):
+        # a motorcycle beside a car, partly overlapping, is two real vehicles
+        self.assertEqual(overlap_pairs([(0, .5, .5, .2, .2), (1, .62, .55, .06, .12)]), [])
+        self.assertEqual(overlap_pairs([]), [])
 
 
 class ReviewStoreTest(unittest.TestCase):

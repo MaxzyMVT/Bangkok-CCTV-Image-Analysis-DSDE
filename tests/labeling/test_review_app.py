@@ -86,6 +86,22 @@ class ReviewAppTest(unittest.TestCase):
         self.assertIsNone(it["meta"]["location_en"])
         self.assertIsInstance(it["boxes"], list)
 
+    def test_queue_flags_overlaps_and_val(self):
+        stem = load_items("test")["stem"].iloc[3]
+        self.store.write_prelabel("test", stem, [(0, .5, .5, .2, .2, .9), (3, .505, .5, .21, .2, .6)], overwrite=True)
+        try:
+            items = {i["stem"]: i for i in self._json("/api/queue?set=test")["items"]}
+            self.assertEqual(items[stem]["n_overlaps"], 1)
+            self.assertEqual(items[self.stem]["n_overlaps"], 0)
+            saved = self._post({"set": "test", "stem": stem, "boxes": [[0, .5, .5, .2, .2]], "action": "save"})
+            self.assertEqual(saved["n_overlaps"], 0)   # the page updates its flag from this
+            self.assertFalse(any(i["val"] for i in self._json("/api/queue?set=test")["items"]))
+            train = self._json("/api/queue?set=train")["items"]
+            self.assertEqual(sum(i["val"] for i in train), 173)   # 31 Aug frames in train_manifest.csv
+        finally:
+            self._post({"set": "test", "stem": stem, "boxes": [], "action": "reset"})
+            self.store.write_prelabel("test", stem, [], overwrite=True)
+
     def test_queue_and_stats_mark_core_subset(self):
         items = self._json("/api/queue?set=test")["items"]
         self.assertEqual(sum(i["core"] for i in items), 300)
