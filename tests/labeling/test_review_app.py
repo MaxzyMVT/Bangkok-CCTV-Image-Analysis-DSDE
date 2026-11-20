@@ -103,6 +103,20 @@ class ReviewAppTest(unittest.TestCase):
             self._post({"set": "test", "stem": stem, "boxes": [], "action": "reset"})
             self.store.write_prelabel("test", stem, [], overwrite=True)
 
+    def test_queue_shows_assigned_reviewer(self):
+        items = load_items("test")
+        a, b = items["stem"].iloc[0], items["stem"].iloc[1]
+        path = self.store.set_dir("test") / "assignments.csv"
+        rows = ["stem,camera_id,reviewer", f"{a},1,ปัน", f"{b},1,ครีม"]
+        path.write_text("\n".join(rows) + "\n", encoding="utf-8-sig")
+        try:
+            q = {i["stem"]: i for i in self._json("/api/queue?set=test")["items"]}
+            self.assertEqual((q[a]["reviewer"], q[b]["reviewer"]), ("ปัน", "ครีม"))
+            self.assertIsNone(q[items["stem"].iloc[2]]["reviewer"])
+        finally:
+            path.unlink()
+        self.assertIsNone(self._json("/api/queue?set=test")["items"][0]["reviewer"])   # no file: no reviewer
+
     def test_queue_and_stats_mark_core_subset(self):
         items = self._json("/api/queue?set=test")["items"]
         self.assertEqual(sum(i["core"] for i in items), 300)

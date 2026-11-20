@@ -13,7 +13,12 @@ so people check a sample of frames. That gives us (1) a measured counting error 
 300 core frames by default (*Frames → core 300*); switch to *all 1,000* only after those are done.
 Train frames are optional extra help: unreviewed train frames still get YOLO labels.
 
-There is **no per-person split**. Everyone works from the same queue; if several people help, pick different
+**Split between people (train, Nov 2026):** the 580 pending train frames are split by camera between
+ปัน, ภัทร and ครีม (~193 frames, 32 cameras each), in `DataEngineering/reviews/train/assignments.csv`.
+Pick your name in **Reviewer** at the top of the page to see only your frames. To redo the split
+(other people, or after some frames are done): `python DataEngineering/labeling/assign_reviewers.py --set train --names A B C`.
+
+Otherwise there is **no per-person split**. Everyone works from the same queue; if several people help, pick different
 cameras with the *Camera* filter. Each frame's result is its own small file, so pushes don't conflict.
 
 ## Start

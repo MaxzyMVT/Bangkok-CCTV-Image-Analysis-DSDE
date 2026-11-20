@@ -7,6 +7,7 @@ Review tool: approve or fix YOLO pre-labels in the browser.
 Results are written to DataEngineering/reviews/<set>/ (labels/ + status/). Commit and push them.
 """
 import argparse
+import csv
 import json
 import math
 import sys
@@ -56,8 +57,17 @@ class ReviewApp:
             raise NotFound(f"unknown frame {stem!r}")
         return row
 
+    def assignments(self, set_name) -> dict:
+        """stem -> reviewer from assign_reviewers.py (re-read every time, so a new split shows on refresh)."""
+        path = self.store.set_dir(set_name) / "assignments.csv"
+        if not path.exists():
+            return {}
+        with open(path, encoding="utf-8-sig", newline="") as f:
+            return {r["stem"]: r["reviewer"] for r in csv.DictReader(f)}
+
     def queue(self, set_name, camera=None):
         statuses = self.store.all_status(set_name)
+        who = self.assignments(set_name)
         out = []
         for stem, r in self.items(set_name).items():
             if camera and str(r["camera_id"]) != str(camera):
@@ -73,7 +83,8 @@ class ReviewApp:
                         "has_truck": any(int(b[0]) == TRUCK for b in pre),
                         "core": bool(r.get("core", False)),
                         # train_manifest.csv `split`: the 31 Aug frames the trainer scores every epoch
-                        "val": r.get("split") == "val"})
+                        "val": r.get("split") == "val",
+                        "reviewer": who.get(stem)})
         return {"items": out}
 
     def item(self, set_name, stem):

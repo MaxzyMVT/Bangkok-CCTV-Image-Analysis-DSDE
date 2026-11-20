@@ -51,6 +51,7 @@
 <header>
   <label>Set <select id="set"><option value="test">test</option><option value="train">train (1,200)</option></select></label>
   <label id="subsetLabel">Frames <select id="subset"><option value="core">core 300 (do these)</option><option value="all">all 1,000</option></select></label>
+  <label id="reviewerLabel" hidden>Reviewer <select id="reviewer"><option value="">everyone</option></select></label>
   <label>Camera <select id="camera"><option value="">all</option></select></label>
   <label>Show <select id="filter">
     <option value="pending">pending</option><option value="all">all</option><option value="approved">approved</option>
@@ -162,8 +163,18 @@ async function loadQueue(keepStem) {
   const data = await api(`/api/queue?set=${setName()}` + (cam ? `&camera=${cam}` : ""));
   queue = data.items;
   if (!cam) fillCameras();
+  fillReviewers();
   applyView(keepStem);
   refreshStats();
+}
+
+// Names from assignments.csv (assign_reviewers.py). Hidden when the set has no split.
+function fillReviewers() {
+  const sel = $("reviewer"), cur = store.get("reviewer", "");
+  const names = [...new Set(queue.map(i => i.reviewer).filter(Boolean))];
+  sel.innerHTML = '<option value="">everyone</option>' + names.map(n => `<option value="${n}">${n}</option>`).join("");
+  sel.value = names.includes(cur) ? cur : "";
+  $("reviewerLabel").hidden = !names.length;
 }
 
 function fillCameras() {
@@ -209,7 +220,8 @@ function applyView(keepStem) {
     f === "val" ? i.val && i.status === "pending" :                // val frames still to review
     f === "overlap" ? i.n_overlaps > 0 && i.status !== "rejected" : // two boxes on one vehicle
     f === "all" || i.status === f;
-  view = queue.filter(i => keep(i) && (!coreOnly || i.core));
+  const mine = $("reviewer").value;   // "" = everyone
+  view = queue.filter(i => keep(i) && (!coreOnly || i.core) && (!mine || i.reviewer === mine));
   if ($("sort").value === "conf") view.sort((a, b) => a.min_conf - b.min_conf);
   // frames whose pre-label has a bus or truck first (stable: camera / time order kept within each group)
   if ($("sort").value === "bustruck") view.sort((a, b) => (b.has_bus || b.has_truck) - (a.has_bus || a.has_truck));
@@ -550,7 +562,7 @@ renderRecent();
 $("btnPrev").onclick = () => show(pos - 1);
 $("btnNext").onclick = () => show(pos + 1);
 $("btnHide").onclick = () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "h" }));
-for (const id of ["set", "camera", "filter", "sort", "subset"]) {
+for (const id of ["set", "camera", "filter", "sort", "subset", "reviewer"]) {
   $(id).addEventListener("change", () => {
     store.set(id, $(id).value);
     if (id === "set") { store.set("camera", ""); $("camera").value = ""; showSubset(); }
