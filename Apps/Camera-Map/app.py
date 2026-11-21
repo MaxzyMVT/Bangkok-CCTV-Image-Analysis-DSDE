@@ -99,50 +99,66 @@ def resolve_frame(camera_id, filename):
 
 
 def load_cameras():
-    """Reads camera metadata and pairs each camera with its image folder."""
+    """Reads camera metadata from Lakehouse Silver layer (or CSV fallback) and pairs each camera with its image folder."""
     global CAMERAS, CAMERA_FILES
     cameras, files_by_cam = [], {}
-    if not CCTV_INFO_CSV.exists():
-        print(f"[!] Camera metadata not found: {CCTV_INFO_CSV}")
-    else:
+
+    # Prefer pulling directly from PyDuckLake silver layer if available
+    rows = []
+    try:
+        from DataEngineering.lakehouse_pipeline import load_silver_cameras
+        silver_cameras = load_silver_cameras()
+        if silver_cameras:
+            rows = list(silver_cameras.values())
+    except Exception:
         rows = []
-        for encoding, errors in (("utf-8-sig", "strict"), ("cp874", "replace"), ("utf-8", "replace")):
-            try:
-                with open(CCTV_INFO_CSV, encoding=encoding, errors=errors, newline="") as f:
-                    rows = list(csv.DictReader(f))
-                break
-            except UnicodeDecodeError:
-                continue
-            except Exception as e:
-                print(f"[!] Failed loading {CCTV_INFO_CSV} with {encoding}: {e}")
-                continue
 
-        for row in rows:
-            cam_id = (row.get("camera_id") or "").strip()
-            if not cam_id:
-                continue
-            cam_dir = DATASET_DIR / cam_id
-            images = sorted(p.name for p in cam_dir.glob("*.jpg")) if cam_dir.is_dir() else []
-            files_by_cam[cam_id] = set(images)
+    if not rows:
+        if not CCTV_INFO_CSV.exists():
+            print(f"[!] Camera metadata not found: {CCTV_INFO_CSV}")
+        else:
+            for encoding, errors in (("utf-8-sig", "strict"), ("cp874", "replace"), ("utf-8", "replace")):
+                try:
+                    with open(CCTV_INFO_CSV, encoding=encoding, errors=errors, newline="") as f:
+                        rows = list(csv.DictReader(f))
+                    break
+                except UnicodeDecodeError:
+                    continue
+                except Exception as e:
+                    print(f"[!] Failed loading {CCTV_INFO_CSV} with {encoding}: {e}")
+                    continue
 
-            # Bangkok sits around 13.7N, 100.5E; accept anything plausible for Thailand
-            lat = _coord(row.get("latitude"), 5.0, 21.0)
-            lon = _coord(row.get("longitude"), 97.0, 106.0)
-            has_coords = lat is not None and lon is not None
+    for row in rows:
+        cam_id = (str(row.get("camera_id") or "")).strip()
+        if not cam_id:
+            continue
+        cam_dir = DATASET_DIR / cam_id
+        images = sorted(p.name for p in cam_dir.glob("*.jpg")) if cam_dir.is_dir() else []
+        files_by_cam[cam_id] = set(images)
 
-            cameras.append({
-                "camera_id": cam_id,
-                "name_en": _clean(row.get("location_en")),
-                "detail_en": _clean(row.get("location_detail_en")),
-                "name_th": _clean(row.get("location")),
-                "detail_th": _clean(row.get("location_detail")),
-                "latitude": lat if has_coords else None,
-                "longitude": lon if has_coords else None,
-                "has_coords": has_coords,
-                "image_count": len(images),
-                "first_image": images[0] if images else None,
-                "latest_image": images[-1] if images else None,
-            })
+        # Bangkok sits around 13.7N, 100.5E; accept anything plausible for Thailand
+        lat = _coord(row.get("latitude"), 5.0, 21.0)
+        lon = _coord(row.get("longitude"), 97.0, 106.0)
+        has_coords = lat is not None and lon is not None
+
+        cameras.append({
+            "camera_id": cam_id,
+            "name_en": _clean(row.get("location_en")),
+            "detail_en": _clean(row.get("location_detail_en")),
+            "name_th": _clean(row.get("location_th") or row.get("location")),
+            "detail_th": _clean(row.get("direction_th") or row.get("location_detail_th") or row.get("location_detail")),
+            "latitude": lat if has_coords else None,
+            "longitude": lon if has_coords else None,
+            "has_coords": has_coords,
+            "nearest_station_th": row.get("nearest_station_th") or "",
+            "nearest_station_en": row.get("nearest_station_en") or "",
+            "transit_system": row.get("transit_system") or "",
+            "distance_meters": row.get("distance_meters"),
+            "is_near_transit": bool(row.get("is_near_transit", False)),
+            "image_count": len(images),
+            "first_image": images[0] if images else None,
+            "latest_image": images[-1] if images else None,
+        })
     CAMERAS, CAMERA_FILES = cameras, files_by_cam
     return cameras
 

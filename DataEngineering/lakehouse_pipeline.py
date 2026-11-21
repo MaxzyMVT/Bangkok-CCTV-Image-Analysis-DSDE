@@ -760,6 +760,84 @@ def run_pipeline(reset: bool = False, force: bool = False, scrape: bool = False,
     print("\n[✓] End-to-end Data Engineering pipeline executed successfully!")
 
 
+# -------------------------------------------------------------------------
+# Lakehouse Reader Helpers (Single Source of Truth for Web Apps & Models)
+# -------------------------------------------------------------------------
+def load_silver_cameras() -> Dict[str, Dict[str, Any]]:
+    """Loads camera metadata and rapid transit proximity from lake.silver.cameras.
+    Falls back to CCTV_INFO_CSV if lakehouse is not initialized.
+    """
+    if CATALOG_PATH.exists() and PARQUET_DATA_DIR.exists():
+        try:
+            import duckdb
+            cat_posix = CATALOG_PATH.resolve().as_posix()
+            data_posix = PARQUET_DATA_DIR.resolve().as_posix() + "/"
+            con = duckdb.connect()
+            con.execute(f"ATTACH '{cat_posix}' AS lake (TYPE DUCKLAKE, DATA_PATH '{data_posix}')")
+            sql = """
+                SELECT 
+                    c.camera_id,
+                    c.location_th,
+                    c.direction_th,
+                    c.location_en,
+                    c.location_detail_en,
+                    c.latitude,
+                    c.longitude,
+                    c.ip_address,
+                    p.nearest_station_th,
+                    p.nearest_station_en,
+                    p.transit_system,
+                    p.distance_meters,
+                    p.is_near_transit
+                FROM lake.silver.cameras c
+                LEFT JOIN lake.silver.camera_transit_proximity p ON c.camera_id = p.camera_id
+            """
+            rows = con.execute(sql).df().to_dict(orient="records")
+            con.close()
+            res = {}
+            for r in rows:
+                cid = str(r["camera_id"])
+                r["location_detail_th"] = r.get("direction_th") or ""
+                # Provide standard keys for backward compatibility
+                r["location"] = r.get("location_th") or ""
+                r["location_detail"] = r.get("direction_th") or ""
+                res[cid] = r
+            if res:
+                return res
+        except Exception as e:
+            print(f"[Lakehouse Reader] Warning querying lake.silver.cameras: {e}. Falling back to CSV.")
+
+    from Models.pipeline import load_cctv_metadata
+    return load_cctv_metadata(CCTV_INFO_CSV)
+
+
+def load_silver_sun_times() -> Dict[str, Any]:
+    """Loads date -> (sunrise_minute, sunset_minute) from lake.silver.sun_times.
+    Falls back to raw sun_times_daily.csv if lakehouse is not initialized.
+    """
+    if CATALOG_PATH.exists() and PARQUET_DATA_DIR.exists():
+        try:
+            import duckdb
+            cat_posix = CATALOG_PATH.resolve().as_posix()
+            data_posix = PARQUET_DATA_DIR.resolve().as_posix() + "/"
+            con = duckdb.connect()
+            con.execute(f"ATTACH '{cat_posix}' AS lake (TYPE DUCKLAKE, DATA_PATH '{data_posix}')")
+            df = con.execute("SELECT date, sunrise, sunset FROM lake.silver.sun_times ORDER BY date").df()
+            con.close()
+            lookup = {}
+            for _, r in df.iterrows():
+                d_str = str(r["date"]).split(" ")[0].strip()
+                sr, ss = r["sunrise"], r["sunset"]
+                sr_min = sr.hour * 60 + sr.minute
+                ss_min = ss.hour * 60 + ss.minute
+                lookup[d_str] = (sr_min, ss_min)
+            if lookup:
+                return lookup
+        except Exception as e:
+            print(f"[Lakehouse Reader] Warning querying lake.silver.sun_times: {e}. Falling back to CSV.")
+    return {}
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Bangkok CCTV PyDuckLake Lakehouse Pipeline")
     parser.add_argument("--reset", action="store_true", help="Recreate lakehouse database from scratch")

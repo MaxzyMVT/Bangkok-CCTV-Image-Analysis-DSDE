@@ -30,10 +30,21 @@ SUN_TIMES_TABLE: Dict[str, Tuple[int, int]] = {}
 
 
 def load_sun_times_lookup() -> Dict[str, Tuple[int, int]]:
-    """Loads date -> (sunrise_minute_of_day, sunset_minute_of_day) from scraped sun_times_daily.csv."""
+    """Loads date -> (sunrise_minute_of_day, sunset_minute_of_day) from lake.silver.sun_times or CSV."""
     global SUN_TIMES_TABLE
     if SUN_TIMES_TABLE:
         return SUN_TIMES_TABLE
+
+    # Prefer pulling directly from PyDuckLake silver layer if available
+    try:
+        from DataEngineering.lakehouse_pipeline import load_silver_sun_times
+        silver_sun = load_silver_sun_times()
+        if silver_sun:
+            SUN_TIMES_TABLE.update(silver_sun)
+            return SUN_TIMES_TABLE
+    except Exception:
+        pass
+
     if SUN_TIMES_CSV.exists():
         try:
             import pandas as pd

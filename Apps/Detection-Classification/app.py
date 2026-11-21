@@ -32,7 +32,11 @@ TEMPLATE_FILE = Path(__file__).resolve().parent / "templates" / "index.html"
 
 # Global detector instance & metadata
 DETECTOR = None
-METADATA_LOOKUP = load_cctv_metadata(CCTV_INFO_CSV)
+try:
+    from DataEngineering.lakehouse_pipeline import load_silver_cameras
+    METADATA_LOOKUP = load_silver_cameras()
+except Exception:
+    METADATA_LOOKUP = load_cctv_metadata(CCTV_INFO_CSV)
 
 # Cache camera image index for fast navigation
 CAMERA_INDEX = {}
@@ -199,10 +203,15 @@ def build_camera_index():
                 "camera_id": cid,
                 "location_en": cinfo.get("location_en", "BMA CCTV Camera"),
                 "location_detail_en": cinfo.get("location_detail_en", ""),
-                "location_th": cinfo.get("location", first_parsed["description"] if first_parsed else ""),
-                "location_detail_th": cinfo.get("location_detail", ""),
+                "location_th": cinfo.get("location_th") or cinfo.get("location", first_parsed["description"] if first_parsed else ""),
+                "location_detail_th": cinfo.get("location_detail_th") or cinfo.get("direction_th") or cinfo.get("location_detail", ""),
                 "latitude": cinfo.get("latitude", ""),
                 "longitude": cinfo.get("longitude", ""),
+                "nearest_station_th": cinfo.get("nearest_station_th", ""),
+                "nearest_station_en": cinfo.get("nearest_station_en", ""),
+                "transit_system": cinfo.get("transit_system", ""),
+                "distance_meters": cinfo.get("distance_meters", None),
+                "is_near_transit": bool(cinfo.get("is_near_transit", False)),
                 "total_images": len(files),
                 "image_files": [f.name for f in files]
             }
