@@ -111,6 +111,17 @@ def start_server(port=8080):
     detect_app.build_camera_index()
     map_app.load_cameras()
 
+    # Pre-warm YOLO detector and PyTorch on main thread to avoid multi-thread import race
+    try:
+        import torch
+        import torch._utils
+        print("[App] Pre-warming YOLO model on main thread...")
+        detector = detect_app.get_detector()
+        _ = detector.model
+        print("[App] YOLO model loaded and ready.")
+    except Exception as e:
+        print(f"[!] Warning pre-warming YOLO detector: {e}")
+
     server = SilentThreadingHTTPServer(("", port), CombinedHandler)
     active_model = detect_app.resolve_model()
     print("=" * 64)

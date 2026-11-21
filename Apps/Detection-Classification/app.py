@@ -170,17 +170,21 @@ def resolve_dataset_image(rel_path):
     return resolve_frame(rel.parts[0], rel.parts[1])
 
 
+_DETECTOR_LOCK = threading.Lock()
+
 def get_detector(conf=0.25, iou=0.45):
     global DETECTOR
     if DETECTOR is None:
-        print("[App] Initializing YOLO Vehicle Detector...")
-        model_path = resolve_model()
-        print(f"[App] Using model weights: {model_path}")
-        DETECTOR = YOLOVehicleDetector(
-            model_name=model_path,
-            confidence_threshold=conf,
-            iou_threshold=iou
-        )
+        with _DETECTOR_LOCK:
+            if DETECTOR is None:
+                print("[App] Initializing YOLO Vehicle Detector...")
+                model_path = resolve_model()
+                print(f"[App] Using model weights: {model_path}")
+                DETECTOR = YOLOVehicleDetector(
+                    model_name=model_path,
+                    confidence_threshold=conf,
+                    iou_threshold=iou
+                )
     return DETECTOR
 
 def build_camera_index():
@@ -604,6 +608,18 @@ def start_server(port=8080):
 
     build_camera_index()
     active_model = resolve_model()
+
+    # Pre-warm YOLO detector and PyTorch on main thread to avoid multi-thread import race
+    try:
+        import torch
+        import torch._utils
+        print("[App] Pre-warming YOLO model on main thread...")
+        detector = get_detector()
+        _ = detector.model
+        print("[App] YOLO model loaded and ready.")
+    except Exception as e:
+        print(f"[!] Warning pre-warming YOLO detector: {e}")
+
     server_address = ("", port)
     httpd = HTTPServer(server_address, CCTVAnalysisHandler)
     print(f"\n=================================================================")

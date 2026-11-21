@@ -1,8 +1,15 @@
 import os
 import cv2
+import threading
 import numpy as np
 from pathlib import Path
 from typing import Dict, List, Tuple, Union, Optional
+
+try:
+    import torch
+    import torch._utils
+except ImportError:
+    pass
 
 # Standard COCO classes for vehicles & traffic entities
 DEFAULT_VEHICLE_CLASSES = {
@@ -148,24 +155,29 @@ class YOLOVehicleDetector:
         self.iou_threshold = iou_threshold
         self.device = device
         self._model = None
+        self._load_lock = threading.Lock()
 
     @property
     def model(self):
-        """Lazy loader for YOLO model to speed up initialization."""
+        """Lazy loader for YOLO model to speed up initialization (thread-safe)."""
         if self._model is None:
-            try:
-                from ultralytics import YOLO
-                print(f"[YOLOVehicleDetector] Loading model weights: {self.model_name}...")
-                self._model = YOLO(self.model_name)
-                names = dict(self._model.names)
-                if self._auto_classes and len(names) != 80:  # not a COCO checkpoint
-                    self.vehicle_classes = {int(i): n for i, n in names.items()}
-                    print(f"[YOLOVehicleDetector] Custom model classes: {self.vehicle_classes}")
-            except ImportError:
-                raise ImportError(
-                    "The 'ultralytics' package is required. "
-                    "Please ensure it is installed via: pip install ultralytics"
-                )
+            with self._load_lock:
+                if self._model is None:
+                    try:
+                        import torch
+                        import torch._utils
+                        from ultralytics import YOLO
+                        print(f"[YOLOVehicleDetector] Loading model weights: {self.model_name}...")
+                        self._model = YOLO(self.model_name)
+                        names = dict(self._model.names)
+                        if self._auto_classes and len(names) != 80:  # not a COCO checkpoint
+                            self.vehicle_classes = {int(i): n for i, n in names.items()}
+                            print(f"[YOLOVehicleDetector] Custom model classes: {self.vehicle_classes}")
+                    except ImportError:
+                        raise ImportError(
+                            "The 'ultralytics' package is required. "
+                            "Please ensure it is installed via: pip install ultralytics"
+                        )
         return self._model
 
     def predict(
