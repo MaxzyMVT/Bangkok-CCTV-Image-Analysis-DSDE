@@ -136,6 +136,42 @@
         </div>
         <input type="range" id="timelineSlider" min="0" max="610" value="0" class="w-full accent-blue-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg">
       </div>
+
+      <!-- CAMERA DETAILS (Thai / English Name & Direction) -->
+      <div id="cameraMetaBanner" class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-700/60 text-xs space-y-2">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div class="space-y-1 flex-1 min-w-[240px]">
+            <div class="flex items-center gap-2">
+              <span id="bannerCamBadge" class="px-2 py-0.5 rounded-md font-mono text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                Cam #--
+              </span>
+              <span class="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Location / ชื่อตำแหน่ง</span>
+            </div>
+            <div class="font-semibold text-slate-100 text-sm leading-snug flex items-baseline gap-2">
+              <span id="bannerLocationEn" class="text-white">--</span>
+            </div>
+            <div id="bannerLocationThRow" class="text-xs text-slate-300 flex items-center gap-1.5">
+              <span class="px-1.5 py-0.2 rounded bg-slate-800 text-[10px] font-medium text-amber-300/90 border border-amber-400/20">TH</span>
+              <span id="bannerLocationTh">--</span>
+            </div>
+          </div>
+
+          <div class="space-y-1 flex-1 min-w-[240px] border-t sm:border-t-0 sm:border-l border-slate-800 pt-2 sm:pt-0 sm:pl-3">
+            <div class="flex items-center gap-1.5 text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+              <i class="fa-solid fa-compass text-purple-400"></i>
+              <span>Traffic Direction / ทิศทางการจราจร</span>
+            </div>
+            <div id="bannerDirectionEnRow" class="text-xs text-purple-200 font-medium">
+              <span class="text-[10px] text-slate-500 mr-1">EN:</span>
+              <span id="bannerDirectionEn">--</span>
+            </div>
+            <div id="bannerDirectionThRow" class="text-xs text-slate-300">
+              <span class="text-[10px] text-slate-500 mr-1">TH:</span>
+              <span id="bannerDirectionTh">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ================= VIEW A: SINGLE INSPECTOR ================= -->
@@ -294,6 +330,11 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-green-500/80"></span>
                 <span id="currentCamTitle" class="text-xs font-mono text-slate-300 ml-2">Loading...</span>
+              </div>
+              <!-- Subtitle displaying Camera name & direction in header -->
+              <div id="viewerCamSubheader" class="hidden text-[11px] text-slate-400 max-w-xl truncate">
+                <span id="viewerCamLoc" class="text-slate-200 font-medium"></span>
+                <span id="viewerCamDir" class="text-purple-300 ml-2"></span>
               </div>
               <div class="flex items-center gap-2">
                 <!-- Map link placed in header bar so it never overlaps the image -->
@@ -510,6 +551,75 @@
       if (location.pathname + location.search !== url) history.replaceState(null, '', url);
     }
 
+    // Update banner with Thai/English camera name and direction
+    function updateCameraMetadataBanner() {
+      const banner = document.getElementById('cameraMetaBanner');
+      const badge = document.getElementById('bannerCamBadge');
+      const locEn = document.getElementById('bannerLocationEn');
+      const locTh = document.getElementById('bannerLocationTh');
+      const locThRow = document.getElementById('bannerLocationThRow');
+      const dirEn = document.getElementById('bannerDirectionEn');
+      const dirEnRow = document.getElementById('bannerDirectionEnRow');
+      const dirTh = document.getElementById('bannerDirectionTh');
+      const dirThRow = document.getElementById('bannerDirectionThRow');
+      const subHeader = document.getElementById('viewerCamSubheader');
+      const viewerLoc = document.getElementById('viewerCamLoc');
+      const viewerDir = document.getElementById('viewerCamDir');
+
+      if (isCustomUpload) {
+        if (badge) badge.textContent = 'Custom Upload';
+        if (locEn) locEn.textContent = 'Custom image uploaded from local storage';
+        if (locThRow) locThRow.classList.add('hidden');
+        if (dirEnRow) dirEnRow.classList.add('hidden');
+        if (dirThRow) dirThRow.classList.add('hidden');
+        if (subHeader) subHeader.classList.add('hidden');
+        return;
+      }
+
+      const cam = cameraInfo(currentCameraId);
+      if (!cam) return;
+
+      if (badge) badge.textContent = `Cam #${cam.camera_id}`;
+      
+      const enName = cam.location_en || 'BMA CCTV Camera';
+      const thName = cam.location_th || '';
+      const enDir = cam.location_detail_en || '';
+      const thDir = cam.location_detail_th || '';
+
+      if (locEn) locEn.textContent = enName;
+      if (locTh) {
+        locTh.textContent = thName || '(ไม่ระบุชื่อภาษาไทย)';
+        if (locThRow) locThRow.classList.remove('hidden');
+      }
+
+      if (dirEn) {
+        if (enDir && enDir.toLowerCase() !== 'connect bmacctv') {
+          dirEn.textContent = enDir;
+          if (dirEnRow) dirEnRow.classList.remove('hidden');
+        } else {
+          dirEn.textContent = 'Standard Surveillance Direction';
+          if (dirEnRow) dirEnRow.classList.remove('hidden');
+        }
+      }
+
+      if (dirTh) {
+        if (thDir && thDir.toLowerCase() !== 'connect bmacctv') {
+          dirTh.textContent = thDir;
+          if (dirThRow) dirThRow.classList.remove('hidden');
+        } else {
+          dirTh.textContent = thName ? `ทิศทางตามแนว ${thName}` : 'ทิศทางกล้องมาตรฐาน';
+          if (dirThRow) dirThRow.classList.remove('hidden');
+        }
+      }
+
+      // Also update viewer subheader bar
+      if (subHeader && viewerLoc && viewerDir) {
+        viewerLoc.textContent = thName ? `${thName} (${enName})` : enName;
+        viewerDir.textContent = thDir || enDir ? `• ทิศทาง: ${thDir || enDir}` : '';
+        subHeader.classList.remove('hidden');
+      }
+    }
+
     confSlider.addEventListener('input', e => {
       confVal.textContent = parseFloat(e.target.value).toFixed(2);
       debounceAutoDetect();
@@ -560,7 +670,9 @@
         allCameras.forEach(c => {
           const opt = document.createElement('option');
           opt.value = c.camera_id;
-          opt.textContent = `[${c.camera_id}] ${c.location_en} (${c.total_images} frames)`;
+          const locName = c.location_en || c.location_th || 'Camera ' + c.camera_id;
+          const dirText = c.location_detail_en || c.location_detail_th ? ` → ${c.location_detail_en || c.location_detail_th}` : '';
+          opt.textContent = `[${c.camera_id}] ${locName}${dirText} (${c.total_images} frames)`;
           if (c.camera_id === currentCameraId) opt.selected = true;
           cameraSelect.appendChild(opt);
         });
@@ -667,6 +779,9 @@
       timelineTimestamp.innerHTML = `<i class="fa-regular fa-clock"></i> ${imgInfo.timestamp || imgInfo.filename}`;
       timelineIndexLabel.textContent = `Frame: ${currentImageIndex + 1} / ${currentImages.length}`;
       currentCamTitle.textContent = `Cam [${currentCameraId}] • ${imgInfo.time} (${imgInfo.date})`;
+
+      // Update camera metadata banner (Thai / English name and direction)
+      updateCameraMetadataBanner();
 
       // Update active sample button highlight
       const total = currentImages.length;
@@ -930,17 +1045,26 @@
             </div>
           </div>
           
-          <div class="p-2 bg-slate-900/60 text-[11px] text-slate-400 flex items-center justify-between gap-2">
-            <span class="truncate">${escapeHtml(item.location_en || item.filename)}</span>
-            <span class="flex items-center gap-1.5 shrink-0">
-              ${cameraHasCoords(item.camera_id) ? `
-              <a href="${escapeHtml(mapUrlFor(item.camera_id, item.filename))}" data-map-pin
-                 class="w-6 h-6 rounded-md flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition"
-                 title="ดูตำแหน่งกล้องบนแผนที่" aria-label="ดูตำแหน่งกล้อง ${escapeHtml(item.camera_id)} บนแผนที่">
-                <i class="fa-solid fa-location-dot text-[11px]"></i>
-              </a>` : ''}
-              <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 group-hover:text-blue-400"></i>
-            </span>
+          <div class="p-2 bg-slate-900/60 text-[11px] text-slate-400 flex flex-col gap-0.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="truncate font-medium text-slate-300" title="${escapeHtml(item.location_en || item.filename)}">
+                ${escapeHtml(item.location_th ? `${item.location_th} (${item.location_en})` : (item.location_en || item.filename))}
+              </span>
+              <span class="flex items-center gap-1.5 shrink-0">
+                ${cameraHasCoords(item.camera_id) ? `
+                <a href="${escapeHtml(mapUrlFor(item.camera_id, item.filename))}" data-map-pin
+                   class="w-6 h-6 rounded-md flex items-center justify-center text-slate-400 hover:text-white hover:bg-blue-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition"
+                   title="ดูตำแหน่งกล้องบนแผนที่" aria-label="ดูตำแหน่งกล้อง ${escapeHtml(item.camera_id)} บนแผนที่">
+                  <i class="fa-solid fa-location-dot text-[11px]"></i>
+                </a>` : ''}
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 group-hover:text-blue-400"></i>
+              </span>
+            </div>
+            ${item.location_detail_th || item.location_detail_en ? `
+            <div class="text-[10px] text-purple-300/80 truncate flex items-center gap-1">
+              <i class="fa-solid fa-compass text-[9px] text-purple-400"></i>
+              <span>${escapeHtml(item.location_detail_th || item.location_detail_en)}</span>
+            </div>` : ''}
           </div>
         `;
 

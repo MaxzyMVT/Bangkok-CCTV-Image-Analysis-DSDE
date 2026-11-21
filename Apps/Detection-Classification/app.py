@@ -200,6 +200,7 @@ def build_camera_index():
                 "location_en": cinfo.get("location_en", "BMA CCTV Camera"),
                 "location_detail_en": cinfo.get("location_detail_en", ""),
                 "location_th": cinfo.get("location", first_parsed["description"] if first_parsed else ""),
+                "location_detail_th": cinfo.get("location_detail", ""),
                 "latitude": cinfo.get("latitude", ""),
                 "longitude": cinfo.get("longitude", ""),
                 "total_images": len(files),
@@ -292,6 +293,7 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
                     "location_en": v["location_en"],
                     "location_th": v["location_th"],
                     "location_detail_en": v["location_detail_en"],
+                    "location_detail_th": v.get("location_detail_th", ""),
                     "latitude": v["latitude"],
                     "longitude": v["longitude"],
                     "total_images": v["total_images"]
@@ -362,7 +364,10 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
                         "timestamp": parsed["timestamp"] if parsed else "",
                         "time": parsed["time"] if parsed else "",
                         "date": parsed["date"] if parsed else "",
-                        "location_en": cam_data["location_en"]
+                        "location_en": cam_data["location_en"],
+                        "location_th": cam_data.get("location_th", ""),
+                        "location_detail_en": cam_data.get("location_detail_en", ""),
+                        "location_detail_th": cam_data.get("location_detail_th", "")
                     })
             else:
                 # Multi-camera mode: 16 different cameras at approximately the same index
@@ -385,7 +390,10 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
                             "timestamp": parsed["timestamp"] if parsed else "",
                             "time": parsed["time"] if parsed else "",
                             "date": parsed["date"] if parsed else "",
-                            "location_en": cdata["location_en"]
+                            "location_en": cdata["location_en"],
+                            "location_th": cdata.get("location_th", ""),
+                            "location_detail_en": cdata.get("location_detail_en", ""),
+                            "location_detail_th": cdata.get("location_detail_th", "")
                         })
 
             self._send_json({
@@ -477,7 +485,9 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
                     "time": parsed["time"] if parsed else "",
                     "date": parsed["date"] if parsed else "",
                     "description": parsed["description"] if parsed else "",
+                    "location_th": cam_info.get("location", parsed["description"] if parsed else ""),
                     "location_en": cam_info.get("location_en", ""),
+                    "location_detail_th": cam_info.get("location_detail", ""),
                     "location_detail_en": cam_info.get("location_detail_en", "")
                 }
             else:
