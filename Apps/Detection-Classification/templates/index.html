@@ -220,6 +220,16 @@
               </div>
               <input type="range" id="iouSlider" min="0.10" max="0.90" step="0.05" value="0.45" class="w-full accent-purple-500 cursor-pointer">
             </div>
+
+            <div class="pt-1">
+              <label class="flex items-center justify-between text-xs text-slate-300 p-2 rounded-lg bg-slate-800/40 border border-slate-700/50 cursor-pointer hover:bg-slate-800/70 transition" title="Suppresses duplicate overlapping detections across different vehicle classes (e.g. truck vs car)">
+                <span class="flex items-center gap-1.5 font-medium">
+                  <i class="fa-solid fa-layer-group text-purple-400 text-[11px]"></i>
+                  <span>Class-Agnostic NMS</span>
+                </span>
+                <input type="checkbox" id="agnosticNmsToggle" checked class="accent-purple-500 rounded cursor-pointer">
+              </label>
+            </div>
           </div>
 
           <!-- Vehicle Toggles -->
@@ -586,6 +596,7 @@
     const confVal = document.getElementById('confVal');
     const iouSlider = document.getElementById('iouSlider');
     const iouVal = document.getElementById('iouVal');
+    const agnosticNmsToggle = document.getElementById('agnosticNmsToggle');
 
     // ================= MAP <-> DETECT LINKING =================
     // A frame is identified by camera_id + filename: /?camera=..&frame=.. (map), /inspect?camera=..&frame=.. (here)
@@ -729,6 +740,11 @@
       iouVal.textContent = parseFloat(e.target.value).toFixed(2);
       debounceAutoDetect();
     });
+    if (agnosticNmsToggle) {
+      agnosticNmsToggle.addEventListener('change', () => {
+        debounceAutoDetect();
+      });
+    }
 
     ['clsCar', 'clsMoto', 'clsBus', 'clsTruck'].forEach(clsId => {
       document.getElementById(clsId).addEventListener('change', () => {
@@ -986,6 +1002,7 @@
         image_path: imgInfo.path,
         conf: parseFloat(confSlider.value),
         iou: parseFloat(iouSlider.value),
+        agnostic_nms: agnosticNmsToggle ? agnosticNmsToggle.checked : true,
         classes: {
           car: document.getElementById('clsCar').checked,
           motorcycle: document.getElementById('clsMoto').checked,
@@ -1205,7 +1222,8 @@
           body: JSON.stringify({
             image_paths: paths,
             conf: parseFloat(confSlider.value),
-            iou: parseFloat(iouSlider.value)
+            iou: parseFloat(iouSlider.value),
+            agnostic_nms: agnosticNmsToggle ? agnosticNmsToggle.checked : true
           })
         });
         const data = await res.json();
@@ -1269,7 +1287,8 @@
           body: JSON.stringify({
             image_base64: b64,
             conf: parseFloat(confSlider.value),
-            iou: parseFloat(iouSlider.value)
+            iou: parseFloat(iouSlider.value),
+            agnostic_nms: agnosticNmsToggle ? agnosticNmsToggle.checked : true
           })
         });
         const data = await res.json();

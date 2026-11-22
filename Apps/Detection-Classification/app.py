@@ -172,7 +172,7 @@ def resolve_dataset_image(rel_path):
 
 _DETECTOR_LOCK = threading.Lock()
 
-def get_detector(conf=0.25, iou=0.45):
+def get_detector(conf=0.25, iou=0.45, agnostic_nms=True):
     global DETECTOR
     if DETECTOR is None:
         with _DETECTOR_LOCK:
@@ -183,7 +183,8 @@ def get_detector(conf=0.25, iou=0.45):
                 DETECTOR = YOLOVehicleDetector(
                     model_name=model_path,
                     confidence_threshold=conf,
-                    iou_threshold=iou
+                    iou_threshold=iou,
+                    agnostic_nms=agnostic_nms
                 )
     return DETECTOR
 
@@ -466,6 +467,7 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
             img_b64 = req_data.get("image_base64")
             conf = float(req_data.get("conf", 0.25))
             iou = float(req_data.get("iou", 0.45))
+            agnostic_nms = bool(req_data.get("agnostic_nms", True))
             classes_filter = req_data.get("classes", {})
 
             img_bgr = None
@@ -512,8 +514,8 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
                 return
 
             try:
-                detector = get_detector(conf=conf, iou=iou)
-                pred_result = detector.predict(img_bgr, conf=conf, iou=iou, draw_annotations=True)
+                detector = get_detector(conf=conf, iou=iou, agnostic_nms=agnostic_nms)
+                pred_result = detector.predict(img_bgr, conf=conf, iou=iou, agnostic_nms=agnostic_nms, draw_annotations=True)
 
                 filtered_detections = []
                 counts = {"total_vehicles": 0, "car": 0, "motorcycle": 0, "bus": 0, "truck": 0, "bicycle": 0}
@@ -549,13 +551,14 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
             image_paths = req_data.get("image_paths", [])
             conf = float(req_data.get("conf", 0.25))
             iou = float(req_data.get("iou", 0.45))
+            agnostic_nms = bool(req_data.get("agnostic_nms", True))
 
             if not image_paths:
                 self._send_json({"error": "No image_paths provided"}, status=400)
                 return
 
             results = []
-            detector = get_detector(conf=conf, iou=iou)
+            detector = get_detector(conf=conf, iou=iou, agnostic_nms=agnostic_nms)
 
             for rel_p in image_paths[:16]:
                 f_path = resolve_dataset_image(rel_p)
@@ -564,7 +567,7 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
                 img = imread_unicode(f_path)
                 if img is None:
                     continue
-                pred = detector.predict(img, conf=conf, iou=iou, draw_annotations=True)
+                pred = detector.predict(img, conf=conf, iou=iou, agnostic_nms=agnostic_nms, draw_annotations=True)
                 _, enc_thumb = cv2.imencode(".jpg", pred["annotated_image"])
                 thumb_b64 = base64.b64encode(enc_thumb).decode("utf-8")
                 results.append({

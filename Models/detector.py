@@ -137,7 +137,8 @@ class YOLOVehicleDetector:
         vehicle_classes: Optional[Dict[int, str]] = None,
         confidence_threshold: float = 0.25,
         iou_threshold: float = 0.45,
-        device: str = "cpu"
+        device: str = "cpu",
+        agnostic_nms: bool = True
     ):
         if model_name is None:
             try:
@@ -154,6 +155,7 @@ class YOLOVehicleDetector:
         self.confidence_threshold = confidence_threshold
         self.iou_threshold = iou_threshold
         self.device = device
+        self.agnostic_nms = agnostic_nms
         self._model = None
         self._load_lock = threading.Lock()
 
@@ -188,7 +190,8 @@ class YOLOVehicleDetector:
         draw_annotations: bool = True,
         timestamp: Optional[str] = None,
         date_str: Optional[str] = None,
-        adaptive_threshold: bool = True
+        adaptive_threshold: bool = True,
+        agnostic_nms: Optional[bool] = None
     ) -> Dict:
         """
         Runs object detection on a single image.
@@ -202,6 +205,7 @@ class YOLOVehicleDetector:
             date_str: Optional YYYY-MM-DD string.
             adaptive_threshold: If True and conf is not explicitly specified, adjusts
                                 confidence dynamically based on solar sunrise/sunset data.
+            agnostic_nms: If True, suppresses duplicate detections across classes.
             
         Returns:
             Dictionary containing:
@@ -222,10 +226,11 @@ class YOLOVehicleDetector:
                     if len(parts) >= 2 and len(parts[-2]) == 8 and len(parts[-1]) == 6 and parts[-2].isdigit() and parts[-1].isdigit():
                         d_str = f"{parts[-2][:4]}-{parts[-2][4:6]}-{parts[-2][6:]}"
                         t_str = f"{parts[-1][:2]}:{parts[-1][2:4]}:{parts[-1][4:]}"
-                conf = get_adaptive_confidence(date_str=d_str, time_str=t_str)
+                    conf = get_adaptive_confidence(date_str=d_str, time_str=t_str)
             else:
                 conf = self.confidence_threshold
         iou = iou if iou is not None else self.iou_threshold
+        use_agnostic = agnostic_nms if agnostic_nms is not None else self.agnostic_nms
 
         # Load image if file path is provided
         if isinstance(image_input, (str, Path)):
@@ -249,7 +254,8 @@ class YOLOVehicleDetector:
             iou=iou,
             classes=target_class_ids,
             device=self.device,
-            verbose=False
+            verbose=False,
+            agnostic_nms=use_agnostic
         )
 
         detections = []
@@ -260,6 +266,7 @@ class YOLOVehicleDetector:
 
         if results and len(results) > 0:
             boxes = results[0].boxes
+            raw_dets = []
             for box in boxes:
                 cls_id = int(box.cls[0].item())
                 confidence = float(box.conf[0].item())
@@ -269,14 +276,22 @@ class YOLOVehicleDetector:
                 counts[class_name] = counts.get(class_name, 0) + 1
                 counts["total_vehicles"] += 1
 
-                detections.append({
+                raw_dets.append({
                     "class_id": cls_id,
                     "class_name": class_name,
                     "confidence": round(confidence, 4),
                     "bbox": coords
                 })
 
-                if draw_annotations:
+            detections = sorted(raw_dets, key=lambda d: d["confidence"], reverse=True)
+
+            if draw_annotations:
+                # Sort ascending by confidence so higher-confidence labels render on top
+                for det in sorted(raw_dets, key=lambda d: d["confidence"]):
+                    cls_id = det["class_id"]
+                    class_name = det["class_name"]
+                    confidence = det["confidence"]
+                    coords = det["bbox"]
                     x1, y1, x2, y2 = coords
                     color = CLASS_COLORS.get(class_name, DEFAULT_BOX_COLOR)
 
