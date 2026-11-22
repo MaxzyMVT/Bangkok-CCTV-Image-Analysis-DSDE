@@ -57,7 +57,7 @@ PIPELINE_STATE = {
 PIPELINE_LOCK = threading.Lock()
 
 
-def _run_lakehouse_pipeline_worker(limit=None):
+def _run_lakehouse_pipeline_worker(limit=None, conf=None, iou=0.45, agnostic_nms=True, adaptive_threshold=True):
     global PIPELINE_STATE
     try:
         with PIPELINE_LOCK:
@@ -86,12 +86,16 @@ def _run_lakehouse_pipeline_worker(limit=None):
                 PIPELINE_STATE["last_file"] = fname
                 PIPELINE_STATE["message"] = f"YOLO inference: {cur:,}/{tot:,} frames ({PIPELINE_STATE['percent']}%)"
 
-        print(f"[App Pipeline] Starting YOLO batch pipeline (limit={limit}, device={dev})...")
+        print(f"[App Pipeline] Starting YOLO batch pipeline (limit={limit}, device={dev}, dynamic_conf={adaptive_threshold and conf is None}, iou={iou}, agnostic_nms={agnostic_nms})...")
         run_batch_pipeline(
             input_dir=DATASET_DIR,
             output_csv=out_csv,
             cctv_info_csv=CCTV_INFO_CSV,
             limit=limit,
+            conf_threshold=conf,
+            iou_threshold=iou,
+            agnostic_nms=agnostic_nms,
+            adaptive_threshold=adaptive_threshold,
             device=dev,
             progress_callback=on_progress
         )
@@ -595,9 +599,36 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
                 except (ValueError, TypeError):
                     limit = None
 
-            t = threading.Thread(target=_run_lakehouse_pipeline_worker, args=(limit,), daemon=True)
+            conf = req_data.get("conf")
+            if conf is not None:
+                try:
+                    conf = float(conf)
+                except (ValueError, TypeError):
+                    conf = None
+            iou = float(req_data.get("iou", 0.45))
+            agnostic_nms = bool(req_data.get("agnostic_nms", True))
+            adaptive_threshold = bool(req_data.get("adaptive_threshold", True))
+
+            t = threading.Thread(
+                target=_run_lakehouse_pipeline_worker,
+                kwargs={
+                    "limit": limit,
+                    "conf": conf,
+                    "iou": iou,
+                    "agnostic_nms": agnostic_nms,
+                    "adaptive_threshold": adaptive_threshold
+                },
+                daemon=True
+            )
             t.start()
-            self._send_json({"status": "started", "limit": limit, "message": f"Pipeline started with limit={limit}"})
+            self._send_json({
+                "status": "started",
+                "limit": limit,
+                "conf": conf or "solar-adaptive (0.28 day / 0.20 night)",
+                "iou": iou,
+                "agnostic_nms": agnostic_nms,
+                "message": f"Pipeline started (limit={limit}, dynamic_conf={adaptive_threshold and conf is None})"
+            })
             return
 
         self.send_error(404, "Endpoint not found")

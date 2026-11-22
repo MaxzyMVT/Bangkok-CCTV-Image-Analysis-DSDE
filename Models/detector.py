@@ -77,10 +77,14 @@ def is_daytime(date_str: Optional[str] = None, time_str: Optional[str] = None, h
         m = minute if minute is not None else 0
         cur_min = hour * 60 + m
     elif time_str:
-        parts = time_str.replace("T", ":").split(":")
-        h = int(parts[0]) if len(parts) > 0 else 12
-        m = int(parts[1]) if len(parts) > 1 else 0
-        cur_min = h * 60 + m
+        t_clean = time_str.split("T")[-1] if "T" in time_str else time_str
+        parts = t_clean.split(":")
+        try:
+            h = int(parts[0]) if len(parts) > 0 else 12
+            m = int(parts[1]) if len(parts) > 1 else 0
+            cur_min = h * 60 + m
+        except (ValueError, TypeError):
+            cur_min = 12 * 60
     else:
         return True  # default to daytime if unknown
 
@@ -229,6 +233,8 @@ class YOLOVehicleDetector:
                     conf = get_adaptive_confidence(date_str=d_str, time_str=t_str)
             else:
                 conf = self.confidence_threshold
+        if conf is None:
+            conf = self.confidence_threshold if self.confidence_threshold is not None else 0.25
         iou = iou if iou is not None else self.iou_threshold
         use_agnostic = agnostic_nms if agnostic_nms is not None else self.agnostic_nms
 

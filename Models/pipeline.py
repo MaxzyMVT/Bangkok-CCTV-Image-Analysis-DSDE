@@ -91,7 +91,10 @@ def run_batch_pipeline(
     cctv_info_csv: Optional[Path] = None,
     annotated_output_dir: Optional[Path] = None,
     limit: Optional[int] = None,
-    conf_threshold: float = 0.25,
+    conf_threshold: Optional[float] = None,
+    iou_threshold: float = 0.45,
+    agnostic_nms: bool = True,
+    adaptive_threshold: bool = True,
     model_name: Optional[str] = None,
     device: str = "cpu",
     frozen_csv: Optional[Path] = DEFAULT_FROZEN_CSV,
@@ -100,11 +103,15 @@ def run_batch_pipeline(
     """
     Processes all CCTV images in input_dir, extracts vehicle detections,
     and writes tabular dataset ready for Data Science & Analytics.
+    Uses best promoted YOLO model, solar-adaptive dynamic confidence,
+    optimal NMS IoU, and cross-class agnostic NMS.
     """
     actual_model = resolve_model(model_name)
     detector = YOLOVehicleDetector(
         model_name=actual_model,
-        confidence_threshold=conf_threshold,
+        confidence_threshold=conf_threshold or 0.25,
+        iou_threshold=iou_threshold,
+        agnostic_nms=agnostic_nms,
         device=device
     )
 
@@ -151,8 +158,17 @@ def run_batch_pipeline(
             lon = cam_info.get("longitude", "")
             loc_en = cam_info.get("location_en", "")
 
-            # Predict
-            res = detector.predict(img_p, draw_annotations=bool(annotated_output_dir))
+            # Predict with dynamic solar-adaptive threshold, optimal IoU, and class-agnostic NMS
+            res = detector.predict(
+                img_p,
+                conf=conf_threshold,
+                iou=iou_threshold,
+                agnostic_nms=agnostic_nms,
+                timestamp=t_stamp,
+                date_str=d_str,
+                adaptive_threshold=adaptive_threshold,
+                draw_annotations=bool(annotated_output_dir)
+            )
             counts = res["counts"]
 
             row = {
@@ -196,7 +212,10 @@ if __name__ == "__main__":
     parser.add_argument("--cctv-info", type=str, default="dataset/100_cameras/cctv_info.csv", help="Path to cctv_info.csv")
     parser.add_argument("--save-annotated", type=str, default="", help="Directory to save annotated images (optional)")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of images to process")
-    parser.add_argument("--conf", type=float, default=0.25, help="Confidence threshold")
+    parser.add_argument("--conf", type=float, default=None, help="Fixed confidence threshold (default: None, uses dynamic solar-adaptive 0.28 day / 0.20 night)")
+    parser.add_argument("--iou", type=float, default=0.45, help="NMS IoU threshold (default: 0.45)")
+    parser.add_argument("--per-class-nms", action="store_true", help="Disable class-agnostic NMS and use per-class NMS")
+    parser.add_argument("--no-adaptive", action="store_true", help="Disable dynamic solar-adaptive confidence thresholding")
     parser.add_argument("--model", type=str, default=None, help="YOLO weights (default: Models/weights/best.pt if present, else yolo11s.pt)")
     parser.add_argument("--device", type=str, default=None, help="Device to run on ('0' for GPU, 'cpu', default: auto)")
     parser.add_argument("--keep-frozen", action="store_true",
@@ -214,6 +233,9 @@ if __name__ == "__main__":
         annotated_output_dir=ann_dir,
         limit=args.limit,
         conf_threshold=args.conf,
+        iou_threshold=args.iou,
+        agnostic_nms=not getattr(args, "per_class_nms", False),
+        adaptive_threshold=not args.no_adaptive,
         model_name=resolve_model(args.model),
         device=dev,
         frozen_csv=None if args.keep_frozen else DEFAULT_FROZEN_CSV
