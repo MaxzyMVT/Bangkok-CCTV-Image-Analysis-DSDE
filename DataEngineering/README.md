@@ -23,7 +23,7 @@ DataEngineering/
     │   traffy_fondue.py, fm91_news.py, tmd_weekly_summary.py, bot_holidays.py,
     │   bma_drainage.py          # External source scrapers
     ├── external_lakehouse.py    # Bronze -> Silver loader for the scraped sources
-    └── raw/                     # Scraper output files (ignored by git)
+    └── raw/                     # Scraper output files (committed, so the pipeline runs without re-scraping)
 ```
 
 External web scraping sources (weather, METAR, OSM, BMA open data, Traffy Fondue, FM91, TMD weekly summaries, Bank of Thailand holidays, BMA Drainage) are loaded into their own `bronze.<table>_raw` and `silver.<table>` tables by `python DataEngineering/lakehouse_pipeline.py --scrape`. See [`WebScraping/README.md`](WebScraping/README.md) for the full table list and columns.

@@ -78,7 +78,7 @@ flowchart LR
     B -->|"TRY_CAST typing, TRIM, latest file only,<br/>dedupe by key (QUALIFY ROW_NUMBER)"| S[("silver.&lt;table&gt;")]
 ```
 
-- **Raw (`raw/<source>/`)**: files written by the scrapers (ignored by git, reproducible by running the scrapers).
+- **Raw (`raw/<source>/`)**: files written by the scrapers. They are committed to the repository, so `--scrape` skips every source and the lakehouse builds straight from them; run with `--rescrape` (or a scraper with `--force`) to refresh them.
 - **Bronze (`bronze.<table>_raw`)**: every column kept as text, plus `source_file`, `source_row_number`, `file_sha256`, `ingested_at`. A file whose SHA-256 is already loaded is skipped.
 - **Silver (`silver.<table>`)**: typed columns (same names and order as the scraped files), built from the most recently ingested file, deduplicated by key. The `รวม` (total) row is removed from district population.
 
