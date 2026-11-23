@@ -311,80 +311,724 @@
 
       <!-- ================= TAB 4: MEDALLION FLOW ================= -->
       <section id="viewLineageSection" class="glass-card rounded-2xl p-6 space-y-6 shadow-xl hidden">
-        <div class="border-b border-slate-800 pb-3">
-          <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-diagram-project text-purple-400"></i> Lakehouse Architecture & Lineage
-          </h3>
-          <p class="text-xs text-slate-400">End-to-end data pipeline flow from raw scraping to spatial analytics marts.</p>
+        
+        <!-- Header & Top Stats -->
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-diagram-project text-purple-400"></i> Lakehouse Architecture & Lineage
+              </h3>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono border border-purple-500/30">PyDuckLake Medallion Engine</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">
+              End-to-end data pipeline flow from raw scraping, sensory telemetry, and computer vision to typed analytical feature marts.
+            </p>
+          </div>
+
+          <!-- Top Architecture Badges -->
+          <div class="flex items-center gap-2 flex-wrap text-xs font-mono">
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+              <span class="text-slate-400"><i class="fa-solid fa-layer-group text-purple-400"></i> Tables:</span>
+              <span id="lineageTotalTables" class="font-bold text-purple-300">49 Tables</span>
+              <span class="text-[10px] text-slate-500">(24 Bronze • 25 Silver)</span>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+              <span class="text-slate-400"><i class="fa-solid fa-bars-staggered text-amber-400"></i> Records:</span>
+              <span id="lineageTotalRecords" class="font-bold text-amber-300">727,000+</span>
+            </div>
+            <div class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center gap-2">
+              <span class="text-slate-400"><i class="fa-solid fa-shield-halved text-emerald-400"></i> Audit:</span>
+              <span class="font-bold text-emerald-300">SHA-256 + ACID</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Flow Visual Cards -->
+        <!-- Architecture Principles HUD (Medallion Layers) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          
-          <!-- Column 1: Sources & Bronze -->
-          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+          <!-- Bronze Tier -->
+          <div class="p-4 rounded-xl bg-gradient-to-b from-amber-500/5 to-slate-900/80 border border-amber-500/20 space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                <i class="fa-solid fa-box-archive"></i> Bronze Layer
+                <i class="fa-solid fa-box-archive"></i> Bronze Layer (Raw & Audit)
               </span>
-              <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 font-mono border border-amber-500/20">Raw & Audit</span>
+              <span id="lineageBadgeBronzeCount" class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 font-mono border border-amber-500/20">24 Tables</span>
             </div>
             <p class="text-[11px] text-slate-400 leading-relaxed">
-              Stores raw text outputs verbatim with audit columns: <code class="text-amber-300">file_sha256</code>, <code class="text-amber-300">source_file</code>, <code class="text-amber-300">source_row_number</code>, and <code class="text-amber-300">ingested_at</code>.
+              Verbatim string ingestion preserving external schema exactness. Every record automatically carries audit lineage:
+              <code class="text-amber-300 text-[10px]">source_file</code>, <code class="text-amber-300 text-[10px]">source_row_number</code>, <code class="text-amber-300 text-[10px]">file_sha256</code>, and <code class="text-amber-300 text-[10px]">ingested_at</code>.
             </p>
-            <ul class="text-xs font-mono space-y-1 text-slate-300 pt-2 border-t border-slate-800">
-              <li>• bronze.cameras_raw</li>
-              <li>• bronze.cctv_images_raw</li>
-              <li>• bronze.vehicle_counts_raw</li>
-              <li>• bronze.transit_lines_raw</li>
-              <li>• bronze.transit_stations_raw</li>
-              <li>• bronze.weather_hourly_raw</li>
-              <li>• bronze.metar_observations_raw</li>
-            </ul>
           </div>
 
-          <!-- Column 2: Silver Layer -->
-          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+          <!-- Silver Tier -->
+          <div class="p-4 rounded-xl bg-gradient-to-b from-purple-500/5 to-slate-900/80 border border-purple-500/20 space-y-2">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Silver Layer
+              <span class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Silver Layer (Cleaned & Typed)
               </span>
-              <span class="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 font-mono border border-purple-500/20">Cleaned & Typed</span>
+              <span id="lineageBadgeSilverCount" class="text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 font-mono border border-purple-500/20">25 Tables</span>
             </div>
             <p class="text-[11px] text-slate-400 leading-relaxed">
-              Strong typing (<code class="text-purple-300">TIMESTAMPTZ</code>, <code class="text-purple-300">INTEGER</code>, <code class="text-purple-300">DOUBLE</code>), null-handling, and composite key deduplication.
+              Enforces strict relational types (<code class="text-purple-300 text-[10px]">TIMESTAMPTZ</code>, <code class="text-purple-300 text-[10px]">DOUBLE</code>, <code class="text-purple-300 text-[10px]">INTEGER</code>), composite primary key deduplication, timezone alignment, and spatial geometry validation.
             </p>
-            <ul class="text-xs font-mono space-y-1 text-slate-300 pt-2 border-t border-slate-800">
-              <li>• silver.cameras</li>
-              <li>• silver.cctv_frames</li>
-              <li>• silver.vehicle_counts</li>
-              <li>• silver.transit_lines</li>
-              <li>• silver.transit_stations</li>
-              <li>• silver.weather_hourly_bangkok</li>
-              <li>• silver.metar_observations</li>
-            </ul>
           </div>
 
-          <!-- Column 3: Feature Marts -->
-          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-3">
+          <!-- Gold / Feature Marts Tier -->
+          <div class="p-4 rounded-xl bg-gradient-to-b from-emerald-500/5 to-slate-900/80 border border-emerald-500/20 space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                <i class="fa-solid fa-chart-line"></i> Analytics & Marts
+                <i class="fa-solid fa-chart-line"></i> Analytics & Feature Marts
               </span>
-              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-mono border border-emerald-500/20">Enriched</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-mono border border-emerald-500/20">Downstream Marts</span>
             </div>
             <p class="text-[11px] text-slate-400 leading-relaxed">
-              Spatial proximity joins (Haversine distances between CCTV & BTS/MRT) and multimodal temporal models.
+              Geodesic spatial joins (Haversine distances between CCTV & transit lines), multimodal hourly aggregations, and feature store marts ready for analytical dashboards and predictive models.
             </p>
-            <ul class="text-xs font-mono space-y-1 text-slate-300 pt-2 border-t border-slate-800">
-              <li>• silver.camera_transit_proximity</li>
-              <li>• Rush Hour Congestion Index</li>
-              <li>• Weather-Traffic Correlations</li>
-              <li>• Map Rail GeoJSON Layer</li>
-            </ul>
+          </div>
+        </div>
+
+        <!-- Domain Filter Navigation -->
+        <div class="flex items-center justify-between gap-3 flex-wrap pt-2">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-filter text-purple-400"></i> Filter Domains:
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap text-xs" id="lineageDomainFilters">
+            <button onclick="filterLineageDomain('all')" data-lineage-filter="all" class="lineage-domain-btn px-3 py-1.5 rounded-lg font-medium bg-purple-600 text-white transition">
+              All Domains (49)
+            </button>
+            <button onclick="filterLineageDomain('cctv')" data-lineage-filter="cctv" class="lineage-domain-btn px-3 py-1.5 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+              📹 Traffic Vision (6)
+            </button>
+            <button onclick="filterLineageDomain('drainage')" data-lineage-filter="drainage" class="lineage-domain-btn px-3 py-1.5 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+              🌧️ Drainage Telemetry (8)
+            </button>
+            <button onclick="filterLineageDomain('transit')" data-lineage-filter="transit" class="lineage-domain-btn px-3 py-1.5 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+              🚆 OSM Transit & Roads (8)
+            </button>
+            <button onclick="filterLineageDomain('municipal')" data-lineage-filter="municipal" class="lineage-domain-btn px-3 py-1.5 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+              🏛️ Municipal & Traffy (12)
+            </button>
+            <button onclick="filterLineageDomain('weather')" data-lineage-filter="weather" class="lineage-domain-btn px-3 py-1.5 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+              ☀️ Weather & Ephemeris (14)
+            </button>
+            <button onclick="filterLineageDomain('marts')" data-lineage-filter="marts" class="lineage-domain-btn px-3 py-1.5 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+              ⚡ Spatial Marts (3)
+            </button>
+          </div>
+        </div>
+
+        <!-- Domain Lineage Flow Cards -->
+        <div class="space-y-6 pt-2">
+
+          <!-- 1. CCTV Traffic Vision & AI Ingestion -->
+          <div data-domain-card="cctv" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center text-sm">
+                  <i class="fa-solid fa-video"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    CCTV Traffic Vision & YOLO Detection Domain
+                    <span class="text-[10px] px-2 py-0.2 rounded bg-purple-500/20 text-purple-300 font-mono">6 Tables</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400">Source: BMA 100 Live CCTV Streams (`cctv.bangkok.go.th`) & YOLO11s Object Detection Engine</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                Hourly Snapshots • 60,721 Vehicle Count Predictions
+              </span>
+            </div>
+
+            <!-- Flow Columns -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center text-xs">
+              <!-- Bronze Box (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2">
+                <div class="flex items-center justify-between text-amber-400 font-bold text-[11px] uppercase tracking-wider">
+                  <span>🥉 Bronze (Raw Feeds)</span>
+                  <span class="text-[10px] font-mono text-slate-400">Verbatim + SHA256</span>
+                </div>
+                <div class="space-y-1.5 font-mono">
+                  <button onclick="inspectTableFromLineage('bronze', 'cameras_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.cameras_raw</span>
+                    <span data-table-badge="bronze.cameras_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">500 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'cctv_images_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.cctv_images_raw</span>
+                    <span data-table-badge="bronze.cctv_images_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">306,595 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'vehicle_counts_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.vehicle_counts_raw</span>
+                    <span data-table-badge="bronze.vehicle_counts_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">122,052 rows</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Pipeline DQ & Transformations (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-purple-950/20 border border-purple-500/20 space-y-2 text-[11px] text-slate-300">
+                <div class="text-purple-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <i class="fa-solid fa-filter-circle-dollar text-purple-400"></i> Transformation & DQ Logic
+                </div>
+                <ul class="space-y-1 list-disc list-inside text-slate-400">
+                  <li>Validate 100 benchmark cameras with verified active streaming URLs.</li>
+                  <li>Deduplicate image frames on <code class="text-purple-300 font-mono text-[10px]">(camera_id, captured_at)</code>.</li>
+                  <li>Drop corrupted frames (<5KB) and malformed image bytes.</li>
+                  <li>YOLO11s vehicle detection: class aggregation with confidence <code class="text-purple-300 font-mono text-[10px]">&ge; 0.25</code> (car, motorcycle, bus, truck).</li>
+                </ul>
+              </div>
+
+              <!-- Silver Box (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-slate-950/60 border border-purple-500/20 space-y-2">
+                <div class="flex items-center justify-between text-purple-300 font-bold text-[11px] uppercase tracking-wider">
+                  <span>🥈 Silver (Refined & Typed)</span>
+                  <span class="text-[10px] font-mono text-slate-400">Validated</span>
+                </div>
+                <div class="space-y-1.5 font-mono">
+                  <button onclick="inspectTableFromLineage('silver', 'cameras')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.cameras</span>
+                    <span data-table-badge="silver.cameras" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">100 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'cctv_frames')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.cctv_frames</span>
+                    <span data-table-badge="silver.cctv_frames" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">61,319 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'vehicle_counts')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.vehicle_counts</span>
+                    <span data-table-badge="silver.vehicle_counts" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">60,721 rows</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Downstream Uses -->
+            <div class="p-2.5 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+              <span class="flex items-center gap-1.5 text-slate-300 font-medium">
+                <i class="fa-solid fa-arrow-turn-down text-emerald-400"></i> Downstream Products:
+              </span>
+              <span>Interactive Bangkok CCTV Map (<code class="text-emerald-300">/</code>), YOLO Detection Viewer (<code class="text-emerald-300">/inspect</code>), Rush Hour Congestion Index</span>
+            </div>
+          </div>
+
+          <!-- 2. BMA Drainage & Flood Telemetry (Playwright Scraped) -->
+          <div data-domain-card="drainage" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center justify-center text-sm">
+                  <i class="fa-solid fa-cloud-showers-heavy"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    BMA Drainage & Flood Telemetry Domain (Playwright Scraped)
+                    <span class="text-[10px] px-2 py-0.2 rounded bg-blue-500/20 text-blue-300 font-mono">8 Tables</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400">Source: BMA Dept. of Drainage & Sewerage (DDS) Portals (`dds.bangkok.go.th`) via Playwright Headless Chromium</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                Automated Dynamic Web Scraping • 44,694 Telemetry Records
+              </span>
+            </div>
+
+            <!-- Flow Columns -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center text-xs">
+              <!-- Bronze Box (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2">
+                <div class="flex items-center justify-between text-amber-400 font-bold text-[11px] uppercase tracking-wider">
+                  <span>🥉 Bronze (Playwright Scrapes)</span>
+                  <span class="text-[10px] font-mono text-slate-400">Raw Tables</span>
+                </div>
+                <div class="space-y-1.5 font-mono">
+                  <button onclick="inspectTableFromLineage('bronze', 'drainage_rain_hourly_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.drainage_rain_hourly_raw</span>
+                    <span data-table-badge="bronze.drainage_rain_hourly_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">21,672 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'drainage_flood_hourly_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.drainage_flood_hourly_raw</span>
+                    <span data-table-badge="bronze.drainage_flood_hourly_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">18,816 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'drainage_canal_level_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.drainage_canal_level_raw</span>
+                    <span data-table-badge="bronze.drainage_canal_level_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">4,018 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'drainage_stations_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.drainage_stations_raw</span>
+                    <span data-table-badge="bronze.drainage_stations_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">440 rows</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Pipeline DQ & Transformations (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-blue-950/20 border border-blue-500/20 space-y-2 text-[11px] text-slate-300">
+                <div class="text-blue-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <i class="fa-solid fa-code-compare text-blue-400"></i> Transformation & Cleaning
+                </div>
+                <ul class="space-y-1 list-disc list-inside text-slate-400">
+                  <li>Headless Chromium DOM extraction parsing Thai tables and JS-rendered charts.</li>
+                  <li>Timestamp normalization to Asia/Bangkok <code class="text-blue-300 font-mono text-[10px]">TIMESTAMPTZ</code>.</li>
+                  <li>Sensor zero-drift correction and suppression of invalid negative levels.</li>
+                  <li>District spatial attribution linking sensor stations to 50 BMA districts.</li>
+                </ul>
+              </div>
+
+              <!-- Silver Box (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-slate-950/60 border border-purple-500/20 space-y-2">
+                <div class="flex items-center justify-between text-purple-300 font-bold text-[11px] uppercase tracking-wider">
+                  <span>🥈 Silver (Standardized Telemetry)</span>
+                  <span class="text-[10px] font-mono text-slate-400">Strongly Typed</span>
+                </div>
+                <div class="space-y-1.5 font-mono">
+                  <button onclick="inspectTableFromLineage('silver', 'drainage_rain_hourly')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.drainage_rain_hourly</span>
+                    <span data-table-badge="silver.drainage_rain_hourly" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">21,672 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'drainage_flood_hourly')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.drainage_flood_hourly</span>
+                    <span data-table-badge="silver.drainage_flood_hourly" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">18,816 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'drainage_canal_level')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.drainage_canal_level</span>
+                    <span data-table-badge="silver.drainage_canal_level" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">3,766 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'drainage_stations')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.drainage_stations</span>
+                    <span data-table-badge="silver.drainage_stations" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">440 rows</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Downstream Uses -->
+            <div class="p-2.5 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+              <span class="flex items-center gap-1.5 text-slate-300 font-medium">
+                <i class="fa-solid fa-arrow-turn-down text-emerald-400"></i> Downstream Products:
+              </span>
+              <span>Rain-Flood Traffic Impact Mart, Khlong Floodgate Monitoring, Road Water Depth Alerter</span>
+            </div>
+          </div>
+
+          <!-- 3. OpenStreetMap Geospatial Network & Rail Transit -->
+          <div data-domain-card="transit" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center justify-center text-sm">
+                  <i class="fa-solid fa-train-subway"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    OpenStreetMap Geospatial & Rail Transit Domain
+                    <span class="text-[10px] px-2 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-mono">8 Tables</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400">Source: OpenStreetMap Overpass API, Bangkok BTS/MRT/ARL Transit Portals & GTFS</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                10 Rail Corridors • 19,602 Road Segments • 12,212 POIs
+              </span>
+            </div>
+
+            <!-- Flow Columns -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center text-xs">
+              <!-- Bronze Box (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2">
+                <div class="flex items-center justify-between text-amber-400 font-bold text-[11px] uppercase tracking-wider">
+                  <span>🥉 Bronze (Overpass & GTFS)</span>
+                  <span class="text-[10px] font-mono text-slate-400">Raw GeoJSON</span>
+                </div>
+                <div class="space-y-1.5 font-mono">
+                  <button onclick="inspectTableFromLineage('bronze', 'transit_lines_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.transit_lines_raw</span>
+                    <span data-table-badge="bronze.transit_lines_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">50 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'transit_stations_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.transit_stations_raw</span>
+                    <span data-table-badge="bronze.transit_stations_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">960 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'osm_roads_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.osm_roads_raw</span>
+                    <span data-table-badge="bronze.osm_roads_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">19,602 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'osm_poi_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.osm_poi_raw</span>
+                    <span data-table-badge="bronze.osm_poi_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">12,212 rows</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Pipeline DQ & Transformations (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20 space-y-2 text-[11px] text-slate-300">
+                <div class="text-cyan-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <i class="fa-solid fa-route text-cyan-400"></i> Spatial Harmonization & Lineage
+                </div>
+                <ul class="space-y-1 list-disc list-inside text-slate-400">
+                  <li>Deduplicate multi-track ways into 10 rapid transit lines with official hex codes.</li>
+                  <li>Harmonize bilingual Thai/English station nomenclature across operators.</li>
+                  <li>Filter highway ways: classify road hierarchies (motorway, trunk, primary) & lanes.</li>
+                  <li>Categorize POI tags into civic infrastructure taxonomy.</li>
+                </ul>
+              </div>
+
+              <!-- Silver Box (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-slate-950/60 border border-purple-500/20 space-y-2">
+                <div class="flex items-center justify-between text-purple-300 font-bold text-[11px] uppercase tracking-wider">
+                  <span>🥈 Silver (Spatial Network)</span>
+                  <span class="text-[10px] font-mono text-slate-400">Cleaned WGS84</span>
+                </div>
+                <div class="space-y-1.5 font-mono">
+                  <button onclick="inspectTableFromLineage('silver', 'transit_lines')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.transit_lines</span>
+                    <span data-table-badge="silver.transit_lines" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">10 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'transit_stations')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.transit_stations</span>
+                    <span data-table-badge="silver.transit_stations" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">188 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'osm_roads')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.osm_roads</span>
+                    <span data-table-badge="silver.osm_roads" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">19,602 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'osm_poi')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.osm_poi</span>
+                    <span data-table-badge="silver.osm_poi" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">12,212 rows</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Downstream Uses -->
+            <div class="p-2.5 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+              <span class="flex items-center gap-1.5 text-slate-300 font-medium">
+                <i class="fa-solid fa-arrow-turn-down text-emerald-400"></i> Downstream Products:
+              </span>
+              <span>Map Rail Transit Vector GeoJSON Layer, Camera Transit Proximity Mart (<code class="text-emerald-300">silver.camera_transit_proximity</code>), Multimodal Catchment Analytics</span>
+            </div>
+          </div>
+
+          <!-- 4. BMA Municipal Open Data & Citizen Incident Reports -->
+          <div data-domain-card="municipal" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center text-sm">
+                  <i class="fa-solid fa-landmark"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    BMA Municipal Open Data & Citizen Reports Domain
+                    <span class="text-[10px] px-2 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono">12 Tables</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400">Source: BMA Open Data Portal (`data.bangkok.go.th`), Traffy Fondue API, FM91 Radio Alerts & DOPA</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                50 BMA Districts • 7,247 Traffy Reports • 377 FM91 News
+              </span>
+            </div>
+
+            <!-- Flow Columns -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center text-xs">
+              <!-- Bronze Box (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2">
+                <div class="flex items-center justify-between text-amber-400 font-bold text-[11px] uppercase tracking-wider">
+                  <span>🥉 Bronze (Municipal Feeds)</span>
+                  <span class="text-[10px] font-mono text-slate-400">Verbatim Ingest</span>
+                </div>
+                <div class="space-y-1.5 font-mono">
+                  <button onclick="inspectTableFromLineage('bronze', 'traffy_complaints_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.traffy_complaints_raw</span>
+                    <span data-table-badge="bronze.traffy_complaints_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">7,247 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'district_population_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.district_population_raw</span>
+                    <span data-table-badge="bronze.district_population_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">51 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'district_stats_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.district_stats_raw</span>
+                    <span data-table-badge="bronze.district_stats_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">50 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'district_boundaries_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.district_boundaries_raw</span>
+                    <span data-table-badge="bronze.district_boundaries_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">50 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'hawker_zones_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.hawker_zones_raw</span>
+                    <span data-table-badge="bronze.hawker_zones_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">46 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'fm91_news_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.fm91_news_raw</span>
+                    <span data-table-badge="bronze.fm91_news_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">377 rows</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Pipeline DQ & Transformations (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-amber-950/20 border border-amber-500/20 space-y-2 text-[11px] text-slate-300">
+                <div class="text-amber-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <i class="fa-solid fa-map-pin text-amber-400"></i> Entity Normalization & Matching
+                </div>
+                <ul class="space-y-1 list-disc list-inside text-slate-400">
+                  <li>Map district name variants to canonical 50 BMA administrative district identifiers.</li>
+                  <li>Geotag citizen complaints into severity levels and infrastructure categories.</li>
+                  <li>Compute district-level demographic metrics (density $/km^2$, population).</li>
+                  <li>Extract timestamps and highway road incident coordinates from FM91 news dispatches.</li>
+                </ul>
+              </div>
+
+              <!-- Silver Box (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-slate-950/60 border border-purple-500/20 space-y-2">
+                <div class="flex items-center justify-between text-purple-300 font-bold text-[11px] uppercase tracking-wider">
+                  <span>🥈 Silver (Standardized Context)</span>
+                  <span class="text-[10px] font-mono text-slate-400">Cleaned Master</span>
+                </div>
+                <div class="space-y-1.5 font-mono">
+                  <button onclick="inspectTableFromLineage('silver', 'traffy_complaints')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.traffy_complaints</span>
+                    <span data-table-badge="silver.traffy_complaints" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">7,247 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'district_population')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.district_population</span>
+                    <span data-table-badge="silver.district_population" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">50 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'district_stats')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.district_stats</span>
+                    <span data-table-badge="silver.district_stats" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">50 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'district_boundaries')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.district_boundaries</span>
+                    <span data-table-badge="silver.district_boundaries" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">50 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'hawker_zones')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.hawker_zones</span>
+                    <span data-table-badge="silver.hawker_zones" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">46 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'fm91_news')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.fm91_news</span>
+                    <span data-table-badge="silver.fm91_news" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">377 rows</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Downstream Uses -->
+            <div class="p-2.5 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+              <span class="flex items-center gap-1.5 text-slate-300 font-medium">
+                <i class="fa-solid fa-arrow-turn-down text-emerald-400"></i> Downstream Products:
+              </span>
+              <span>District Infrastructure Vulnerability Analysis, Road Defect Hotspots, Traffic Disruption Intelligence</span>
+            </div>
+          </div>
+
+          <!-- 5. Meteorological & Astronomical Context -->
+          <div data-domain-card="weather" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-yellow-300 border border-yellow-500/30 flex items-center justify-center text-sm">
+                  <i class="fa-solid fa-cloud-sun"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    Meteorological & Astronomical Context Domain
+                    <span class="text-[10px] px-2 py-0.2 rounded bg-yellow-500/20 text-yellow-300 font-mono">14 Tables</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400">Source: Open-Meteo Reanalysis API, NOAA METAR (VTBD/VTBS), TMD Weekly Reports, Astral Ephemeris & BOT</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                Multi-Point Spatial Weather • Airport METAR • Solar Twilight
+              </span>
+            </div>
+
+            <!-- Flow Columns -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center text-xs">
+              <!-- Bronze Box (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-slate-950/60 border border-amber-500/20 space-y-2">
+                <div class="flex items-center justify-between text-amber-400 font-bold text-[11px] uppercase tracking-wider">
+                  <span>🥉 Bronze (Meteo & Ephemeris)</span>
+                  <span class="text-[10px] font-mono text-slate-400">Raw Feeds</span>
+                </div>
+                <div class="space-y-1.5 font-mono">
+                  <button onclick="inspectTableFromLineage('bronze', 'weather_hourly_bangkok_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.weather_hourly_bangkok_raw</span>
+                    <span data-table-badge="bronze.weather_hourly_bangkok_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">168 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'weather_hourly_points_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.weather_hourly_points_raw</span>
+                    <span data-table-badge="bronze.weather_hourly_points_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">1,512 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'metar_observations_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.metar_observations_raw</span>
+                    <span data-table-badge="bronze.metar_observations_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">1,344 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'tmd_weekly_summary_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.tmd_weekly_summary_raw</span>
+                    <span data-table-badge="bronze.tmd_weekly_summary_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">28 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'sun_times_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.sun_times_raw</span>
+                    <span data-table-badge="bronze.sun_times_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">14 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'thai_holidays_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.thai_holidays_raw</span>
+                    <span data-table-badge="bronze.thai_holidays_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">21 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('bronze', 'calendar_features_raw')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition flex items-center justify-between group">
+                    <span class="text-amber-300 group-hover:underline">bronze.calendar_features_raw</span>
+                    <span data-table-badge="bronze.calendar_features_raw" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">7 rows</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Pipeline DQ & Transformations (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-yellow-950/20 border border-yellow-500/20 space-y-2 text-[11px] text-slate-300">
+                <div class="text-yellow-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <i class="fa-solid fa-sun text-yellow-400"></i> Ephemeris & Meteorological Typing
+                </div>
+                <ul class="space-y-1 list-disc list-inside text-slate-400">
+                  <li>Normalize metric parameters: Celsius, precipitation mm, relative humidity %.</li>
+                  <li>Decode METAR aviation strings into cloud base, visibility, and altimeter settings.</li>
+                  <li>Calculate solar elevation angles, sunrise/sunset, and civil twilight boundaries.</li>
+                  <li>Generate Bank of Thailand statutory holiday flags and day-of-week temporal indices.</li>
+                </ul>
+              </div>
+
+              <!-- Silver Box (4 cols) -->
+              <div class="lg:col-span-4 p-3.5 rounded-xl bg-slate-950/60 border border-purple-500/20 space-y-2">
+                <div class="flex items-center justify-between text-purple-300 font-bold text-[11px] uppercase tracking-wider">
+                  <span>🥈 Silver (Typed Meteorological)</span>
+                  <span class="text-[10px] font-mono text-slate-400">Time-Series</span>
+                </div>
+                <div class="space-y-1.5 font-mono">
+                  <button onclick="inspectTableFromLineage('silver', 'weather_hourly_bangkok')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.weather_hourly_bangkok</span>
+                    <span data-table-badge="silver.weather_hourly_bangkok" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">168 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'weather_hourly_points')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.weather_hourly_points</span>
+                    <span data-table-badge="silver.weather_hourly_points" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">1,512 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'metar_observations')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.metar_observations</span>
+                    <span data-table-badge="silver.metar_observations" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">672 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'tmd_weekly_summary')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.tmd_weekly_summary</span>
+                    <span data-table-badge="silver.tmd_weekly_summary" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">28 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'sun_times')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.sun_times</span>
+                    <span data-table-badge="silver.sun_times" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">7 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'thai_holidays')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.thai_holidays</span>
+                    <span data-table-badge="silver.thai_holidays" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">21 rows</span>
+                  </button>
+                  <button onclick="inspectTableFromLineage('silver', 'calendar_features')" class="w-full text-left p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/40 transition flex items-center justify-between group">
+                    <span class="text-purple-300 group-hover:underline">silver.calendar_features</span>
+                    <span data-table-badge="silver.calendar_features" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">7 rows</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Downstream Uses -->
+            <div class="p-2.5 rounded-xl bg-slate-950/40 border border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+              <span class="flex items-center gap-1.5 text-slate-300 font-medium">
+                <i class="fa-solid fa-arrow-turn-down text-emerald-400"></i> Downstream Products:
+              </span>
+              <span>Daylight Vision Compensation Models, Weather Slowdown Predictive Regression, Calendar Seasonality Models</span>
+            </div>
+          </div>
+
+          <!-- 6. Spatial Analytics & Enriched Feature Marts -->
+          <div data-domain-card="marts" class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center justify-center text-sm">
+                  <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    Enriched Spatial Marts & Data Products
+                    <span class="text-[10px] px-2 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono">Analytical Marts</span>
+                  </h4>
+                  <p class="text-[11px] text-slate-400">Downstream Multimodal Joins, Haversine Geodesic Distance Calculations & Analytics Ready Marts</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700/60">
+                Cross-Domain Geodesic Joins
+              </span>
+            </div>
+
+            <!-- Flow Cards for Feature Marts -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              
+              <!-- Mart 1: Proximity Table -->
+              <div class="p-4 rounded-xl bg-slate-950/60 border border-emerald-500/30 space-y-3 flex flex-col justify-between">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                      <i class="fa-solid fa-ruler-combined"></i> Transit Proximity Mart
+                    </span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">SILVER MART</span>
+                  </div>
+                  <button onclick="inspectTableFromLineage('silver', 'camera_transit_proximity')" class="w-full text-left p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-emerald-500/40 transition flex items-center justify-between group">
+                    <span class="text-emerald-300 font-mono font-semibold group-hover:underline">silver.camera_transit_proximity</span>
+                    <span data-table-badge="silver.camera_transit_proximity" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">100 rows</span>
+                  </button>
+                  <p class="text-[11px] text-slate-400 leading-relaxed">
+                    Computes spherical Haversine geodesic distance from all 100 CCTV cameras to the nearest BTS/MRT stations. Identifies 500m transit walking catchment areas (<code class="text-emerald-300 font-mono text-[10px]">is_near_transit = TRUE</code>).
+                  </p>
+                </div>
+                <div class="text-[10px] font-mono text-slate-500 pt-2 border-t border-slate-800">
+                  Join: <code class="text-slate-400">silver.cameras ⟕ silver.transit_stations</code>
+                </div>
+              </div>
+
+              <!-- Mart 2: Rush Hour Congestion Index -->
+              <div class="p-4 rounded-xl bg-slate-950/60 border border-purple-500/30 space-y-3 flex flex-col justify-between">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-purple-300 font-bold uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                      <i class="fa-solid fa-stopwatch"></i> Rush Hour Congestion Index
+                    </span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono">ANALYTICS MART</span>
+                  </div>
+                  <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-mono text-purple-200">
+                    Temporal Rollups (Morning / Evening Peaks)
+                  </div>
+                  <p class="text-[11px] text-slate-400 leading-relaxed">
+                    Hourly aggregations separating peak morning (07:00–09:00) and evening (17:00–19:00) vehicular throughput spikes, modal split ratios (cars vs. motorcycles vs. buses), and corridor saturation levels.
+                  </p>
+                </div>
+                <div class="text-[10px] font-mono text-slate-500 pt-2 border-t border-slate-800">
+                  Aggregate: <code class="text-slate-400">silver.vehicle_counts BY hour, camera_id</code>
+                </div>
+              </div>
+
+              <!-- Mart 3: Rain-Flood Traffic Impact Mart -->
+              <div class="p-4 rounded-xl bg-slate-950/60 border border-blue-500/30 space-y-3 flex flex-col justify-between">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-blue-300 font-bold uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+                      <i class="fa-solid fa-water"></i> Rain-Flood Traffic Impact Mart
+                    </span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono">CROSS-DOMAIN</span>
+                  </div>
+                  <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-mono text-blue-200">
+                    Spatial Cross-Correlation Matrix
+                  </div>
+                  <p class="text-[11px] text-slate-400 leading-relaxed">
+                    Cross-domain alignment combining precipitation telemetry (<code class="text-blue-300 font-mono text-[10px]">drainage_rain_hourly</code>), road flood depth (<code class="text-blue-300 font-mono text-[10px]">drainage_flood_hourly</code>), and camera vehicle slowdown rates.
+                  </p>
+                </div>
+                <div class="text-[10px] font-mono text-slate-500 pt-2 border-t border-slate-800">
+                  Join: <code class="text-slate-400">vehicle_counts ⟕ drainage_rain ⟕ drainage_flood</code>
+                </div>
+              </div>
+
+            </div>
           </div>
 
         </div>
+
       </section>
 
     </main>
@@ -532,6 +1176,7 @@
         document.getElementById('metricTotalTables').textContent = data.total_tables;
         document.getElementById('metricTotalRecords').textContent = data.total_records.toLocaleString();
 
+        updateLineageStats(data);
         renderTableList();
 
         // If active table exists in data, load it; else default to first table
@@ -999,6 +1644,58 @@
         [viewData, viewSchema, viewSql, viewLineage].forEach(v => v.classList.add('hidden'));
         activeView.classList.remove('hidden');
       }
+      window.switchTab = switchTab;
+
+      // Lineage Domain Filtering
+      window.filterLineageDomain = function(domainKey) {
+        document.querySelectorAll('.lineage-domain-btn').forEach(btn => {
+          if (btn.getAttribute('data-lineage-filter') === domainKey) {
+            btn.className = 'lineage-domain-btn px-3 py-1.5 rounded-lg font-medium bg-purple-600 text-white transition';
+          } else {
+            btn.className = 'lineage-domain-btn px-3 py-1.5 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition';
+          }
+        });
+
+        document.querySelectorAll('[data-domain-card]').forEach(card => {
+          if (domainKey === 'all' || card.getAttribute('data-domain-card') === domainKey) {
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      };
+
+      // Jump from Lineage to Data Preview
+      window.inspectTableFromLineage = function(schema, table) {
+        selectTable(schema, table);
+        switchTab(tabDataBtn, viewData);
+      };
+
+      // Update Lineage Stats & Badges
+      window.updateLineageStats = function(summary) {
+        if (!summary || !summary.tables) return;
+
+        const totalTablesEl = document.getElementById('lineageTotalTables');
+        const totalRecordsEl = document.getElementById('lineageTotalRecords');
+        const bronzeCountEl = document.getElementById('lineageBadgeBronzeCount');
+        const silverCountEl = document.getElementById('lineageBadgeSilverCount');
+
+        if (totalTablesEl) totalTablesEl.textContent = `${summary.total_tables} Tables`;
+        if (totalRecordsEl) totalRecordsEl.textContent = `${summary.total_records.toLocaleString()}+ Rows`;
+
+        const bronzeCount = summary.tables.filter(t => t.schema === 'bronze').length;
+        const silverCount = summary.tables.filter(t => t.schema === 'silver').length;
+        if (bronzeCountEl) bronzeCountEl.textContent = `${bronzeCount} Tables`;
+        if (silverCountEl) silverCountEl.textContent = `${silverCount} Tables`;
+
+        // Update individual table badges
+        summary.tables.forEach(t => {
+          const selector = `[data-table-badge="${t.full_name}"]`;
+          document.querySelectorAll(selector).forEach(badge => {
+            badge.textContent = `${t.row_count.toLocaleString()} rows`;
+          });
+        });
+      };
 
       tabDataBtn.addEventListener('click', () => switchTab(tabDataBtn, viewData));
       tabSchemaBtn.addEventListener('click', () => {
