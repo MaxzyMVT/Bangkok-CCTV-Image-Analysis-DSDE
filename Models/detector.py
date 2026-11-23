@@ -31,6 +31,75 @@ CLASS_COLORS = {
 }
 DEFAULT_BOX_COLOR = (0, 255, 255)  # Yellow fallback
 
+# Abbreviated display names to eliminate label clutter and horizontal occlusion
+CLASS_ABBREV = {
+    "motorcycle": "moto",
+    "bicycle": "bike",
+    "car": "car",
+    "truck": "truck",
+    "bus": "bus",
+    "person": "ped"
+}
+
+
+def suppress_containment(
+    detections: List[Dict],
+    iou_thresh: float = 0.40,
+    ios_thresh: float = 0.65,
+    agnostic: bool = True
+) -> List[Dict]:
+    """
+    Suppresses duplicate and part-vs-whole detections using:
+    1. Intersection-over-Smaller (IoS): If >= ios_thresh of a smaller box is contained
+       inside a larger higher-confidence box (e.g. wheel inside motorcycle, cab inside truck),
+       the lower-confidence contained box is suppressed.
+    2. Class-Agnostic IoU: Suppresses cross-class duplicates (e.g. car vs truck on the
+       same physical vehicle) when agnostic=True and IoU >= iou_thresh.
+    """
+    if not detections:
+        return []
+
+    sorted_dets = sorted(detections, key=lambda d: d["confidence"], reverse=True)
+    kept = []
+
+    for det in sorted_dets:
+        b1 = det["bbox"]
+        a1 = (b1[2] - b1[0]) * (b1[3] - b1[1])
+        if a1 <= 0:
+            continue
+
+        suppress = False
+        for k in kept:
+            # If not agnostic, only suppress within the same class (unless extreme containment > 0.85)
+            if not agnostic and k["class_id"] != det["class_id"]:
+                continue
+
+            b2 = k["bbox"]
+            a2 = (b2[2] - b2[0]) * (b2[3] - b2[1])
+            if a2 <= 0:
+                continue
+
+            x1 = max(b1[0], b2[0])
+            y1 = max(b1[1], b2[1])
+            x2 = min(b1[2], b2[2])
+            y2 = min(b1[3], b2[3])
+
+            inter = max(0, x2 - x1) * max(0, y2 - y1)
+            if inter > 0:
+                union = a1 + a2 - inter
+                iou = inter / union if union > 0 else 0
+                ios = inter / min(a1, a2) if min(a1, a2) > 0 else 0
+
+                # Suppress if cross-class IoU threshold exceeded OR containment IoS threshold exceeded
+                if (iou >= iou_thresh and agnostic) or (ios >= ios_thresh):
+                    suppress = True
+                    break
+
+        if not suppress:
+            kept.append(det)
+
+    return kept
+
 # Day/Night solar lookup table (populated from scraped sun_times_daily.csv or fallback)
 SUN_TIMES_CSV = Path(__file__).resolve().parent.parent / "DataEngineering" / "WebScraping" / "raw" / "sun_times" / "sun_times_daily.csv"
 SUN_TIMES_TABLE: Dict[str, Tuple[int, int]] = {}
@@ -195,7 +264,8 @@ class YOLOVehicleDetector:
         timestamp: Optional[str] = None,
         date_str: Optional[str] = None,
         adaptive_threshold: bool = True,
-        agnostic_nms: Optional[bool] = None
+        agnostic_nms: Optional[bool] = None,
+        ios_thresh: Optional[float] = 0.65
     ) -> Dict:
         """
         Runs object detection on a single image.
@@ -210,6 +280,8 @@ class YOLOVehicleDetector:
             adaptive_threshold: If True and conf is not explicitly specified, adjusts
                                 confidence dynamically based on solar sunrise/sunset data.
             agnostic_nms: If True, suppresses duplicate detections across classes.
+            ios_thresh: Containment threshold (Intersection over Smaller). If >= ios_thresh
+                        of a smaller box is contained within a larger box, suppresses the smaller box.
             
         Returns:
             Dictionary containing:
@@ -279,9 +351,6 @@ class YOLOVehicleDetector:
                 coords = [int(v) for v in box.xyxy[0].tolist()] # [x1, y1, x2, y2]
                 class_name = self.vehicle_classes.get(cls_id, "vehicle")
 
-                counts[class_name] = counts.get(class_name, 0) + 1
-                counts["total_vehicles"] += 1
-
                 raw_dets.append({
                     "class_id": cls_id,
                     "class_name": class_name,
@@ -289,11 +358,23 @@ class YOLOVehicleDetector:
                     "bbox": coords
                 })
 
-            detections = sorted(raw_dets, key=lambda d: d["confidence"], reverse=True)
+            # Apply IoS containment & cross-class suppression to eliminate duplicates and part-vs-whole boxes
+            detections = suppress_containment(
+                raw_dets,
+                iou_thresh=iou,
+                ios_thresh=ios_thresh if ios_thresh is not None else 0.65,
+                agnostic=use_agnostic
+            )
+
+            # Update verified counts from final non-duplicate detections
+            for det in detections:
+                cname = det["class_name"]
+                counts[cname] = counts.get(cname, 0) + 1
+                counts["total_vehicles"] += 1
 
             if draw_annotations:
                 # Sort ascending by confidence so higher-confidence labels render on top
-                for det in sorted(raw_dets, key=lambda d: d["confidence"]):
+                for det in sorted(detections, key=lambda d: d["confidence"]):
                     cls_id = det["class_id"]
                     class_name = det["class_name"]
                     confidence = det["confidence"]
@@ -301,44 +382,63 @@ class YOLOVehicleDetector:
                     x1, y1, x2, y2 = coords
                     color = CLASS_COLORS.get(class_name, DEFAULT_BOX_COLOR)
 
-                    # Draw Bounding Box
+                    # Draw Bounding Box (clean 2px outline)
                     cv2.rectangle(annotated_img, (x1, y1), (x2, y2), color, 2)
 
-                    # Label tag
-                    label = f"{class_name} {confidence:.2f}"
+                    # Compact abbreviated label (e.g. 'moto 0.81' instead of 'motorcycle 0.81')
+                    short_name = CLASS_ABBREV.get(class_name, class_name)
+                    label = f"{short_name} {confidence:.2f}"
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    font_scale = 0.38
+                    font_scale = 0.36
                     font_thickness = 1
                     (text_w, text_h), baseline = cv2.getTextSize(label, font, font_scale, font_thickness)
 
+                    pad_x = 3
+                    pad_y = 2
+                    pill_w = text_w + pad_x * 2
+                    pill_h = text_h + baseline + pad_y * 2
+
                     # If box is too near top HUD banner, place label inside the box
-                    if y1 < 28:
-                        lbl_y = min(h - 4, y1 + text_h + 3)
+                    if y1 < pill_h + 2:
                         box_top = y1
-                        box_bot = min(h, y1 + text_h + baseline + 4)
+                        box_bot = min(h, y1 + pill_h)
+                        lbl_y = y1 + text_h + pad_y
                     else:
-                        lbl_y = y1 - 3
-                        box_top = max(0, y1 - text_h - baseline - 4)
+                        box_top = max(0, y1 - pill_h)
                         box_bot = y1
+                        lbl_y = y1 - baseline - pad_y
 
                     lbl_x1 = max(0, x1)
-                    lbl_x2 = min(w, x1 + text_w + 4)
+                    lbl_x2 = min(w, x1 + pill_w)
 
-                    # Background pill for text label
+                    # Semi-transparent alpha pill for label badge (68% opacity, keeping scene visible)
+                    overlay = annotated_img.copy()
                     cv2.rectangle(
-                        annotated_img,
+                        overlay,
                         (lbl_x1, box_top),
                         (lbl_x2, box_bot),
                         color,
                         -1
                     )
+                    cv2.addWeighted(overlay, 0.68, annotated_img, 0.32, 0, annotated_img)
+
+                    # Crisp 1px border around label pill
+                    cv2.rectangle(
+                        annotated_img,
+                        (lbl_x1, box_top),
+                        (lbl_x2, box_bot),
+                        color,
+                        1
+                    )
+
+                    # High-contrast label text
                     cv2.putText(
                         annotated_img,
                         label,
-                        (lbl_x1 + 2, lbl_y),
+                        (lbl_x1 + pad_x, lbl_y),
                         font,
                         font_scale,
-                        (0, 0, 0),
+                        (15, 15, 15),
                         font_thickness,
                         cv2.LINE_AA
                     )

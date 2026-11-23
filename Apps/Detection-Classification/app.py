@@ -478,8 +478,9 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
         if path == "/api/predict":
             img_path_rel = req_data.get("image_path")
             img_b64 = req_data.get("image_base64")
-            conf = float(req_data.get("conf", 0.25))
+            conf = float(req_data.get("conf", 0.35))
             iou = float(req_data.get("iou", 0.45))
+            ios = float(req_data.get("ios", 0.65))
             agnostic_nms = bool(req_data.get("agnostic_nms", True))
             classes_filter = req_data.get("classes", {})
 
@@ -528,7 +529,7 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
 
             try:
                 detector = get_detector(conf=conf, iou=iou, agnostic_nms=agnostic_nms)
-                pred_result = detector.predict(img_bgr, conf=conf, iou=iou, agnostic_nms=agnostic_nms, draw_annotations=True)
+                pred_result = detector.predict(img_bgr, conf=conf, iou=iou, agnostic_nms=agnostic_nms, ios_thresh=ios, draw_annotations=True)
 
                 filtered_detections = []
                 counts = {"total_vehicles": 0, "car": 0, "motorcycle": 0, "bus": 0, "truck": 0, "bicycle": 0}
@@ -562,8 +563,9 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
         # 2. Batch Predict 16 Grid
         elif path == "/api/predict-grid":
             image_paths = req_data.get("image_paths", [])
-            conf = float(req_data.get("conf", 0.25))
+            conf = float(req_data.get("conf", 0.35))
             iou = float(req_data.get("iou", 0.45))
+            ios = float(req_data.get("ios", 0.65))
             agnostic_nms = bool(req_data.get("agnostic_nms", True))
 
             if not image_paths:
@@ -580,7 +582,7 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
                 img = imread_unicode(f_path)
                 if img is None:
                     continue
-                pred = detector.predict(img, conf=conf, iou=iou, agnostic_nms=agnostic_nms, draw_annotations=True)
+                pred = detector.predict(img, conf=conf, iou=iou, agnostic_nms=agnostic_nms, ios_thresh=ios, draw_annotations=True)
                 _, enc_thumb = cv2.imencode(".jpg", pred["annotated_image"])
                 thumb_b64 = base64.b64encode(enc_thumb).decode("utf-8")
                 results.append({
