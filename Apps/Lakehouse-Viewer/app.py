@@ -258,6 +258,9 @@ def execute_custom_query(sql_text: str):
     if not sql:
         raise ValueError("Empty SQL query")
 
+    # Strip trailing semicolons and whitespace so appending LIMIT or executing does not produce syntax errors
+    sql = sql.rstrip(";").strip()
+
     # Guard: only allow safe read-only queries
     upper_sql = sql.upper().strip()
     forbidden = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "TRUNCATE", "ATTACH", "DETACH", "CREATE TABLE", "CREATE SCHEMA"]
@@ -274,7 +277,7 @@ def execute_custom_query(sql_text: str):
         con = lake.catalog.connection
         # Enforce max 1,000 rows
         if "LIMIT" not in upper_sql:
-            sql += " LIMIT 1000"
+            sql = sql.rstrip(";").strip() + " LIMIT 1000"
 
         cur = con.execute(sql)
         desc = cur.description or []

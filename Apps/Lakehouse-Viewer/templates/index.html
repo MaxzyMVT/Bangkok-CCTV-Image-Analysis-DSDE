@@ -1427,7 +1427,9 @@
 
     // Execute Custom SQL Query
     async function runSqlQuery() {
-      const sql = document.getElementById('sqlInput').value.trim();
+      let sql = document.getElementById('sqlInput').value.trim();
+      // Remove trailing semicolons to prevent syntax conflict with auto-limit
+      sql = sql.replace(/;+\s*$/, '').trim();
       const statsEl = document.getElementById('queryStats');
       const tableHead = document.getElementById('queryResultHead');
       const tableBody = document.getElementById('queryResultBody');
