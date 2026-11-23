@@ -24,6 +24,9 @@ from pathlib import Path
 from http.server import ThreadingHTTPServer
 
 APPS_DIR = Path(__file__).resolve().parent
+ROOT_DIR = APPS_DIR.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 # Startup messages include symbols like "✓"; don't crash on a cp1252 Windows console
 for _stream in (sys.stdout, sys.stderr):
@@ -103,6 +106,40 @@ class SilentThreadingHTTPServer(ThreadingHTTPServer):
         super().handle_error(request, client_address)
 
 
+def ensure_lakehouse():
+    """
+    Auto-initializes the DuckLakehouse on server startup if not yet created.
+    If the catalog or silver tables are missing or empty:
+      1. Initializes Bronze and Silver schemas & tables
+      2. Ingests raw data from git (vehicle_counts.csv, cctv_info.csv, scraped weather/holidays/transit)
+      3. Transforms Silver tables (cleaning, proximity mart, temporal features)
+    This ensures that anyone cloning the repository has an immediately functional Lakehouse out-of-the-box!
+    """
+    try:
+        from DataEngineering.lakehouse_pipeline import DuckLakehouse, CATALOG_PATH
+        needs_init = not CATALOG_PATH.exists()
+        if not needs_init:
+            try:
+                lake = DuckLakehouse(reset=False)
+                res = lake.catalog.connection.execute("SELECT COUNT(*) FROM lake.silver.cameras").fetchone()
+                if not res or res[0] == 0:
+                    needs_init = True
+            except Exception:
+                needs_init = True
+
+        if needs_init:
+            print("[Lakehouse] Catalog not found or empty. Auto-bootstrapping Lakehouse from repository raw data...")
+            lake = DuckLakehouse(reset=False)
+            lake.initialize_tables()
+            bronze_stats = lake.ingest_bronze()
+            silver_stats = lake.transform_silver()
+            print(f"[Lakehouse] Auto-bootstrap complete! Bronze: {bronze_stats}, Silver: {silver_stats}")
+        else:
+            print("[Lakehouse] PyDuckLake catalog verified and ready.")
+    except Exception as e:
+        print(f"[Lakehouse] Note: Auto-bootstrap check skipped: {e}")
+
+
 def start_server(port=8080):
     # Same startup as the Detect app: fetch dataset if missing, load metadata, index frames
     detect_app.ensure_dataset()
@@ -110,6 +147,9 @@ def start_server(port=8080):
         detect_app.METADATA_LOOKUP = detect_app.load_cctv_metadata(detect_app.CCTV_INFO_CSV)
     detect_app.build_camera_index()
     map_app.load_cameras()
+
+    # Auto-initialize Lakehouse if tables or catalog are missing
+    ensure_lakehouse()
 
     # Pre-warm YOLO detector and PyTorch on main thread to avoid multi-thread import race
     try:

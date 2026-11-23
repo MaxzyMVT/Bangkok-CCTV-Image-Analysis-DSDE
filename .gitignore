@@ -1,7 +1,11 @@
 # ---------------------------------------------------------------------------
 # Data (download from the course Google Drive; never commit images)
 # ---------------------------------------------------------------------------
-dataset/
+dataset/*
+!dataset/100_cameras/
+dataset/100_cameras/*
+!dataset/100_cameras/cctv_info.csv
+!dataset/100_cameras/frozen_cameras.csv
 discord_sync/
 *.zip
 
@@ -46,8 +50,9 @@ env/
 
 # Lakehouse storage (DataEngineering/lakehouse_pipeline.py)
 lakehouse/
-DataEngineering/WebScraping/raw/
-DataEngineering/vehicle_counts.csv
+DataEngineering/lakehouse/
+!DataEngineering/WebScraping/raw/
+!DataEngineering/vehicle_counts.csv
 *.ducklake
 *.parquet
 
