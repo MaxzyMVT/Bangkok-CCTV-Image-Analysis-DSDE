@@ -133,6 +133,17 @@ def ensure_lakehouse():
             lake.initialize_tables()
             bronze_stats = lake.ingest_bronze()
             silver_stats = lake.transform_silver()
+
+            # Also sync external scraped tables (BMA drainage, weather, OSM roads, population, Traffy)
+            try:
+                sys.path.insert(0, str(ROOT_DIR / "DataEngineering" / "WebScraping"))
+                import external_lakehouse
+                ext_b = external_lakehouse.ingest_bronze(lake.catalog, force=False)
+                ext_s = external_lakehouse.transform_silver(lake.catalog)
+                print(f"[Lakehouse] External tables synced! Bronze: {len(ext_b)}, Silver: {len(ext_s)}")
+            except Exception as ext_err:
+                print(f"[Lakehouse] Note: External tables sync warning: {ext_err}")
+
             print(f"[Lakehouse] Auto-bootstrap complete! Bronze: {bronze_stats}, Silver: {silver_stats}")
         else:
             print("[Lakehouse] PyDuckLake catalog verified and ready.")
