@@ -419,10 +419,13 @@
             </button>
           </div>
 
-          <!-- Page Stepping -->
+          <!-- Page Stepping & Shuffle -->
           <div class="flex items-center space-x-1 bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs">
             <button id="gridPrevBtn" class="px-3 py-1.5 rounded-lg hover:bg-slate-700 text-slate-200 transition">
               <i class="fa-solid fa-chevron-left mr-1"></i> Prev 16
+            </button>
+            <button id="gridShuffleBtn" class="hidden px-3 py-1.5 rounded-lg bg-indigo-600/80 hover:bg-indigo-600 text-white font-medium transition flex items-center gap-1.5" title="Get random images from 16 random distinct cameras">
+              <i class="fa-solid fa-shuffle"></i> Shuffle 16 Cams
             </button>
             <button id="gridNextBtn" class="px-3 py-1.5 rounded-lg hover:bg-slate-700 text-slate-200 transition">
               Next 16 <i class="fa-solid fa-chevron-right ml-1"></i>
@@ -588,6 +591,7 @@
     const grid16Container = document.getElementById('grid16Container');
     const gridPrevBtn = document.getElementById('gridPrevBtn');
     const gridNextBtn = document.getElementById('gridNextBtn');
+    const gridShuffleBtn = document.getElementById('gridShuffleBtn');
     const gridModeTime = document.getElementById('gridModeTime');
     const gridModeMulti = document.getElementById('gridModeMulti');
     const runGridYoloBtn = document.getElementById('runGridYoloBtn');
@@ -1096,7 +1100,7 @@
       gridMode = 'time';
       gridModeTime.className = 'px-3 py-1.5 rounded-lg text-white bg-blue-600 font-medium transition';
       gridModeMulti.className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-white font-medium transition';
-      document.getElementById('gridSubtitle').textContent = `Showing 16 consecutive 10-minute snapshots for camera ${currentCameraId}`;
+      if (gridShuffleBtn) gridShuffleBtn.classList.add('hidden');
       load16Grid();
     });
 
@@ -1104,26 +1108,55 @@
       gridMode = 'multicam';
       gridModeMulti.className = 'px-3 py-1.5 rounded-lg text-white bg-blue-600 font-medium transition';
       gridModeTime.className = 'px-3 py-1.5 rounded-lg text-slate-400 hover:text-white font-medium transition';
-      document.getElementById('gridSubtitle').textContent = `Showing 16 different Bangkok cameras simultaneously`;
+      if (gridShuffleBtn) gridShuffleBtn.classList.remove('hidden');
       load16Grid();
     });
 
     gridNextBtn.addEventListener('click', () => {
-      gridStartIndex += 16;
-      load16Grid();
+      if (gridMode === 'multicam') {
+        load16Grid();
+      } else {
+        gridStartIndex += 16;
+        load16Grid();
+      }
     });
 
     gridPrevBtn.addEventListener('click', () => {
-      gridStartIndex = Math.max(0, gridStartIndex - 16);
-      load16Grid();
+      if (gridMode === 'multicam') {
+        load16Grid();
+      } else {
+        gridStartIndex = Math.max(0, gridStartIndex - 16);
+        load16Grid();
+      }
     });
+
+    if (gridShuffleBtn) {
+      gridShuffleBtn.addEventListener('click', () => {
+        load16Grid();
+      });
+    }
 
     async function load16Grid() {
       try {
-        const url = `/api/grid-16?camera_id=${currentCameraId}&start_index=${gridStartIndex}&mode=${gridMode}`;
+        const cacheBuster = gridMode === 'multicam' ? `&_t=${Date.now()}` : '';
+        const url = `/api/grid-16?camera_id=${currentCameraId}&start_index=${gridStartIndex}&mode=${gridMode}${cacheBuster}`;
         const res = await fetch(url);
         const data = await res.json();
         gridItems = data.items || [];
+
+        if (gridMode === 'time') {
+          const total = data.total || (currentImages ? currentImages.length : 0);
+          const currentStart = total > 0 ? (data.start_index !== undefined ? data.start_index : gridStartIndex) + 1 : 0;
+          const currentEnd = Math.min(currentStart + gridItems.length - 1, total);
+          document.getElementById('gridSubtitle').textContent = `Showing snapshots ${currentStart}–${currentEnd} of ${total} for camera ${currentCameraId}`;
+          if (gridPrevBtn) gridPrevBtn.disabled = (gridStartIndex <= 0);
+          if (gridNextBtn) gridNextBtn.disabled = (gridStartIndex + 16 >= total);
+        } else {
+          document.getElementById('gridSubtitle').textContent = `Showing random snapshots from 16 distinct cameras (shuffle unlimitedly)`;
+          if (gridPrevBtn) gridPrevBtn.disabled = false;
+          if (gridNextBtn) gridNextBtn.disabled = false;
+        }
+
         render16Grid(gridItems);
       } catch (err) {
         console.error('Error loading grid:', err);
@@ -1199,7 +1232,11 @@
           } else {
             cameraSelect.value = item.camera_id;
             loadCameraImages(item.camera_id).then(() => {
+              if (item.index !== undefined && item.index >= 0) {
+                currentImageIndex = item.index;
+              }
               tabSingleBtn.click();
+              displayCurrentImage();
             });
           }
         });

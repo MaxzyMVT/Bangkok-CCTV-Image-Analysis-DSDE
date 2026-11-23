@@ -361,63 +361,72 @@ class CCTVAnalysisHandler(BaseHTTPRequestHandler):
             cam_idx = build_camera_index()
 
             items = []
+            total = 0
             if mode == "time":
                 # 16 consecutive 10-minute snapshots of the chosen camera
                 if cid not in cam_idx:
+                    cid = list(cam_idx.keys())[0] if cam_idx else "1028"
+                cam_data = cam_idx.get(cid)
+                if not cam_data and cam_idx:
                     cid = list(cam_idx.keys())[0]
-                cam_data = cam_idx[cid]
-                total = len(cam_data["image_files"])
-                start_idx = max(0, min(start_idx, total - 1))
-                end_idx = min(start_idx + 16, total)
-                slice_files = cam_data["image_files"][start_idx:end_idx]
+                    cam_data = cam_idx[cid]
+                total = len(cam_data["image_files"]) if cam_data else 0
+                if total > 0:
+                    start_idx = max(0, min(start_idx, total - 1))
+                    end_idx = min(start_idx + 16, total)
+                    slice_files = cam_data["image_files"][start_idx:end_idx]
 
-                for f_idx, fname in enumerate(slice_files):
-                    parsed = parse_cctv_filename(fname)
-                    rel_p = f"dataset/100_cameras/cctv_images/{cid}/{fname}"
-                    items.append({
-                        "index": start_idx + f_idx,
-                        "camera_id": cid,
-                        "filename": fname,
-                        "path": rel_p,
-                        "timestamp": parsed["timestamp"] if parsed else "",
-                        "time": parsed["time"] if parsed else "",
-                        "date": parsed["date"] if parsed else "",
-                        "location_en": cam_data["location_en"],
-                        "location_th": cam_data.get("location_th", ""),
-                        "location_detail_en": cam_data.get("location_detail_en", ""),
-                        "location_detail_th": cam_data.get("location_detail_th", "")
-                    })
-            else:
-                # Multi-camera mode: 16 different cameras at approximately the same index
-                cids = list(cam_idx.keys())
-                start_cam = max(0, min(start_idx, len(cids) - 1))
-                picked_cids = cids[start_cam:start_cam + 16]
-
-                for c_id in picked_cids:
-                    cdata = cam_idx[c_id]
-                    if cdata["image_files"]:
-                        # Pick image near start_idx % length
-                        pick_f = cdata["image_files"][0]
-                        parsed = parse_cctv_filename(pick_f)
-                        rel_p = f"dataset/100_cameras/cctv_images/{c_id}/{pick_f}"
+                    for f_idx, fname in enumerate(slice_files):
+                        parsed = parse_cctv_filename(fname)
+                        rel_p = f"dataset/100_cameras/cctv_images/{cid}/{fname}"
                         items.append({
-                            "index": 0,
-                            "camera_id": c_id,
-                            "filename": pick_f,
+                            "index": start_idx + f_idx,
+                            "camera_id": cid,
+                            "filename": fname,
                             "path": rel_p,
                             "timestamp": parsed["timestamp"] if parsed else "",
                             "time": parsed["time"] if parsed else "",
                             "date": parsed["date"] if parsed else "",
-                            "location_en": cdata["location_en"],
-                            "location_th": cdata.get("location_th", ""),
-                            "location_detail_en": cdata.get("location_detail_en", ""),
-                            "location_detail_th": cdata.get("location_detail_th", "")
+                            "location_en": cam_data["location_en"],
+                            "location_th": cam_data.get("location_th", ""),
+                            "location_detail_en": cam_data.get("location_detail_en", ""),
+                            "location_detail_th": cam_data.get("location_detail_th", "")
                         })
+            else:
+                # Multi-camera mode: RANDOM snapshots from 16 DISTINCT cameras (from all 100 cameras)
+                # Users can shuffle unlimitedly to get fresh random images from random 16 distinct cams
+                import random
+                cids_with_images = [c for c, cdata in cam_idx.items() if cdata.get("image_files")]
+                total = len(cids_with_images)
+                sample_count = min(16, total)
+                picked_cids = random.sample(cids_with_images, sample_count) if sample_count > 0 else []
+
+                for c_id in picked_cids:
+                    cdata = cam_idx[c_id]
+                    imgs = cdata["image_files"]
+                    pick_f = random.choice(imgs)
+                    img_idx = imgs.index(pick_f)
+                    parsed = parse_cctv_filename(pick_f)
+                    rel_p = f"dataset/100_cameras/cctv_images/{c_id}/{pick_f}"
+                    items.append({
+                        "index": img_idx,
+                        "camera_id": c_id,
+                        "filename": pick_f,
+                        "path": rel_p,
+                        "timestamp": parsed["timestamp"] if parsed else "",
+                        "time": parsed["time"] if parsed else "",
+                        "date": parsed["date"] if parsed else "",
+                        "location_en": cdata["location_en"],
+                        "location_th": cdata.get("location_th", ""),
+                        "location_detail_en": cdata.get("location_detail_en", ""),
+                        "location_detail_th": cdata.get("location_detail_th", "")
+                    })
 
             self._send_json({
                 "mode": mode,
                 "camera_id": cid,
                 "start_index": start_idx,
+                "total": total,
                 "items": items,
                 "count": len(items)
             })
