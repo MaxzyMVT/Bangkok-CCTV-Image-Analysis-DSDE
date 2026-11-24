@@ -73,3 +73,6 @@ docs/superpowers/
 
 # Interrupted atomic writes from the review tool
 *.tmp
+
+# Rain insight: per-box detections are 25 MB and rebuilt by DataAnalysis/rain/recount.py
+DataAnalysis/data/boxes_v2.csv

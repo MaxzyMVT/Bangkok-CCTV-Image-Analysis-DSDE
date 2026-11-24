@@ -15,6 +15,15 @@ sys.path.insert(0, str(ROOT))
 from DataAnalysis.rain import common, effects, policy, prepare, traffy  # noqa: E402
 
 
+def write_tables(tables: dict, out: Path) -> None:
+    """One CSV per table. Coordinates keep 6 decimals (~0.1 m); other numbers 4 decimals."""
+    for name, t in tables.items():
+        t = t.copy()
+        for c in t.select_dtypes("number").columns:
+            t[c] = t[c].round(6 if c in ("latitude", "longitude") else 4)
+        t.to_csv(Path(out) / f"{name}.csv", index=False, lineterminator="\n")
+
+
 def main():
     out = common.OUT_DIR
     out.mkdir(parents=True, exist_ok=True)
@@ -43,8 +52,7 @@ def main():
         "flood_sensor_hours": traffy.flood_sensor_hours(common.load_flood()),
         "policy_stations": policy.policy_stations(cam_eff, ch, cameras, rail),
     }
-    for name, t in tables.items():
-        t.to_csv(out / f"{name}.csv", index=False, lineterminator="\n", float_format="%.4g")
+    write_tables(tables, out)
 
     ce = tables["city_effect"].query("window == 'all'").set_index("cls")
     print(f"[+] {len(ch)} camera-hours, {int(ch['wet'].sum())} wet on {ch.loc[ch['wet'], 'camera_id'].nunique()} cameras")

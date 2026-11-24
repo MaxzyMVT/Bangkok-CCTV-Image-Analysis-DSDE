@@ -1,0 +1,4 @@
+feature,denser_share,other_share,diff_points,ci_low,ci_high,n_denser,n_other
+near_rail,0.2,0.338,-13.8028,-42.2535,27.6056,5,71
+near_shelter,0.6,0.6197,-1.9718,-46.1972,40.8451,5,71
+in_flood_area,0.0,0.0282,-2.8169,-7.0423,0.0,5,71
