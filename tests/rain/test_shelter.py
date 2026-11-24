@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from DataAnalysis.rain.shelter import is_stationary, median_background, pick_pairs, stationary_share
+from DataAnalysis.rain.shelter import frame_stationary, is_stationary, median_background, pick_pairs, stationary_share
 
 
 def frame(with_square: bool) -> np.ndarray:
@@ -24,6 +24,17 @@ class StationaryTest(unittest.TestCase):
     def test_square_in_one_frame_is_moving(self):
         frames = [frame(True)] + [frame(False) for _ in range(4)]
         self.assertFalse(is_stationary(frames[0], median_background(frames), BOX))
+
+
+class FrameStationaryTest(unittest.TestCase):
+    def test_odd_sized_frame_skipped_not_crashing(self):
+        counts = pd.DataFrame({"image_id": [1, 2, 3, 4], "camera_id": 7,
+                               "timestamp": [f"2026-08-25T08:{m:02d}:00" for m in (0, 10, 20, 30)]})
+        boxes = pd.DataFrame({"image_id": [1], "cls": [1], "x": [.375], "y": [.375], "w": [.25], "h": [.25]})
+        imgs = {1: frame(True), 2: frame(True), 3: frame(True), 4: np.zeros((30, 50), np.uint8)}
+        f = frame_stationary(counts, boxes, [7], imgs.get)
+        self.assertEqual(sorted(f["image_id"]), [1, 2, 3])
+        self.assertEqual(f.set_index("image_id").loc[1, "stationary_moto"], 1)
 
 
 class ShareAndPairsTest(unittest.TestCase):

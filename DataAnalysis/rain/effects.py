@@ -44,7 +44,8 @@ def natural_experiment(ch: pd.DataFrame, cameras: pd.DataFrame, radius_m: float 
     pos = cameras.set_index("camera_id")[["latitude", "longitude"]]
     out = []
     for cls in CLASSES:
-        d = ch.assign(chg=ch[cls] / ch[cls + "_base"] - 1)
+        d = ch[ch[cls + "_base"] > 0]                   # no baseline for this class -> no ratio
+        d = d.assign(chg=d[cls] / d[cls + "_base"] - 1)
         per_hour = []                                 # one list of pair values per wet hour
         for _, h in d.groupby("hour_ts"):
             wet, dry = h[h["wet"]], h[h["rain_mm"] == 0]
@@ -124,13 +125,16 @@ def rebound(counts: pd.DataFrame, ch: pd.DataFrame, bins=range(-60, 121, 10)) ->
     as a ratio to the camera's dry baseline for that hour of day, averaged per 10-minute bin."""
     edges = list(bins)
     lo, hi, step = edges[0], edges[-1], edges[1] - edges[0]
-    base = ch.groupby(["camera_id", "hod"])[["motorcycle_base", "car_base"]].first()
+    keys = ["camera_id", "hod", "weekend"]          # same baseline cells as prepare.add_baseline
+    ch = ch.assign(weekend=pd.to_datetime(ch["hour_ts"]).dt.dayofweek >= 5)
+    base = ch.groupby(keys)[["motorcycle_base", "car_base"]].first()
     wet = ch.set_index(["camera_id", "hour_ts"])["wet"]
     t0s = [(cam, h + pd.Timedelta(hours=1)) for (cam, h), w in wet.items()
            if w and (cam, h + pd.Timedelta(hours=1)) in wet.index and not wet[(cam, h + pd.Timedelta(hours=1))]]
     f = counts.assign(ts=pd.to_datetime(counts["timestamp"]))
     f["hod"] = f["ts"].dt.hour
-    f = f.join(base, on=["camera_id", "hod"], how="inner")
+    f["weekend"] = f["ts"].dt.dayofweek >= 5
+    f = f.join(base, on=keys, how="inner")
     parts = []
     for ev, (cam, t0) in enumerate(t0s):
         g = f[f["camera_id"] == cam]

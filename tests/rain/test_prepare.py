@@ -57,6 +57,17 @@ class CameraHourTest(unittest.TestCase):
     def test_baseline_is_same_camera_same_hod_dry(self):
         self.assertEqual(self.ch.loc[pd.Timestamp("2026-08-25 08:00"), "total_base"], 15)
 
+    def test_baseline_matches_weekday_or_weekend(self):
+        # Sat 29 Aug wet at 08:00: baseline must come only from dry weekend 08:00 hours (Sun 30: 4), not weekdays (10, 20)
+        rows = (counts_rows(1, "2026-08-29 08:00", [2]) + counts_rows(1, "2026-08-30 08:00", [4])
+                + counts_rows(1, "2026-08-26 08:00", [10]) + counts_rows(1, "2026-08-27 08:00", [20]))
+        rain = pd.DataFrame({"gauge": "G1", "rain_mm": [3.0, 0.0, 0.0, 0.0],
+                             "hour_ts": pd.to_datetime(["2026-08-29 08:00", "2026-08-30 08:00",
+                                                        "2026-08-26 08:00", "2026-08-27 08:00"])})
+        ch = camera_hour(pd.DataFrame(rows), cams(1), rain).set_index("hour_ts")
+        self.assertEqual(ch.loc[pd.Timestamp("2026-08-29 08:00"), "total_base"], 4)
+        self.assertEqual(ch.loc[pd.Timestamp("2026-08-26 08:00"), "total_base"], 15)
+
     def test_missing_rain_hour_dropped(self):
         self.assertNotIn(pd.Timestamp("2026-08-28 08:00"), self.ch.index)
 

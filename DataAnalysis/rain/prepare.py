@@ -26,9 +26,11 @@ def camera_table(cams: pd.DataFrame, gauges: pd.DataFrame, rail: pd.DataFrame, s
 
 
 def add_baseline(ch: pd.DataFrame) -> pd.DataFrame:
-    """<cls>_base = mean over the same camera's dry hours at the same hour of day. Rows with no baseline are dropped."""
-    base = (ch[~ch["wet"]].groupby(["camera_id", "hod"])[BASE_COLS].mean().add_suffix("_base").reset_index())
-    out = ch.merge(base, on=["camera_id", "hod"], how="inner")
+    """<cls>_base = mean over the same camera's dry hours at the same hour of day on the same kind of day
+    (weekday vs weekend: most rain fell on a weekend, when traffic is lower anyway). Rows with no baseline are dropped."""
+    keys = ["camera_id", "hod", "weekend"]
+    base = ch[~ch["wet"]].groupby(keys)[BASE_COLS].mean().add_suffix("_base").reset_index()
+    out = ch.merge(base, on=keys, how="inner")
     return out[out["total_base"] > 0].reset_index(drop=True)
 
 

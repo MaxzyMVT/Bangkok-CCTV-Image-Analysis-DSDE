@@ -47,6 +47,10 @@ def frame_stationary(counts: pd.DataFrame, boxes: pd.DataFrame, camera_ids, load
     for _, g in f.groupby(["camera_id", "window"]):
         imgs = {r.image_id: load_gray(r.image_id) for r in g.itertuples()}
         imgs = {k: v for k, v in imgs.items() if v is not None}
+        if imgs:                               # a camera can switch resolution: keep the most common size
+            sizes = pd.Series([v.shape for v in imgs.values()])
+            size = sizes.mode().iloc[0]
+            imgs = {k: v for k, v in imgs.items() if v.shape == size}
         if len(imgs) < 3:                      # too few frames for a background
             continue
         bg = median_background(list(imgs.values()))

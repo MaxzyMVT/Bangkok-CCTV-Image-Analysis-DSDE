@@ -54,6 +54,16 @@ class NaturalExperimentTest(unittest.TestCase):
         self.assertEqual(t.loc["total", "n_pairs"], 1)
         self.assertEqual(t.loc["total", "n_hours"], 1)
 
+    def test_zero_class_baseline_skipped(self):
+        cams = cams_at([0, 1000, 0, 1000])
+        a, b = row(1, "2026-08-25 17:00", 0.7, 4.0), row(2, "2026-08-25 17:00", 1.0, 0.0)
+        c, d = row(3, "2026-08-26 17:00", 0.5, 4.0), row(4, "2026-08-26 17:00", 1.0, 0.0)
+        c["motorcycle_base"] = 0.0                      # no motorcycles there on dry days
+        t = natural_experiment(pd.DataFrame([a, b, c, d]), cams).set_index("cls")
+        self.assertTrue(np.isfinite(t.loc["motorcycle", "effect_pct_points"]))
+        self.assertAlmostEqual(t.loc["motorcycle", "effect_pct_points"], -30, delta=0.5)
+        self.assertEqual(t.loc["motorcycle", "n_pairs"], 1)
+
     def test_hour_without_dry_neighbour_skipped(self):
         cams = cams_at([0, 1000, 0, 1000])
         ch = pd.DataFrame([row(1, "2026-08-25 17:00", 0.7, 4.0), row(2, "2026-08-25 17:00", 1.0, 0.0),
@@ -120,6 +130,14 @@ class ReboundTest(unittest.TestCase):
         self.assertAlmostEqual(t.loc[("motorcycle", -30), "ratio"], 0.5, delta=1e-9)
         self.assertEqual(t.loc[("motorcycle", 30), "n_events"], 1)
         self.assertEqual(sorted(t.loc["car"].index), list(range(-60, 120, 10)))
+
+    def test_rebound_uses_weekend_baseline_on_weekends(self):
+        # Sat 29 Aug: weekend rows have base 5, a weekday row at the same hours has base 10 -> ratios use 5
+        ch = pd.DataFrame([row(1, "2026-08-26 09:00", 1.0, 0.0, base=10.0),      # weekday row listed first
+                           row(1, "2026-08-29 08:00", 0.5, 3.0, base=5.0), row(1, "2026-08-29 09:00", 1.0, 0.0, base=5.0)])
+        counts = frames(1, "2026-08-29 09:00", "2026-08-29 10:00", 5.0)
+        t = rebound(counts, ch).set_index(["cls", "minute"])
+        self.assertAlmostEqual(t.loc[("motorcycle", 0), "ratio"], 1.0, delta=1e-9)
 
     def test_rebound_event_at_data_end(self):
         counts = frames(1, "2026-08-25 08:00", "2026-08-25 09:00", 5.0)          # nothing after t0 = 09:00
