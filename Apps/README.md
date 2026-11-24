@@ -22,6 +22,7 @@ python Apps/main.py --port 9000
 | :--- | :--- | :--- |
 | `/` | **Camera Map** | Interactive Leaflet GIS map with custom CCTV beacons, transit overlays, and frame timeline replay. |
 | `/inspect` | **Vehicle Inspector** | YOLO deep learning inference, vehicle count breakdown, 10-minute snapshot cycler, and 16-grid control room. |
+| `/insights` | **Rain & Traffic Insights** | Interactive charts, camera map, evidence map of the project idea chart, and a new rain-timing audit. |
 
 ---
 

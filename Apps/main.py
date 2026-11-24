@@ -3,10 +3,12 @@ Bangkok CCTV web app: Camera Map + Detect on one server.
 
     python Apps/main.py            # http://localhost:8080
     python Apps/main.py --port 9000
+    python Apps/main.py --insights-only  # /insights without CV/lakehouse dependencies
 
 Routes:
     /                    Camera Map         (Apps/Camera-Map)
     /inspect             Detect / YOLO      (Apps/Detection-Classification)
+    /insights            Rain & traffic     (Apps/Traffic-Insights)
     /api/map/...         Map data           (/api/map/cameras, /api/map/frame)
     /images/<cam>/<file> Map snapshots
     /api/...             Detect API         (/api/cameras, /api/image, /api/predict, ...)
@@ -44,10 +46,20 @@ def _load_module(name, path):
     return module
 
 
+if __name__ == "__main__" and "--insights-only" in sys.argv:
+    parser = argparse.ArgumentParser(description="Traffic insights without CV/lakehouse startup")
+    parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--insights-only", action="store_true")
+    args = parser.parse_args()
+    _load_module("traffic_insights_app", APPS_DIR / "Traffic-Insights" / "app.py").serve(args.port)
+    raise SystemExit(0)
+
+
 # Folder names contain dashes, so load the apps by file path
 detect_app = _load_module("detect_app", APPS_DIR / "Detection-Classification" / "app.py")
 map_app = _load_module("camera_map_app", APPS_DIR / "Camera-Map" / "app.py")
 lakehouse_app = _load_module("lakehouse_app", APPS_DIR / "Lakehouse-Viewer" / "app.py")
+insights_app = _load_module("traffic_insights_app", APPS_DIR / "Traffic-Insights" / "app.py")
 
 # One YOLO model is shared by all requests; run inference one request at a time
 PREDICT_LOCK = threading.Lock()
@@ -73,6 +85,10 @@ class CombinedHandler(detect_app.CCTVAnalysisHandler):
 
         # 1. Lakehouse Viewer routes (/lakehouse, /api/lakehouse/*)
         if lakehouse_app.handle_lakehouse_get(self, path, query):
+            return
+
+        # Rain and traffic findings (/insights, /api/insights)
+        if insights_app.handle_insights_get(self, path, query):
             return
 
         # 2. Map routes ("/", "/api/map/*", "/images/*", "/static/map/*")
@@ -176,12 +192,13 @@ def start_server(port=8080):
     server = SilentThreadingHTTPServer(("", port), CombinedHandler)
     active_model = detect_app.resolve_model()
     print("=" * 64)
-    print(" Bangkok CCTV: Camera Map + YOLO11 Detect + Lakehouse Explorer")
+    print(" Bangkok CCTV: Camera Map + YOLO11 Detect + Lakehouse + Insights")
     print(f" Model:     {active_model}")
     print(f" Cameras:   {len(map_app.CAMERAS)}")
     print(f" Map:       http://localhost:{port}/")
     print(f" Detect:    http://localhost:{port}/inspect")
     print(f" Lakehouse: http://localhost:{port}/lakehouse")
+    print(f" Insights:  http://localhost:{port}/insights")
     print(" Press Ctrl+C to stop")
     print("=" * 64)
     try:

@@ -4,6 +4,8 @@ An end-to-end spatial-temporal traffic analytics and computer vision platform de
 
 Rain and traffic findings (25–31 Aug 2026) are available in the [interactive Streamlit dashboard](DataAnalysis/README.md) and the [analysis report](DataAnalysis/rain/README.md).
 
+The unified web server also serves the [Rain & Traffic Insights app](Apps/Traffic-Insights/README.md) at `http://localhost:8080/insights` alongside the camera map, inspector, and lakehouse viewer.
+
 ---
 
 ## 📌 Project Overview

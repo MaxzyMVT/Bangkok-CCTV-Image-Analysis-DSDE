@@ -1,0 +1,12 @@
+day_type,hour,n_camera_hours,n_clock_hours,motorcycle_effect_pct
+weekday,16,41,2,-26.7915
+weekday,17,1,1,-32.5837
+weekday,18,8,2,-41.4225
+weekday,19,9,2,-47.4576
+weekday,20,10,1,-61.3185
+weekend,12,3,1,143.4795
+weekend,13,49,1,-4.0178
+weekend,14,69,2,-12.9256
+weekend,15,12,1,-40.9838
+weekend,16,58,1,-32.4039
+weekend,17,33,2,-8.711
