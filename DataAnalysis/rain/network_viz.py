@@ -1,8 +1,7 @@
-"""Course-style NetworkX + PyVis interactive visualization helpers for Bangkok CCTV & Rail network.
+"""NetworkX + PyVis interactive visualization helpers for Bangkok CCTV & Rail network.
 
-Follows the layout, centrality, community detection, CCDF degree distribution, and PyVis
-rendering structure from 2110403 DSDE Week 14 (`streamlit_network_analysis.py`), backed by
-PyDuckLake camera and rapid transit coordinates.
+Provides layout, centrality, community detection, CCDF degree distribution, and PyVis
+rendering backed by PyDuckLake camera and rapid transit coordinates.
 """
 
 from __future__ import annotations
@@ -298,7 +297,7 @@ def render_pyvis_html(
     min_component_size: int = 1,
     show_edges: bool = True,
 ) -> str:
-    """Render an interactive PyVis graph HTML string following the Week 14 course template."""
+    """Render an interactive PyVis graph HTML string for the CCTV and rail network."""
     H = G
     if min_component_size > 1 and len(G):
         keep = [n for c in nx.connected_components(to_simple_undirected(G)) if len(c) >= min_component_size for n in c]
@@ -397,7 +396,7 @@ def render_pyvis_html(
 
 
 def plot_degree_distribution(G: nx.Graph, log_log: bool = False) -> plt.Figure:
-    """Plot degree histogram or log-log CCDF P(Degree >= k) matching Week 14 course template."""
+    """Plot degree histogram or log-log CCDF P(Degree >= k)."""
     degrees = np.array([d for _, d in G.degree()])
     fig, ax = plt.subplots(figsize=(6, 4))
     if log_log and len(degrees[degrees > 0]):

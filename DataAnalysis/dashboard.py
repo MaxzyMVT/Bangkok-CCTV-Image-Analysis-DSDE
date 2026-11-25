@@ -515,7 +515,7 @@ def render_dashboard() -> None:
             show_rail = st.checkbox("Show BTS / MRT Stations", value=True)
             show_districts = st.checkbox("Show 50 Bangkok Districts", value=False)
 
-        with st.expander("3. Network Graph (Course Week 14)", expanded=False):
+        with st.expander("3. Network Graph", expanded=False):
             rail_radius = st.slider("Camera ↔ Rail Radius (m)", 300, 1500, 800, step=100)
             cam_radius = st.slider("Camera ↔ Camera Corridor (m)", 400, 2000, 1200, step=100)
             net_communities = st.checkbox("Detect Communities (Greedy Modularity)", value=True)
@@ -636,10 +636,10 @@ def render_dashboard() -> None:
         else:
             st.info("No cameras match the current sidebar filter.")
 
-    # ---------------- TAB 4: COURSE-STYLE PYVIS + NETWORKX ----------------
+    # ---------------- TAB 4: INTERACTIVE PYVIS + NETWORKX ----------------
     with tabs[3]:
         rail_df = load_rail_stations()
-        st.subheader("Bangkok CCTV & Rapid Transit Corridor Network (Course Week 14 Template)")
+        st.subheader("Bangkok CCTV & Rapid Transit Corridor Network")
         G = nv.build_bangkok_network(cameras, rail_df, rail_radius_m=rail_radius, cam_radius_m=cam_radius)
         cent_df = nv.compute_centralities(G)
         communities = nv.detect_communities(G) if net_communities else None
