@@ -1,0 +1,55 @@
+scope,target,feature,feature_label,pearson_r,n_obs
+hourly_camera,total,rain_mm,Hourly gauge rain (mm),0.0061,9996
+hourly_camera,total,temperature_2m,Temperature (C),0.1348,9996
+hourly_camera,total,relative_humidity_2m,Relative humidity (%),-0.1223,9996
+hourly_camera,total,cloud_cover,Cloud cover (%),-0.0279,9996
+hourly_camera,total,visibility_km,METAR visibility (km),-0.0431,9996
+hourly_camera,total,rail_dist_m,Distance to BTS/MRT (m),-0.1992,9996
+hourly_camera,total,gauge_dist_m,Distance to rain gauge (m),0.08,9996
+hourly_camera,total,hod,Hour of day,-0.0426,9996
+hourly_camera,total,weekend,Weekend indicator,-0.1693,9996
+hourly_camera,total,is_rush,Rush-hour indicator,-0.0399,9996
+hourly_camera,total,max_flood_cm,Citywide max flood sensor (cm),-0.111,9996
+hourly_camera,total,fm91_congestion,FM91 congestion mentions/hr,0.0892,9996
+hourly_camera,car,rain_mm,Hourly gauge rain (mm),0.0281,9996
+hourly_camera,car,temperature_2m,Temperature (C),0.1216,9996
+hourly_camera,car,relative_humidity_2m,Relative humidity (%),-0.1022,9996
+hourly_camera,car,cloud_cover,Cloud cover (%),-0.0033,9996
+hourly_camera,car,visibility_km,METAR visibility (km),-0.0612,9996
+hourly_camera,car,rail_dist_m,Distance to BTS/MRT (m),-0.1431,9996
+hourly_camera,car,gauge_dist_m,Distance to rain gauge (m),0.1064,9996
+hourly_camera,car,hod,Hour of day,0.0061,9996
+hourly_camera,car,weekend,Weekend indicator,-0.1304,9996
+hourly_camera,car,is_rush,Rush-hour indicator,-0.0514,9996
+hourly_camera,car,max_flood_cm,Citywide max flood sensor (cm),-0.0841,9996
+hourly_camera,car,fm91_congestion,FM91 congestion mentions/hr,0.0692,9996
+hourly_camera,motorcycle,rain_mm,Hourly gauge rain (mm),-0.0495,9996
+hourly_camera,motorcycle,temperature_2m,Temperature (C),0.0972,9996
+hourly_camera,motorcycle,relative_humidity_2m,Relative humidity (%),-0.1068,9996
+hourly_camera,motorcycle,cloud_cover,Cloud cover (%),-0.0727,9996
+hourly_camera,motorcycle,visibility_km,METAR visibility (km),0.0175,9996
+hourly_camera,motorcycle,rail_dist_m,Distance to BTS/MRT (m),-0.2567,9996
+hourly_camera,motorcycle,gauge_dist_m,Distance to rain gauge (m),-0.0161,9996
+hourly_camera,motorcycle,hod,Hour of day,-0.1241,9996
+hourly_camera,motorcycle,weekend,Weekend indicator,-0.183,9996
+hourly_camera,motorcycle,is_rush,Rush-hour indicator,0.021,9996
+hourly_camera,motorcycle,max_flood_cm,Citywide max flood sensor (cm),-0.1211,9996
+hourly_camera,motorcycle,fm91_congestion,FM91 congestion mentions/hr,0.0925,9996
+hourly_camera,pct_vs_baseline,rain_mm,Hourly gauge rain (mm),-0.0097,9996
+hourly_camera,pct_vs_baseline,temperature_2m,Temperature (C),-0.0411,9996
+hourly_camera,pct_vs_baseline,relative_humidity_2m,Relative humidity (%),0.0181,9996
+hourly_camera,pct_vs_baseline,cloud_cover,Cloud cover (%),-0.011,9996
+hourly_camera,pct_vs_baseline,visibility_km,METAR visibility (km),0.0131,9996
+hourly_camera,pct_vs_baseline,rail_dist_m,Distance to BTS/MRT (m),-0.004,9996
+hourly_camera,pct_vs_baseline,gauge_dist_m,Distance to rain gauge (m),-0.0025,9996
+hourly_camera,pct_vs_baseline,hod,Hour of day,-0.0445,9996
+hourly_camera,pct_vs_baseline,weekend,Weekend indicator,-0.0068,9996
+hourly_camera,pct_vs_baseline,is_rush,Rush-hour indicator,0.026,9996
+hourly_camera,pct_vs_baseline,max_flood_cm,Citywide max flood sensor (cm),-0.0417,9996
+hourly_camera,pct_vs_baseline,fm91_congestion,FM91 congestion mentions/hr,0.02,9996
+camera_effect,effect_pct,rail_dist_m,Distance to BTS/MRT (m),-0.0825,94
+camera_effect,effect_pct,gauge_dist_m,Distance to rain gauge (m),0.0043,94
+camera_effect,effect_pct,near_rail,Near rail (<=500m),-0.1189,94
+camera_effect,effect_pct,near_shelter,Near footbridge/expressway (<=150m),-0.1058,94
+camera_effect,effect_pct,in_flood_area,In Traffy flood cluster (<=100m),-0.0206,94
+camera_effect,effect_pct,n_wet_hours,Number of wet hours,-0.0077,94
