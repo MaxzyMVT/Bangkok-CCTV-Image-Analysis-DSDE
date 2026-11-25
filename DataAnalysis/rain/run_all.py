@@ -12,25 +12,26 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from DataAnalysis.rain import common, effects, policy, prepare, traffy  # noqa: E402
+from DataAnalysis.rain import common, effects, policy, prepare, stratified, traffy  # noqa: E402
 
 
-def write_tables(tables: dict, out: Path) -> None:
-    """One CSV per table. Coordinates keep 6 decimals (~0.1 m); other numbers 4 decimals."""
+def write_tables(tables: dict, out: Path, write_lake: bool = False) -> None:
+    """Write analytical results to CSV exports (and optionally to PyDuckLake Gold tables)."""
+    out = Path(out)
+    out.mkdir(parents=True, exist_ok=True)
     for name, t in tables.items():
         t = t.copy()
         for c in t.select_dtypes("number").columns:
             t[c] = t[c].round(6 if c in ("latitude", "longitude") else 4)
-        t.to_csv(Path(out) / f"{name}.csv", index=False, lineterminator="\n")
+        t.to_csv(out / f"{name}.csv", index=False, lineterminator="\n")
+        if write_lake:
+            common.save_gold(name, t)
 
 
 def main():
     out = common.OUT_DIR
-    out.mkdir(parents=True, exist_ok=True)
-    counts = pd.read_csv(common.DATA_DIR / "counts_v2.csv")
-    meta = pd.read_csv(ROOT / "DataEngineering" / "cctv_images_metadata.csv", encoding="utf-8-sig",
-                       usecols=["camera_id", "latitude", "longitude"])
-    cams = meta.groupby("camera_id").first().reset_index()
+    counts = common.load_counts()
+    cams = common.load_camera_meta()[["camera_id", "latitude", "longitude"]]
 
     tr = common.load_traffy()
     flood_pts = traffy.flood_points(tr)
@@ -43,6 +44,8 @@ def main():
         "camera": cameras,
         "camera_hour": ch,
         "city_effect": effects.city_effect(ch),
+        "stratified_effects": stratified.stratified_effects(ch),
+        "rain_timing": stratified.rain_timing(ch),
         "natural_experiment": effects.natural_experiment(ch, cameras),
         "camera_effect": cam_eff,
         "denser_share": effects.denser_share(cam_eff, cameras),
@@ -52,7 +55,7 @@ def main():
         "flood_sensor_hours": traffy.flood_sensor_hours(common.load_flood()),
         "policy_stations": policy.policy_stations(cam_eff, ch, cameras, rail),
     }
-    write_tables(tables, out)
+    write_tables(tables, out, write_lake=True)
 
     ce = tables["city_effect"].query("window == 'all'").set_index("cls")
     print(f"[+] {len(ch)} camera-hours, {int(ch['wet'].sum())} wet on {ch.loc[ch['wet'], 'camera_id'].nunique()} cameras")

@@ -168,15 +168,18 @@ def ensure_lakehouse():
 
 
 def start_server(port=8080):
-    # Same startup as the Detect app: fetch dataset if missing, load metadata, index frames
+    # Ensure PyDuckLake is ready before apps load camera metadata
+    ensure_lakehouse()
+    # Same startup as the Detect app: fetch dataset if missing, load metadata from PyDuckLake, index frames
     detect_app.ensure_dataset()
-    if not detect_app.METADATA_LOOKUP and detect_app.CCTV_INFO_CSV.exists():
-        detect_app.METADATA_LOOKUP = detect_app.load_cctv_metadata(detect_app.CCTV_INFO_CSV)
+    try:
+        from DataEngineering.lakehouse_pipeline import load_silver_cameras
+        detect_app.METADATA_LOOKUP = load_silver_cameras()
+    except Exception:
+        if not detect_app.METADATA_LOOKUP and detect_app.CCTV_INFO_CSV.exists():
+            detect_app.METADATA_LOOKUP = detect_app.load_cctv_metadata(detect_app.CCTV_INFO_CSV)
     detect_app.build_camera_index()
     map_app.load_cameras()
-
-    # Auto-initialize Lakehouse if tables or catalog are missing
-    ensure_lakehouse()
 
     # Pre-warm YOLO detector and PyTorch on main thread to avoid multi-thread import race
     try:

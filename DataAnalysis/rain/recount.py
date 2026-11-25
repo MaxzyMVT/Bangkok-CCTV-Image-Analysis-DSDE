@@ -18,7 +18,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from DataAnalysis.rain.common import DATA_DIR, DATASET_ROOT, HOURS  # noqa: E402
+from DataAnalysis.rain.common import DATA_DIR, DATASET_ROOT, HOURS, load_frame_catalog  # noqa: E402
 
 CLASSES = {0: "car", 1: "motorcycle", 2: "bus", 3: "truck"}
 BOX_COLS = ["image_id", "cls", "x", "y", "w", "h", "conf"]
@@ -48,8 +48,7 @@ def _frames(limit: int | None) -> pd.DataFrame:
     sys.path.insert(0, str(ROOT / "DataEngineering" / "labeling"))
     from common import find_image  # noqa: E402
 
-    meta = pd.read_csv(ROOT / "DataEngineering" / "cctv_images_metadata.csv", encoding="utf-8-sig",
-                       usecols=["image_id", "camera_id", "timestamp", "hour", "relative_path"])
+    meta = load_frame_catalog()
     meta = meta[meta["hour"].isin(HOURS)]
     frozen = load_frozen_keys(DEFAULT_FROZEN_CSV)
     meta = meta[[(int(c), t) not in frozen for c, t in zip(meta["camera_id"], meta["timestamp"])]]
@@ -88,6 +87,11 @@ def main():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     counts.to_csv(DATA_DIR / "counts_v2.csv", index=False, lineterminator="\n")
     boxes.round({"x": 5, "y": 5, "w": 5, "h": 5, "conf": 4}).to_csv(DATA_DIR / "boxes_v2.csv", index=False, lineterminator="\n")
+    if args.limit is None:
+        from DataEngineering.lakehouse_pipeline import write_lake_table
+        counts_for_lake = counts.copy()
+        counts_for_lake["timestamp"] = pd.to_datetime(counts_for_lake["timestamp"])
+        write_lake_table("silver", "counts_v2", counts_for_lake, "silver: update counts_v2 from recount.py")
     print(f"[+] {len(counts)} frames, {len(boxes)} boxes -> {DATA_DIR}")
 
 

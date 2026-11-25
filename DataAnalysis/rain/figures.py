@@ -7,12 +7,18 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from DataAnalysis.rain.common import FIG_DIR, OUT_DIR  # noqa: E402
+from DataAnalysis.rain.common import FIG_DIR, OUT_DIR, load_gold  # noqa: E402
 
 plt.rcParams["font.family"] = ["Leelawadee UI", "Tahoma", "DejaVu Sans"]   # Thai station names
 LABEL_COLOR = {"clears": "#2e9e5b", "denser": "#d1453b", "unaffected": "#9aa0a6", "too few wet hours": "none"}
 CLASS_NAME = {"total": "All vehicles", "car": "Cars", "motorcycle": "Motorcycles"}
 DPI = 160
+
+
+def _read_table(out: Path, name: str) -> pd.DataFrame:
+    if Path(out).resolve() == OUT_DIR.resolve():
+        return load_gold(name)
+    return pd.read_csv(Path(out) / f"{name}.csv")
 
 
 def _save(fig, path: Path) -> Path:
@@ -23,7 +29,7 @@ def _save(fig, path: Path) -> Path:
 
 
 def camera_map(out: Path, fig_dir: Path, rail: pd.DataFrame) -> Path:
-    cams = pd.read_csv(out / "camera.csv").merge(pd.read_csv(out / "camera_effect.csv"), on="camera_id", how="left")
+    cams = _read_table(out, "camera").merge(_read_table(out, "camera_effect"), on="camera_id", how="left")
     cams["label"] = cams["label"].fillna("too few wet hours")
     fig, ax = plt.subplots(figsize=(7, 7))
     if len(rail):
@@ -49,7 +55,7 @@ def _bars(ax, labels, values, lows, highs, color):
 
 
 def city_effect(out: Path, fig_dir: Path) -> Path:
-    t = pd.read_csv(out / "city_effect.csv")
+    t = _read_table(out, "city_effect")
     fig, axes = plt.subplots(1, 3, figsize=(11, 3.8), sharey=True)
     for ax, window in zip(axes, ("all", "rush", "other")):
         d = t[t["window"] == window].set_index("cls").loc[["total", "car", "motorcycle"]]
@@ -61,7 +67,7 @@ def city_effect(out: Path, fig_dir: Path) -> Path:
 
 
 def natural_experiment(out: Path, fig_dir: Path) -> Path:
-    d = pd.read_csv(out / "natural_experiment.csv").set_index("cls").loc[["total", "car", "motorcycle"]]
+    d = _read_table(out, "natural_experiment").set_index("cls").loc[["total", "car", "motorcycle"]]
     fig, ax = plt.subplots(figsize=(6, 3.8))
     _bars(ax, [CLASS_NAME[c] for c in d.index], d["effect_pct_points"], d["ci_low"], d["ci_high"], "#7a5cb8")
     ax.set_ylabel("percentage points vs dry cameras nearby")
@@ -71,7 +77,7 @@ def natural_experiment(out: Path, fig_dir: Path) -> Path:
 
 
 def rebound(out: Path, fig_dir: Path) -> Path:
-    t = pd.read_csv(out / "rebound.csv")
+    t = _read_table(out, "rebound")
     fig, ax = plt.subplots(figsize=(7, 3.8))
     for cls, color in (("motorcycle", "#d1453b"), ("car", "#4a78c2")):
         d = t[t["cls"] == cls]
@@ -86,7 +92,7 @@ def rebound(out: Path, fig_dir: Path) -> Path:
 
 
 def mealtime(out: Path, fig_dir: Path) -> Path:
-    t = pd.read_csv(out / "mealtime.csv")
+    t = _read_table(out, "mealtime")
     fig, ax = plt.subplots(figsize=(8, 3.8))
     for h in t.loc[t["meal"], "hod"]:
         ax.axvspan(h - 0.5, h + 0.5, color="#f3d27a", alpha=0.4, lw=0)
@@ -100,7 +106,7 @@ def mealtime(out: Path, fig_dir: Path) -> Path:
 
 
 def denser_share(out: Path, fig_dir: Path) -> Path:
-    t = pd.read_csv(out / "denser_share.csv").set_index("feature")
+    t = _read_table(out, "denser_share").set_index("feature")
     names = {"near_rail": "near BTS/MRT\n(≤ 500 m)", "near_shelter": "near footbridge /\nexpressway (≤ 150 m)",
              "in_flood_area": "in a Traffy\nflood area"}
     fig, ax = plt.subplots(figsize=(7, 3.8))
@@ -117,7 +123,7 @@ def denser_share(out: Path, fig_dir: Path) -> Path:
 
 
 def policy_table(out: Path, fig_dir: Path) -> Path:
-    t = pd.read_csv(out / "policy_stations.csv").head(10)
+    t = _read_table(out, "policy_stations").head(10)
     fig, ax = plt.subplots(figsize=(7, 0.6 + 0.35 * max(len(t), 1)))
     ax.axis("off")
     if len(t):

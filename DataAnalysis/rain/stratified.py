@@ -7,7 +7,7 @@ weekday/weekend contrast misleading even with a matched dry baseline.
 import numpy as np
 import pandas as pd
 
-from DataAnalysis.rain.common import OUT_DIR, bootstrap_ci
+from DataAnalysis.rain.common import OUT_DIR, bootstrap_ci, load_gold, save_gold
 
 
 def _effect(groups):
@@ -56,9 +56,12 @@ def rain_timing(ch):
 
 
 if __name__ == "__main__":
-    ch = pd.read_csv(OUT_DIR / "camera_hour.csv")
-    result = stratified_effects(ch)
-    result.round(4).to_csv(OUT_DIR / "stratified_effects.csv", index=False)
-    rain_timing(ch).round(4).to_csv(OUT_DIR / "rain_timing.csv", index=False)
+    ch = load_gold("camera_hour")
+    result = stratified_effects(ch).round(4)
+    timing = rain_timing(ch).round(4)
+    save_gold("stratified_effects", result)
+    save_gold("rain_timing", timing)
+    result.to_csv(OUT_DIR / "stratified_effects.csv", index=False)
+    timing.to_csv(OUT_DIR / "rain_timing.csv", index=False)
     print(result.round(2).to_string(index=False))
-    print(rain_timing(ch).round(2).to_string(index=False))
+    print(timing.round(2).to_string(index=False))
