@@ -9,7 +9,11 @@ RAW = ROOT / "DataEngineering" / "WebScraping" / "raw"
 DATA_DIR = ROOT / "DataAnalysis" / "data"
 OUT_DIR = ROOT / "DataAnalysis" / "output"
 FIG_DIR = ROOT / "DataAnalysis" / "figures"
-DATASET_ROOT = Path("D:/Bangkok-CCTV-Image-Analysis-DSDE")   # main checkout: holds dataset/ images
+DATASET_ROOT = next(
+    (p for p in (ROOT, ROOT.parent, Path("D:/Bangkok-CCTV-Image-Analysis-DSDE"))
+     if (p / "dataset" / "100_cameras").exists()),
+    ROOT,
+)
 
 WET_MM = 1.0          # rain in the hour at the camera's nearest gauge
 HEAVY_MM = 5.0

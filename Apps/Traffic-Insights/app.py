@@ -35,17 +35,38 @@ def _typed(rows, numeric):
 @lru_cache(maxsize=1)
 def insight_payload():
     """Small, preaggregated response; the 10k camera-hours stay on disk."""
+    import csv as _csv
+    from pathlib import Path as _Path
+
+    meta_path = _Path(__file__).resolve().parents[2] / "DataEngineering" / "cctv_images_metadata.csv"
+    locations = {}
+    if meta_path.exists():
+        with meta_path.open("r", encoding="utf-8", newline="") as f:
+            for mrow in _csv.DictReader(f):
+                cid = str(mrow.get("camera_id", "")).strip()
+                if cid and cid not in locations:
+                    locations[cid] = (mrow.get("location_th", ""), mrow.get("location_en", ""))
+
     cameras = {row["camera_id"]: row for row in _rows("camera")}
     for effect in _rows("camera_effect"):
         cameras[effect["camera_id"]].update(effect)
     camera_rows = _typed(list(cameras.values()), {
-        "camera_id", "latitude", "longitude", "gauge_dist_m", "rail_dist_m",
+        "latitude", "longitude", "gauge_dist_m", "rail_dist_m",
         "effect_pct", "ci_low", "ci_high", "n_wet_hours"})
     for row in camera_rows:
+        cid_str = str(row["camera_id"]).strip()
+        row["camera_id"] = int(cid_str) if cid_str.isdigit() else cid_str
         row["near_rail"] = row["near_rail"] == "True"
         row["near_shelter"] = row["near_shelter"] == "True"
         row["in_flood_area"] = row["in_flood_area"] == "True"
         row.setdefault("label", "no matched rainy hours")
+        row["n_wet_hours"] = int(row["n_wet_hours"]) if row.get("n_wet_hours") is not None else 0
+        row.setdefault("effect_pct", None)
+        row.setdefault("ci_low", None)
+        row.setdefault("ci_high", None)
+        loc_th, loc_en = locations.get(cid_str, ("", ""))
+        row["location_th"] = loc_th
+        row["location_en"] = loc_en
 
     hours = defaultdict(lambda: {"cameras": 0, "frames": 0, "wet_cameras": 0,
                                  "total": 0.0, "car": 0.0, "motorcycle": 0.0, "rain_mm": 0.0})
