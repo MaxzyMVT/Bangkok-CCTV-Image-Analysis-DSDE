@@ -97,13 +97,17 @@ def build_bangkok_network(cameras_df: pd.DataFrame, rail_df: pd.DataFrame,
     cam_coords = cams[["latitude", "longitude"]].to_numpy()
     if len(cams) > 1:
         cc = _haversine_matrix_m(cam_coords[:, 0], cam_coords[:, 1], cam_coords[:, 0], cam_coords[:, 1])
-        ii, jj = np.where((cc > 0) & (cc <= cam_radius_m))
-        for i, j in zip(ii, jj):
-            if i < j:
-                u = f"Cam #{int(cams.iloc[i]['camera_id'])}"
-                v = f"Cam #{int(cams.iloc[j]['camera_id'])}"
-                G.add_edge(u, v, weight=round(max(0.1, (cam_radius_m - float(cc[i, j])) / cam_radius_m), 3),
-                           distance_m=round(float(cc[i, j])))
+        np.fill_diagonal(cc, np.inf)
+        # Connect each camera only to its 2 nearest corridor neighbors within cam_radius_m to avoid hairball cliques
+        for i in range(len(cams)):
+            nearest_j = np.argsort(cc[i])[:2]
+            for j in nearest_j:
+                if cc[i, j] <= cam_radius_m:
+                    u = f"Cam #{int(cams.iloc[i]['camera_id'])}"
+                    v = f"Cam #{int(cams.iloc[j]['camera_id'])}"
+                    if not G.has_edge(u, v):
+                        G.add_edge(u, v, weight=round(max(0.1, (cam_radius_m - float(cc[i, j])) / cam_radius_m), 3),
+                                   distance_m=round(float(cc[i, j])))
 
     if not rail_df.empty and not cams.empty:
         cr = _haversine_matrix_m(
@@ -385,8 +389,8 @@ def render_pyvis_html(
 
     nt.set_options(f"""
     {{
-        "nodes": {{"font": {{"size": {int(font_size)}}}, "borderWidth": 2}},
-        "edges": {{"color": {{"color": "#7f8c8d"}}, "width": 1.2, "smooth": false, "hidden": {str(not show_edges).lower()}}},
+        "nodes": {{"font": {{"size": {int(font_size)}}}, "borderWidth": 1.5}},
+        "edges": {{"color": {{"color": "rgba(130,145,160,0.45)"}}, "width": 0.8, "smooth": false, "hidden": {str(not show_edges).lower()}}},
         "physics": {{"enabled": false}},
         "interaction": {{"hover": true, "navigationButtons": true, "tooltipDelay": 80, "zoomView": true, "dragView": true}}
     }}
