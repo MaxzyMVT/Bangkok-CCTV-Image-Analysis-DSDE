@@ -1,2 +1,12 @@
 streamlit>=1.51,<2
 pandas>=2.0,<3
+numpy>=1.26,<3
+plotly>=5.20
+pydeck>=0.9
+networkx>=3.2
+pyvis>=0.3.2
+scipy>=1.11
+matplotlib>=3.8
+scikit-learn>=1.4
+duckdb>=1.2
+pyducklake>=1.0

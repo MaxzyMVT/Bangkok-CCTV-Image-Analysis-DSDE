@@ -22,10 +22,13 @@ The analysis focuses on extracting actionable insights from the unified vehicle 
 
 ## Open the interactive rain and traffic dashboard
 
-This dashboard uses the **committed result tables and figures** from `DataAnalysis/rain/`, including the latest vehicle recount, local rain gauges, and flood evidence. It does not rerun the model on page load.
+This dashboard reads **Silver & Gold tables directly from PyDuckLake (`DataEngineering/lakehouse/bkk_cctv.ducklake`)**. Initialize PyDuckLake from the repository CSVs once (or regenerate Gold ML/analysis tables anytime), then launch Streamlit:
 
 ```powershell
 pip install -r DataAnalysis/requirements-dashboard.txt
+python DataEngineering/lakehouse_pipeline.py
+python -m DataAnalysis.rain.run_all
+python DataAnalysis/rain/ml_model.py
 streamlit run DataAnalysis/dashboard.py
 ```
 
