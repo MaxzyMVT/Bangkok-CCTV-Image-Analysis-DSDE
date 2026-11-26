@@ -2,6 +2,10 @@
 
 An end-to-end spatial-temporal traffic analytics and computer vision platform designed to monitor, detect, and analyze urban vehicular movement across Bangkok, Thailand. The system processes high-volume visual feeds from the Bangkok Metropolitan Administration (BMA) traffic camera network, performs automated vehicle detection, and correlates traffic density with geographic infrastructure and mass transit networks.
 
+Rain and traffic findings (25–31 Aug 2026) are available in the [interactive Streamlit dashboard](DataAnalysis/README.md) and the [analysis report](DataAnalysis/rain/README.md).
+
+The unified web server also serves the [Rain & Traffic Insights app](Apps/Traffic-Insights/README.md) at `http://localhost:8080/insights` alongside the camera map, inspector, and lakehouse viewer.
+
 ---
 
 ## 📌 Project Overview

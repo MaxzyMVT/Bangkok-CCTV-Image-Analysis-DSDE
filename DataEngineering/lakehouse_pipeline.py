@@ -283,14 +283,16 @@ class DuckLakehouse:
         self.catalog.connection.execute("SET TimeZone = 'Asia/Bangkok'")
 
     def initialize_tables(self):
-        """Creates bronze and silver namespaces and tables in a single ACID transaction."""
+        """Creates bronze, silver, and gold namespaces and core tables in an ACID transaction."""
         existing_namespaces = set(self.catalog.list_namespaces())
         with self.catalog.begin_transaction():
-            self.catalog.set_commit_message("init: create bronze and silver namespaces & tables")
+            self.catalog.set_commit_message("init: create bronze, silver, and gold namespaces & tables")
             if "bronze" not in existing_namespaces:
                 self.catalog.create_namespace("bronze")
             if "silver" not in existing_namespaces:
                 self.catalog.create_namespace("silver")
+            if "gold" not in existing_namespaces:
+                self.catalog.create_namespace("gold")
 
             bronze_tables = {name for _, name in self.catalog.list_tables("bronze")}
             silver_tables = {name for _, name in self.catalog.list_tables("silver")}
@@ -695,7 +697,10 @@ class DuckLakehouse:
             "total_size_mb": round(sum(f.stat().st_size for f in self.data_path.glob("**/*.parquet")) / (1024 * 1024), 2),
             "tables": {}
         }
-        for ns in ["bronze", "silver"]:
+        existing_ns = set(self.catalog.list_namespaces())
+        for ns in ["bronze", "silver", "gold"]:
+            if ns not in existing_ns:
+                continue
             for _, tname in self.catalog.list_tables(ns):
                 cnt = con.execute(f"SELECT count(*) FROM lake.{ns}.{tname}").fetchone()[0]
                 summary["tables"][f"{ns}.{tname}"] = cnt
@@ -733,8 +738,13 @@ def run_pipeline(reset: bool = False, force: bool = False, scrape: bool = False,
 
     # 6. Step 6: External web scraping sources (scrape -> bronze -> silver)
     external_lakehouse.run(lake.catalog, scrape=scrape, force_scrape=rescrape, force_ingest=force)
+    lake.catalog.connection.close()
 
-    # 7. Step 7: Pipeline Inspection & Report
+    # 7. Step 7: Sync DataAnalysis Silver counts_v2 & Gold rain/ML tables from CSVs if present
+    ingest_analysis_init_tables()
+
+    # 8. Step 8: Pipeline Inspection & Report
+    lake = DuckLakehouse(LAKEHOUSE_DIR, reset=False)
     print("\n--- [Phase 3: Lakehouse Audit & Summary] ---")
     summary = lake.get_summary()
     print(f"Catalog DB:     {summary['catalog']}")
@@ -763,6 +773,103 @@ def run_pipeline(reset: bool = False, force: bool = False, scrape: bool = False,
 # -------------------------------------------------------------------------
 # Lakehouse Reader Helpers (Single Source of Truth for Web Apps & Models)
 # -------------------------------------------------------------------------
+def _lake_paths(lakehouse_dir: Path | None = None) -> tuple[Path, Path]:
+    base = Path(lakehouse_dir) if lakehouse_dir is not None else LAKEHOUSE_DIR
+    return base / "bkk_cctv.ducklake", base / "data"
+
+
+def query_lake(sql: str, params=None, lakehouse_dir: Path | None = None, read_only: bool = True):
+    """Execute a SQL query against the PyDuckLake catalog and return a pandas DataFrame."""
+    import duckdb
+    cat_path, data_path = _lake_paths(lakehouse_dir)
+    if not cat_path.exists() or not data_path.exists():
+        raise FileNotFoundError(
+            f"PyDuckLake catalog not found at {cat_path}. Run: python DataEngineering/lakehouse_pipeline.py"
+        )
+    cat_posix = cat_path.resolve().as_posix()
+    data_posix = data_path.resolve().as_posix() + "/"
+    ro_clause = ", READ_ONLY" if read_only else ""
+    con = duckdb.connect()
+    try:
+        con.execute(f"ATTACH '{cat_posix}' AS lake (TYPE DUCKLAKE, DATA_PATH '{data_posix}'{ro_clause})")
+        con.execute("SET TimeZone = 'Asia/Bangkok'")
+        return con.execute(sql, params or []).df()
+    finally:
+        con.close()
+
+
+def lake_has_table(namespace: str, table_name: str, lakehouse_dir: Path | None = None) -> bool:
+    """Return True when lake.<namespace>.<table_name> exists in the PyDuckLake catalog."""
+    cat_path, data_path = _lake_paths(lakehouse_dir)
+    if not cat_path.exists() or not data_path.exists():
+        return False
+    try:
+        df = query_lake(
+            "SELECT count(*) AS n FROM information_schema.tables "
+            "WHERE table_catalog = 'lake' AND table_schema = ? AND table_name = ?",
+            [namespace, table_name],
+            lakehouse_dir=lakehouse_dir,
+        )
+        return int(df["n"].iloc[0]) > 0
+    except Exception:
+        return False
+
+
+def write_lake_table(namespace: str, table_name: str, df, commit_msg: str | None = None,
+                     lakehouse_dir: Path | None = None) -> int:
+    """Write a pandas DataFrame to lake.<namespace>.<table_name> inside a PyDuckLake transaction."""
+    base = Path(lakehouse_dir) if lakehouse_dir is not None else LAKEHOUSE_DIR
+    lake = DuckLakehouse(base, reset=False)
+    try:
+        con = lake.catalog.connection
+        existing_ns = set(lake.catalog.list_namespaces())
+        with lake.catalog.begin_transaction():
+            lake.catalog.set_commit_message(commit_msg or f"{namespace}: update {table_name}")
+            if namespace not in existing_ns:
+                lake.catalog.create_namespace(namespace)
+            con.register("_ducklake_src_df", df)
+            try:
+                con.execute(f"CREATE OR REPLACE TABLE lake.{namespace}.{table_name} AS SELECT * FROM _ducklake_src_df")
+            finally:
+                try:
+                    con.unregister("_ducklake_src_df")
+                except Exception:
+                    pass
+        return int(con.execute(f"SELECT count(*) FROM lake.{namespace}.{table_name}").fetchone()[0])
+    finally:
+        try:
+            lake.catalog.connection.close()
+        except Exception:
+            pass
+
+
+def ingest_analysis_init_tables(lakehouse_dir: Path | None = None) -> dict[str, int]:
+    """Seed Silver counts_v2 and Gold rain analysis tables into PyDuckLake from local CSV outputs."""
+    import pandas as pd
+
+    loaded: dict[str, int] = {}
+    counts_csv = ROOT_DIR / "DataAnalysis" / "data" / "counts_v2.csv"
+    if counts_csv.is_file():
+        df = pd.read_csv(counts_csv)
+        if "timestamp" in df.columns:
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+        loaded["silver.counts_v2"] = write_lake_table(
+            "silver", "counts_v2", df, "silver: load counts_v2 into PyDuckLake", lakehouse_dir=lakehouse_dir
+        )
+
+    out_dir = ROOT_DIR / "DataAnalysis" / "output"
+    if out_dir.is_dir():
+        for csv_path in sorted(out_dir.glob("*.csv")):
+            tbl = f"rain_{csv_path.stem}"
+            df = pd.read_csv(csv_path, encoding="utf-8-sig")
+            if "hour_ts" in df.columns:
+                df["hour_ts"] = pd.to_datetime(df["hour_ts"], errors="ignore")
+            loaded[f"gold.{tbl}"] = write_lake_table(
+                "gold", tbl, df, f"gold: load {csv_path.stem} into PyDuckLake", lakehouse_dir=lakehouse_dir
+            )
+    return loaded
+
+
 def load_silver_cameras() -> Dict[str, Dict[str, Any]]:
     """Loads camera metadata and rapid transit proximity from lake.silver.cameras.
     Falls back to CCTV_INFO_CSV if lakehouse is not initialized.

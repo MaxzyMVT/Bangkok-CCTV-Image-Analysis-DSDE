@@ -9,7 +9,11 @@ RAW = ROOT / "DataEngineering" / "WebScraping" / "raw"
 DATA_DIR = ROOT / "DataAnalysis" / "data"
 OUT_DIR = ROOT / "DataAnalysis" / "output"
 FIG_DIR = ROOT / "DataAnalysis" / "figures"
-DATASET_ROOT = Path("D:/Bangkok-CCTV-Image-Analysis-DSDE")   # main checkout: holds dataset/ images
+DATASET_ROOT = next(
+    (p for p in (ROOT, ROOT.parent, Path("D:/Bangkok-CCTV-Image-Analysis-DSDE"))
+     if (p / "dataset" / "100_cameras").exists()),
+    ROOT,
+)
 
 WET_MM = 1.0          # rain in the hour at the camera's nearest gauge
 HEAVY_MM = 5.0
@@ -51,22 +55,32 @@ def bootstrap_ci(groups: list, stat, n: int = 1000, seed: int = 0) -> tuple[floa
     return float(np.percentile(vals, 2.5)), float(np.percentile(vals, 97.5))
 
 
-# ---- loaders ---------------------------------------------------------------------------------------------
+# ---- PyDuckLake loaders & writers (Single Source of Truth) -----------------------------------------------
+def _lake():
+    from DataEngineering.lakehouse_pipeline import lake_has_table, query_lake, write_lake_table
+    return query_lake, write_lake_table, lake_has_table
+
+
 def load_rain() -> pd.DataFrame:
-    r = pd.read_csv(RAW / "bma_drainage" / "dds_rain_hourly.csv", parse_dates=["datetime"])
-    return r.rename(columns={"station_code": "gauge", "datetime": "hour_ts"})[["gauge", "hour_ts", "rain_mm"]]
+    query_lake, _, _ = _lake()
+    r = query_lake("SELECT station_code AS gauge, CAST(datetime AS TIMESTAMP) AS hour_ts, rain_mm FROM lake.silver.drainage_rain_hourly")
+    r["hour_ts"] = pd.to_datetime(r["hour_ts"])
+    return r
 
 
 def load_gauges() -> pd.DataFrame:
-    st = pd.read_csv(RAW / "bma_drainage" / "dds_stations.csv")
-    used = set(pd.read_csv(RAW / "bma_drainage" / "dds_rain_hourly.csv", usecols=["station_code"])["station_code"])
-    st = st[st["station_code"].isin(used)]
-    return st.rename(columns={"station_code": "gauge"})[["gauge", "latitude", "longitude"]].reset_index(drop=True)
+    query_lake, _, _ = _lake()
+    return query_lake("""
+        SELECT DISTINCT s.station_code AS gauge, s.latitude, s.longitude
+        FROM lake.silver.drainage_stations s
+        INNER JOIN (SELECT DISTINCT station_code FROM lake.silver.drainage_rain_hourly) r
+            ON s.station_code = r.station_code
+    """)
 
 
 def _poi(category: str) -> pd.DataFrame:
-    p = pd.read_csv(RAW / "openstreetmap" / "osm_poi.csv", low_memory=False)
-    return p[p["category"] == category].reset_index(drop=True)
+    query_lake, _, _ = _lake()
+    return query_lake("SELECT * FROM lake.silver.osm_poi WHERE category = ?", [category])
 
 
 def load_rail() -> pd.DataFrame:
@@ -75,15 +89,70 @@ def load_rail() -> pd.DataFrame:
 
 def load_shelters() -> pd.DataFrame:
     """Places riders can shelter under: footbridges, and expressway points (mostly elevated in Bangkok)."""
-    roads = pd.read_csv(RAW / "openstreetmap" / "osm_roads.csv", low_memory=False)
-    motorway = roads.loc[roads["highway"] == "motorway", ["latitude", "longitude"]].assign(kind="motorway")
+    query_lake, _, _ = _lake()
+    motorway = query_lake("SELECT latitude, longitude FROM lake.silver.osm_roads WHERE highway = 'motorway'").assign(kind="motorway")
     foot = _poi("footbridge")[["latitude", "longitude"]].assign(kind="footbridge")
     return pd.concat([foot, motorway], ignore_index=True).dropna(subset=["latitude", "longitude"])
 
 
 def load_traffy() -> pd.DataFrame:
-    return pd.read_csv(RAW / "traffy_fondue" / "traffy_fondue.csv", low_memory=False)
+    query_lake, _, _ = _lake()
+    return query_lake("SELECT * FROM lake.silver.traffy_complaints")
 
 
 def load_flood() -> pd.DataFrame:
-    return pd.read_csv(RAW / "bma_drainage" / "dds_flood_hourly.csv", parse_dates=["datetime"])
+    query_lake, _, _ = _lake()
+    df = query_lake("SELECT station_code, road, station, CAST(datetime AS TIMESTAMP) AS datetime, flood_cm FROM lake.silver.drainage_flood_hourly")
+    df["datetime"] = pd.to_datetime(df["datetime"])
+    return df
+
+
+def load_camera_meta() -> pd.DataFrame:
+    query_lake, _, _ = _lake()
+    return query_lake("""
+        SELECT TRY_CAST(camera_id AS INTEGER) AS camera_id, latitude, longitude, location_th, location_en
+        FROM lake.silver.cameras
+        WHERE TRY_CAST(camera_id AS INTEGER) IS NOT NULL
+        ORDER BY camera_id
+    """)
+
+
+def load_counts() -> pd.DataFrame:
+    query_lake, _, lake_has_table = _lake()
+    if lake_has_table("silver", "counts_v2"):
+        df = query_lake("SELECT image_id, TRY_CAST(camera_id AS INTEGER) AS camera_id, CAST(timestamp AS TIMESTAMP) AS timestamp, car, motorcycle, bus, truck, total FROM lake.silver.counts_v2")
+    else:
+        df = query_lake("""
+            SELECT ROW_NUMBER() OVER (ORDER BY camera_id, captured_at) AS image_id,
+                   TRY_CAST(camera_id AS INTEGER) AS camera_id,
+                   CAST(captured_at AS TIMESTAMP) AS timestamp,
+                   car, motorcycle, bus, truck, total_vehicles AS total
+            FROM lake.silver.vehicle_counts
+        """)
+    df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.strftime("%Y-%m-%dT%H:%M:%S")
+    return df
+
+
+def load_frame_catalog() -> pd.DataFrame:
+    query_lake, _, _ = _lake()
+    df = query_lake("""
+        SELECT TRY_CAST(image_id AS INTEGER) AS image_id,
+               TRY_CAST(camera_id AS INTEGER) AS camera_id,
+               filename,
+               strftime(CAST(captured_at AS TIMESTAMP), '%Y-%m-%dT%H:%M:%S') AS timestamp,
+               hour,
+               file_size_bytes
+        FROM lake.silver.cctv_frames
+    """)
+    df["relative_path"] = "dataset/100_cameras/cctv_images/" + df["camera_id"].astype(str) + "/" + df["filename"]
+    return df
+
+
+def load_gold(name: str) -> pd.DataFrame:
+    query_lake, _, _ = _lake()
+    return query_lake(f"SELECT * FROM lake.gold.rain_{name}")
+
+
+def save_gold(name: str, df: pd.DataFrame) -> int:
+    _, write_lake_table, _ = _lake()
+    return write_lake_table("gold", f"rain_{name}", df, f"gold: update rain_{name}")

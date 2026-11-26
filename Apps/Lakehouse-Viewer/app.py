@@ -92,6 +92,8 @@ def get_table_category(name: str) -> str:
         return "BMA Drainage & Flood Sensors"
     if any(k in n for k in ("district", "population", "hawker", "traffy", "fm91", "osm")):
         return "Urban & Municipal Context"
+    if n.startswith("rain_") or n.startswith("ml_"):
+        return "Rain Insights & ML Marts"
     return "General Tables"
 
 
@@ -104,7 +106,7 @@ def get_lakehouse_summary():
         tables_list = []
         total_rows = 0
         
-        for ns in ["silver", "bronze"]:
+        for ns in ["gold", "silver", "bronze"]:
             if ns not in namespaces:
                 continue
             for _, tname in lake.catalog.list_tables(ns):
@@ -149,8 +151,8 @@ def get_lakehouse_summary():
 def get_table_schema(schema: str, table: str):
     schema = schema.strip().lower()
     table = table.strip().lower()
-    if schema not in ("bronze", "silver"):
-        raise ValueError("Invalid schema: must be bronze or silver")
+    if schema not in ("bronze", "silver", "gold"):
+        raise ValueError("Invalid schema: must be bronze, silver, or gold")
 
     with LAKEHOUSE_LOCK:
         lake = DuckLakehouse()
@@ -187,8 +189,8 @@ def get_table_schema(schema: str, table: str):
 def get_table_data(schema: str, table: str, page: int = 1, page_size: int = 50, search: str = "", sort_col: str = "", sort_dir: str = "ASC"):
     schema = schema.strip().lower()
     table = table.strip().lower()
-    if schema not in ("bronze", "silver"):
-        raise ValueError("Invalid schema: must be bronze or silver")
+    if schema not in ("bronze", "silver", "gold"):
+        raise ValueError("Invalid schema: must be bronze, silver, or gold")
 
     page = max(1, page)
     page_size = min(max(5, page_size), 500)

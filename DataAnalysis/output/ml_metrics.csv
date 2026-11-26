@@ -1,0 +1,22 @@
+task,target,model,split,mae,rmse,r2,accuracy,f1,roc_auc,n_train,n_test
+regression,total (no baseline),HistGradientBoosting,temporal_aug30_31,2.3851,3.1612,0.622,,,,7143,2853
+regression,total (no baseline),RandomForest,temporal_aug30_31,2.3081,3.0753,0.6423,,,,7143,2853
+regression,total (no baseline),Ridge,temporal_aug30_31,3.8704,4.8241,0.1198,,,,7143,2853
+regression,total (no baseline),HistGradientBoosting,spatial_5fold_unseen_cameras,4.3839,5.8092,-0.1111,,,,7996,9996
+regression,motorcycle (no baseline),HistGradientBoosting,temporal_aug30_31,0.7701,1.0836,0.5463,,,,7143,2853
+regression,motorcycle (no baseline),RandomForest,temporal_aug30_31,0.7803,1.107,0.5266,,,,7143,2853
+regression,motorcycle (no baseline),Ridge,temporal_aug30_31,1.0921,1.4663,0.1693,,,,7143,2853
+regression,motorcycle (no baseline),HistGradientBoosting,spatial_5fold_unseen_cameras,1.1863,1.6522,0.0983,,,,7996,9996
+regression,car (no baseline),HistGradientBoosting,temporal_aug30_31,1.9499,2.6343,0.6066,,,,7143,2853
+regression,car (no baseline),RandomForest,temporal_aug30_31,1.9,2.5755,0.6239,,,,7143,2853
+regression,car (no baseline),Ridge,temporal_aug30_31,3.2539,4.0618,0.0646,,,,7143,2853
+regression,car (no baseline),HistGradientBoosting,spatial_5fold_unseen_cameras,3.5234,4.6534,-0.0987,,,,7996,9996
+regression,total (with camera baseline),HistGradientBoosting,temporal_aug30_31,1.4462,2.1209,0.8299,,,,7143,2853
+regression,total (with camera baseline),RandomForest,temporal_aug30_31,1.5317,2.216,0.8143,,,,7143,2853
+regression,total (with camera baseline),Ridge,temporal_aug30_31,1.3569,1.9987,0.8489,,,,7143,2853
+regression,total (with camera baseline),HistGradientBoosting,spatial_5fold_unseen_cameras,1.258,1.7959,0.8938,,,,7996,9996
+regression,motorcycle (with camera baseline),HistGradientBoosting,temporal_aug30_31,0.5234,0.7986,0.7536,,,,7143,2853
+regression,motorcycle (with camera baseline),RandomForest,temporal_aug30_31,0.5647,0.8601,0.7142,,,,7143,2853
+regression,motorcycle (with camera baseline),Ridge,temporal_aug30_31,0.5535,0.8307,0.7334,,,,7143,2853
+regression,motorcycle (with camera baseline),HistGradientBoosting,spatial_5fold_unseen_cameras,0.5321,0.8018,0.7877,,,,7996,9996
+classification,is_surge (> +25% vs baseline),HistGradientBoostingClassifier,temporal_aug30_31,,,,0.8051,0.1751,0.6285,7143,2853

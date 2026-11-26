@@ -1,0 +1,13 @@
+segment,cls,effect_pct,ci_low,ci_high,n_cameras,n_wet_hours,n_clock_hours
+weekday,total,-11.8428,-15.6963,-7.538,34,69,8
+weekday,car,-5.5552,-10.3079,-0.134,34,69,8
+weekday,motorcycle,-34.2626,-43.6468,-21.6472,34,69,8
+weekend,total,-2.9459,-6.9518,1.2295,93,224,8
+weekend,car,-1.0944,-5.822,3.6666,93,224,8
+weekend,motorcycle,-13.9157,-21.5435,-5.5676,93,224,8
+light_1_to_5_mm,total,-6.6498,-11.6062,-1.2677,82,169,16
+light_1_to_5_mm,car,-4.0225,-9.6568,1.9832,82,169,16
+light_1_to_5_mm,motorcycle,-20.5467,-29.7989,-10.7356,82,169,16
+heavy_5plus_mm,total,-3.6028,-8.5052,1.8219,82,124,5
+heavy_5plus_mm,car,0.2778,-5.3868,6.4979,82,124,5
+heavy_5plus_mm,motorcycle,-21.5874,-30.1833,-12.2119,82,124,5

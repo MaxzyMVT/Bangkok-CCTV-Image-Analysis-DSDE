@@ -1,0 +1,70 @@
+target,feature,importance_mean,importance_std
+motorcycle (with camera baseline),motorcycle_base,1.57784,0.01841
+motorcycle (with camera baseline),rain_mm,0.02303,0.00213
+motorcycle (with camera baseline),wind_kt,0.00977,0.00163
+motorcycle (with camera baseline),visibility_km,0.0045,0.0005
+motorcycle (with camera baseline),cloud_cover,0.00372,0.00128
+motorcycle (with camera baseline),hod,0.00327,0.00075
+motorcycle (with camera baseline),relative_humidity_2m,0.0028,0.00102
+motorcycle (with camera baseline),weekend,0.00218,0.00023
+motorcycle (with camera baseline),fm91_congestion,0.0019,0.00118
+motorcycle (with camera baseline),temperature_2m,0.00047,0.00128
+motorcycle (with camera baseline),near_rail,0.00012,8e-05
+motorcycle (with camera baseline),wet,0.0,0.0
+motorcycle (with camera baseline),heavy,0.0,0.0
+motorcycle (with camera baseline),max_flood_cm,-0.00019,3e-05
+motorcycle (with camera baseline),in_flood_area,-0.00023,6e-05
+motorcycle (with camera baseline),near_shelter,-0.0006,0.00024
+motorcycle (with camera baseline),is_rush,-0.00094,0.00034
+motorcycle (with camera baseline),fm91_rain,-0.00133,0.0002
+motorcycle (with camera baseline),longitude,-0.00154,0.00047
+motorcycle (with camera baseline),car_base,-0.00164,0.00134
+motorcycle (with camera baseline),rail_dist_m,-0.00165,0.00064
+motorcycle (with camera baseline),total_base,-0.00186,0.0006
+motorcycle (with camera baseline),latitude,-0.00263,0.00086
+motorcycle (with camera baseline),gauge_dist_m,-0.00567,0.00255
+total (no baseline),latitude,0.27024,0.00802
+total (no baseline),longitude,0.21435,0.0023
+total (no baseline),gauge_dist_m,0.13776,0.01055
+total (no baseline),hod,0.13274,0.00863
+total (no baseline),rail_dist_m,0.1312,0.00686
+total (no baseline),cloud_cover,0.01737,0.00106
+total (no baseline),weekend,0.01576,0.00134
+total (no baseline),fm91_congestion,0.00792,0.00127
+total (no baseline),temperature_2m,0.00717,0.00154
+total (no baseline),near_shelter,0.00716,0.00096
+total (no baseline),max_flood_cm,0.00393,0.00042
+total (no baseline),wind_kt,0.00303,0.00207
+total (no baseline),rain_mm,0.00053,0.00023
+total (no baseline),is_rush,0.00049,0.00151
+total (no baseline),in_flood_area,0.00029,9e-05
+total (no baseline),visibility_km,0.00025,4e-05
+total (no baseline),fm91_rain,8e-05,0.00016
+total (no baseline),near_rail,7e-05,8e-05
+total (no baseline),wet,0.0,0.0
+total (no baseline),heavy,0.0,0.0
+total (no baseline),relative_humidity_2m,-0.02113,0.00183
+total (with camera baseline),total_base,1.76415,0.02522
+total (with camera baseline),temperature_2m,0.00476,0.001
+total (with camera baseline),relative_humidity_2m,0.00468,0.0005
+total (with camera baseline),wind_kt,0.00366,0.00049
+total (with camera baseline),visibility_km,0.00214,0.00016
+total (with camera baseline),cloud_cover,0.00205,0.00068
+total (with camera baseline),fm91_congestion,0.00162,0.00031
+total (with camera baseline),rain_mm,0.00122,0.0004
+total (with camera baseline),wet,0.0,0.0
+total (with camera baseline),heavy,0.0,0.0
+total (with camera baseline),in_flood_area,-1e-05,1e-05
+total (with camera baseline),near_rail,-2e-05,1e-05
+total (with camera baseline),is_rush,-4e-05,7e-05
+total (with camera baseline),near_shelter,-0.00045,9e-05
+total (with camera baseline),max_flood_cm,-0.00094,0.00013
+total (with camera baseline),fm91_rain,-0.00105,0.00012
+total (with camera baseline),hod,-0.00115,0.00038
+total (with camera baseline),motorcycle_base,-0.00177,0.00037
+total (with camera baseline),weekend,-0.00178,0.00043
+total (with camera baseline),gauge_dist_m,-0.00287,0.00049
+total (with camera baseline),latitude,-0.00348,0.00039
+total (with camera baseline),longitude,-0.00384,0.00055
+total (with camera baseline),rail_dist_m,-0.00435,0.00037
+total (with camera baseline),car_base,-0.00489,0.00069

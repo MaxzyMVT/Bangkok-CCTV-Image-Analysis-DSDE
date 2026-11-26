@@ -16,7 +16,9 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from DataAnalysis.rain.common import DATA_DIR, DATASET_ROOT, FIG_DIR, OUT_DIR  # noqa: E402
+from DataAnalysis.rain.common import (  # noqa: E402
+    DATA_DIR, DATASET_ROOT, FIG_DIR, OUT_DIR, load_counts, load_frame_catalog, load_gold, save_gold,
+)
 
 MOTORCYCLE = 1
 WINDOW_H = 2
@@ -94,18 +96,18 @@ def pick_pairs(frames: pd.DataFrame, ch: pd.DataFrame, share: pd.DataFrame, k: i
 
 def main():
     import cv2
-    meta = pd.read_csv(ROOT / "DataEngineering" / "cctv_images_metadata.csv", encoding="utf-8-sig",
-                       usecols=["image_id", "relative_path"]).set_index("image_id")["relative_path"]
+    frames_cat = load_frame_catalog().set_index("image_id")["relative_path"]
     sys.path.insert(0, str(ROOT / "DataEngineering" / "labeling"))
     from common import find_image  # noqa: E402
 
     def read(image_id, flag):
-        return cv2.imdecode(np.fromfile(str(find_image(DATASET_ROOT, meta[image_id])), np.uint8), flag)
+        return cv2.imdecode(np.fromfile(str(find_image(DATASET_ROOT, frames_cat[image_id])), np.uint8), flag)
 
-    counts = pd.read_csv(DATA_DIR / "counts_v2.csv")
+    counts = load_counts()
     boxes = pd.read_csv(DATA_DIR / "boxes_v2.csv")
-    cameras = pd.read_csv(OUT_DIR / "camera.csv")
-    ch = pd.read_csv(OUT_DIR / "camera_hour.csv", parse_dates=["hour_ts"])
+    cameras = load_gold("camera")
+    ch = load_gold("camera_hour")
+    ch["hour_ts"] = pd.to_datetime(ch["hour_ts"])
     cams = cameras.loc[cameras["near_shelter"], "camera_id"]
     wet_cams = set(ch.loc[ch["wet"], "camera_id"])
     cams = [c for c in cams if c in wet_cams]
@@ -115,6 +117,8 @@ def main():
     pairs = pick_pairs(frames, ch, share)
     share.to_csv(OUT_DIR / "shelter_share.csv", index=False, lineterminator="\n")
     pairs.to_csv(OUT_DIR / "shelter_pairs.csv", index=False, lineterminator="\n")
+    save_gold("shelter_share", share)
+    save_gold("shelter_pairs", pairs)
     FIG_DIR.mkdir(parents=True, exist_ok=True)
     for p in pairs.itertuples():
         dry, wet = read(p.dry_image_id, cv2.IMREAD_COLOR), read(p.wet_image_id, cv2.IMREAD_COLOR)
