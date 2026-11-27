@@ -38,7 +38,7 @@ flowchart TD
     subgraph Serving ["4. Web Hub, Interactive Analytics & BI"]
         GL & SL --> W["Unified Server (Apps/main.py): Map (/), Detect (/inspect), Lakehouse (/lakehouse), Insights (/insights)"]
         GL & SL --> ST["Streamlit App (DataAnalysis/dashboard.py): Plotly, Tall PyDeck Map, PyVis Network, ML Simulator"]
-        GL --> BI["Power BI Project (DataAnalysis/PowerBI/*.pbip): 5-Page Business Storyboard"]
+        GL --> BI["Power BI Project (DataAnalysis/PowerBI/*.pbip): 5-Page Business Intelligence Report"]
     end
 ```
 

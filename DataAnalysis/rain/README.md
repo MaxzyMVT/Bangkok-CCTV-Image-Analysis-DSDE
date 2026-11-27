@@ -62,6 +62,6 @@ python -m DataAnalysis.rain.ml_model
 # 4. Generate static matplotlib summary figures -> DataAnalysis/figures/
 python -m DataAnalysis.rain.figures
 
-# 5. Refresh Power BI Desktop (.pbip) storyboard + executive_story.csv
+# 5. Rebuild Power BI Desktop (.pbip) report & executive summary CSV
 python DataAnalysis/PowerBI/build_powerbi_project.py
 ```

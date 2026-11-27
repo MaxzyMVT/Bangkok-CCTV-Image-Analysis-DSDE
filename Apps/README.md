@@ -1,6 +1,6 @@
 # Interactive Web Applications (`Apps/`)
 
-Unified multi-page web platform built with Python's `ThreadingHTTPServer`, combining GIS mapping, YOLO11s computer vision, PyDuckLake SQL exploration, and rain-impact storytelling.
+Unified multi-page web platform built with Python's `ThreadingHTTPServer`, combining GIS mapping, YOLO11s computer vision, PyDuckLake SQL exploration, and rain-impact analytics.
 
 ---
 

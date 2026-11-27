@@ -38,9 +38,9 @@ Open the local URL printed by Streamlit (usually `http://localhost:8501`). The d
 
 1. **Citywide Overview** — Matched wet-vs-dry vehicle effects, severity breakdowns, and hourly profiles.
 2. **Bangkok Map** — Interactive PyDeck OpenStreetMap view of all 256 cameras, nearby stations, and rain corridors.
-3. **Hypothesis Checks** — Same-hour spatial control, corridor spillover, shelter myth check, and post-rain rebound.
+3. **Hypothesis Checks** — Same-hour spatial control, corridor spillover, shelter & station tests, and post-rain rebound.
 4. **Network Graph** — Sparse PyVis spatial connectivity linking cameras to their nearest BTS/MRT station (<=800 m) and neighbor cameras (<=900 m), with Louvain community clusters and drill-down tables.
-5. **Correlations & Insights** — Stratified congestion-shift analysis (+12.6 pp car surge in high-baseline zones), feature correlation heatmap, and hackathon storytelling highlights.
+5. **Correlations & Insights** — Stratified congestion-shift analysis (+12.6 pp car surge in high-baseline zones), feature correlation heatmap, and key analytical findings.
 6. **ML Congestion & Traffic Simulator** — Supervised gradient-boosted regression & classification models with live what-if rain/rush-hour/zone simulation.
 7. **Data & Caveats** — Hourly frame coverage, 07:00 Aug 27 1.4 KB blank-frame outage diagnosis, and source timing notes.
 
@@ -48,4 +48,4 @@ For methods and confidence intervals, see [the rain analysis](rain/README.md).
 
 The headline citywide finding is a **21.0% decrease in motorcycles visible per frame during rain** (95% CI −27.4% to −14.4%) after matching the same camera, hour, and weekday/weekend type, while heavy/rush rain triggers a **+12.6 percentage-point localized car shift** in congested zones.
 
-For **Power BI Desktop**, open [Bangkok_Rain_Traffic_Story.pbip](PowerBI/Bangkok_Rain_Traffic_Story.pbip) — a schema-validated 5-page hackathon storytelling PBIP project pre-wired to `DataAnalysis/output/` (`executive_story.csv`, `city_effect.csv`, `camera_hour.csv`, `camera.csv`, `camera_effect.csv`, and related tables). See [the Power BI guide](PowerBI/README.md) for setup and opening instructions.
+For **Power BI Desktop**, open [Bangkok_Rain_Traffic_Story.pbip](PowerBI/Bangkok_Rain_Traffic_Story.pbip) — a schema-validated 5-page analytical PBIP project pre-wired to `DataAnalysis/output/` (`executive_story.csv`, `city_effect.csv`, `camera_hour.csv`, `camera.csv`, `camera_effect.csv`, and related tables). See [the Power BI guide](PowerBI/README.md) for setup and opening instructions.
