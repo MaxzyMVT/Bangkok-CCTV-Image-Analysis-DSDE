@@ -88,5 +88,63 @@ class DashboardAppTests(unittest.TestCase):
         self.assertEqual(len(at.tabs), 7)
 
 
+class NetworkAndPowerBITests(unittest.TestCase):
+    def test_sparse_network_graph_has_clean_edges_and_communities(self):
+        from DataAnalysis.rain import network_viz
+        from DataEngineering.lakehouse_pipeline import query_lake
+
+        cams = query_lake("SELECT * FROM lake.gold.rain_camera").merge(
+            query_lake("SELECT camera_id, effect_pct, label FROM lake.gold.rain_camera_effect"),
+            on="camera_id",
+            how="left",
+        )
+        rail = query_lake(
+            "SELECT name_th AS name, name_en, primary_system AS network, latitude, longitude "
+            "FROM lake.silver.transit_stations WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
+        )
+        rail["station_label"] = rail["name"].fillna(rail["name_en"]).fillna("Rail Station")
+        G = network_viz.build_bangkok_network(cams, rail, rail_radius_m=800, cam_radius_m=900, k_rail=1, k_cam=2)
+        self.assertGreater(G.number_of_nodes(), 50)
+        self.assertGreater(G.number_of_edges(), 50)
+        self.assertLess(G.number_of_edges(), 300)
+
+        comms = network_viz.detect_communities(G)
+        self.assertGreaterEqual(len(set(comms.values())), 10)
+        cam_df, comm_df = network_viz.connection_summary_tables(G, comms)
+        self.assertFalse(cam_df.empty)
+        self.assertFalse(comm_df.empty)
+        self.assertIn("Linked Stations", cam_df.columns)
+        self.assertIn("Neighbor Cameras", cam_df.columns)
+        self.assertIn("Station Hubs", comm_df.columns)
+        self.assertIn("Mean Rain Effect (%)", comm_df.columns)
+
+    def test_powerbi_pbip_project_and_story_files_valid(self):
+        pb_dir = ROOT / "DataAnalysis" / "PowerBI"
+        pbip = json.loads((pb_dir / "Bangkok_Rain_Traffic_Story.pbip").read_text(encoding="utf-8"))
+        self.assertIn("artifacts", pbip)
+
+        sm_def = pb_dir / "Bangkok_Rain_Traffic_Story.SemanticModel" / "definition"
+        for req in (
+            sm_def / "model.tmdl",
+            sm_def / "relationships.tmdl",
+            sm_def / "expressions.tmdl",
+            sm_def / "database.tmdl",
+            sm_def / "tables" / "executive_story.tmdl",
+            sm_def / "tables" / "city_effect.tmdl",
+            sm_def / "tables" / "ml_metrics.tmdl",
+        ):
+            self.assertTrue(req.exists(), f"Missing SemanticModel file: {req}")
+
+        rep_def = pb_dir / "Bangkok_Rain_Traffic_Story.Report" / "definition"
+        pages = json.loads((rep_def / "pages" / "pages.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(pages["pageOrder"]), 5)
+        for pid in pages["pageOrder"]:
+            page_json = json.loads((rep_def / "pages" / pid / "page.json").read_text(encoding="utf-8"))
+            self.assertEqual(page_json["name"], pid)
+
+        story_csv = (ROOT / "DataAnalysis" / "output" / "executive_story.csv").read_text(encoding="utf-8")
+        self.assertIn("Hidden Modal Shift", story_csv)
+
+
 if __name__ == "__main__":
     unittest.main()
