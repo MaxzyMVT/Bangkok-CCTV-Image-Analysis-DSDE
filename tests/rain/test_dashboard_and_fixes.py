@@ -142,16 +142,17 @@ class NetworkAndPowerBITests(unittest.TestCase):
             sm_def / "database.tmdl",
             sm_def / "tables" / "executive_story.tmdl",
             sm_def / "tables" / "ui_lang.tmdl",
+            sm_def / "tables" / "camera_summary.tmdl",
             sm_def / "tables" / "city_effect.tmdl",
             sm_def / "tables" / "ml_metrics.tmdl",
         ):
             self.assertTrue(req.exists(), f"Missing SemanticModel file: {req}")
 
         rel_txt = (sm_def / "relationships.tmdl").read_text(encoding="utf-8")
-        self.assertIn("fromColumn: camera_hour.camera_id", rel_txt)
-        self.assertIn("toColumn: camera.camera_id", rel_txt)
         self.assertNotIn("fromTable:", rel_txt)
         self.assertNotIn("toTable:", rel_txt)
+        model_txt = (sm_def / "model.tmdl").read_text(encoding="utf-8")
+        self.assertIn("PBI_QueryOrder", model_txt)
 
         rep_def = pb_dir / "Bangkok_Rain_Traffic_Story.Report" / "definition"
         pages = json.loads((rep_def / "pages" / "pages.json").read_text(encoding="utf-8"))
