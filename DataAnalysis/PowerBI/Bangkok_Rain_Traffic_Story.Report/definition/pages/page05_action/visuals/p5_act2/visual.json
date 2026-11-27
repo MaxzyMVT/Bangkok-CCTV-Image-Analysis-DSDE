@@ -3,32 +3,87 @@
   "name": "p5_act2",
   "position": {
     "x": 444,
-    "y": 86,
+    "y": 114,
     "z": 3,
-    "height": 250,
+    "height": 246,
     "width": 392,
     "tabOrder": 3
   },
   "visual": {
-    "visualType": "textbox",
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "M_P5_Act2"
+                }
+              },
+              "queryRef": "ui_lang.M_P5_Act2",
+              "nativeQueryRef": "M_P5_Act2"
+            }
+          ]
+        }
+      }
+    },
     "objects": {
-      "general": [
+      "categoryLabels": [
         {
           "properties": {
-            "paragraphs": [
-              {
-                "textRuns": [
-                  {
-                    "value": "2. Ride-Hailing Fleet Pre-Positioning\nWhere rain falls locally, car demand rises +12.6 pts vs dry neighbors within 3 km. Pair DDS 129-gauge rain alerts with ML forecasts to pre-stage 4-wheel drivers before surge spikes.",
-                    "textStyle": {
-                      "fontSize": "13pt",
-                      "fontFamily": "Segoe UI",
-                      "color": "#0F172A"
-                    }
-                  }
-                ]
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
               }
-            ]
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "13D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P5_Act2"
+                }
+              }
+            }
           }
         }
       ]

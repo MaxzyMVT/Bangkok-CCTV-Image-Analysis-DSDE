@@ -61,8 +61,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'Cameras Monitored'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P1_C1"
                 }
               }
             }

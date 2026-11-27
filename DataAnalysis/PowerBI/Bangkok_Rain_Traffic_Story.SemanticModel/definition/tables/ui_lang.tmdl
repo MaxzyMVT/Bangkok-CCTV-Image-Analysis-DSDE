@@ -1,0 +1,132 @@
+table ui_lang
+	lineageTag: f2e90d5d-54c6-5593-9fc4-5cff5a3e22f5
+
+	measure T_Lang_Slicer = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ภาษา / Language", "Language / ภาษา")
+		lineageTag: db0059d2-e21b-5fd5-b873-1de427e26ebe
+
+	measure H_P1_Title = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ฝนตกกับการจราจร กทม.: ภาพนิ่งเผยการเปลี่ยนโหมดสู่รถยนต์", "Bangkok Rain & Urban Mobility: Still Frames Miss the Modal Shift")
+		lineageTag: 31c26cba-13fa-5e49-b43b-1171b5acc5d4
+
+	measure H_P1_Sub = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "กล้อง CCTV กทม. 100 จุด (60,721 เฟรม) | 129 สถานีฝน | 188 สถานีรถไฟฟ้า | 25-31 ส.ค. 2569", "100 BMA CCTV Cameras (60,721 Counts) | 129 Rain Gauges | 188 Transit Hubs | 25-31 Aug 2026")
+		lineageTag: 2c10d6aa-71fc-5d58-82a0-b6e283061780
+
+	measure H_P2_Title = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ปริมาณมอเตอร์ไซค์ลดลง -21% และวิเคราะห์ความต่างช่วงเวลาฝนตก", "Motorcycle Drop (-21%) & Rain Timing Analysis")
+		lineageTag: 2663b0a0-9670-5562-9dea-4d9ae5602fb1
+
+	measure H_P3_Title = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "การเปลี่ยนโหมดสู่รถยนต์ (+12.6 จุด) และการทดสอบสมมติฐานเชิงพื้นที่", "Localized Modal Shift (+12.6 pts Cars) & Spatial Hypothesis Verification")
+		lineageTag: 8d31da61-d38f-5238-9496-43f1036f7cd3
+
+	measure H_P4_Title = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "แบบจำลอง ML คาดการณ์จราจร และค่าสหสัมพันธ์เชิงพื้นที่-สภาพอากาศ", "Supervised ML Predictions & Spatial-Weather Correlations")
+		lineageTag: 07a36518-35d0-52c2-9cf9-cf4e00593090
+
+	measure H_P5_Title = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ข้อเสนอแนะเชิงปฏิบัติการและแนวทางต่อยอดข้อมูลเมืองอัจฉริยะ", "Operational Recommendations & Smart-City Data Adaptability")
+		lineageTag: f895c92a-ab42-5df4-8625-58f9e17ba22e
+
+	measure T_P1_C1 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "จำนวนกล้องที่วิเคราะห์", "Cameras Monitored")
+		lineageTag: fc551e09-2215-50d7-8b8b-7c29636edbba
+
+	measure T_P1_C2 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ชั่วโมงกล้องที่มีฝนตก", "Matched Rain Hours")
+		lineageTag: 9df4a147-2856-57ae-be71-96068a39c563
+
+	measure T_P1_C3 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "มอเตอร์ไซค์ลดลงทั่วกรุง", "Citywide Motorcycle Drop")
+		lineageTag: be698cbb-65da-5829-805d-ad0145ca557a
+
+	measure T_P1_C4 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "มอเตอร์ไซค์ลดช่วงเร่งด่วน", "Rush Hour Moto Drop")
+		lineageTag: f6bf33d2-1d60-54a0-885f-b2341190e4b7
+
+	measure T_P1_C5 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ส่วนต่างรถยนต์จุดฝน vs แห้ง", "Wet vs Dry Cars (<=3km)")
+		lineageTag: 63247396-6ff7-5f96-b6c7-f35cb77bed44
+
+	measure T_P1_Story = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "สรุปข้อค้นพบหลักและแนวทางปฏิบัติ", "Executive Insights & Operational Actions")
+		lineageTag: 33e2a0dd-db67-56ef-b585-190e8103ec13
+
+	measure T_P1_Bar = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "การเปลี่ยนแปลงจำนวนรถเฉลี่ยต่อเฟรมเมื่อฝนตก (%)", "Headline Change in Vehicles Visible per Frame (%)")
+		lineageTag: af39a906-b698-5718-bd30-1e48e6ca9dd2
+
+	measure T_P2_Eff = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ผลกระทบฝนแยกตามประเภทรถและช่วงเวลา (%)", "Rain Impact by Vehicle Mode & Time Window (%)")
+		lineageTag: 210cd29f-d02a-59fc-bb0a-246d82294adc
+
+	measure T_P2_Time = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ช่วงเวลาฝนตก: วันทำงาน (16-20 น.) vs วันหยุด (12-17 น.)", "Rain Timing: Weekday (16-20h) vs Weekend (12-17h)")
+		lineageTag: f7411c3f-9309-5204-8d4a-3a5ce0836a42
+
+	measure T_P2_Reb = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "การฟื้นตัวของการจราจรก่อนและหลังฝนหยุด", "Post-Rain Recovery Curve (-60 to +180 min)")
+		lineageTag: 31562452-d0f3-53a8-91b0-6c9a1f1ed25f
+
+	measure T_P2_Strat = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ผลกระทบแยกกลุ่มย่อย (วันทำงาน/หยุด และระดับฝน)", "Subgroup Splits (Weekday/Weekend & Light/Heavy Rain)")
+		lineageTag: e1e9be07-c4eb-585a-9cfb-6305ca68d8ac
+
+	measure T_P3_Nat = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "การทดลองธรรมชาติในชั่วโมงเดียวกัน (<=3 กม.): รถยนต์ +12.6 จุด", "Same-Hour Neighbor Test (<=3 km, 15 hrs): Cars +12.6 pts")
+		lineageTag: 3a78308f-090d-58a3-9891-f29459e996b5
+
+	measure T_P3_Den = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "สัดส่วนใกล้สะพานลอยและรถไฟฟ้า (จุดหนาแน่นขึ้น vs อื่นๆ)", "Shelter & Station Share Comparison (5 Denser vs 71 Other)")
+		lineageTag: f034f0b6-7a0e-5082-9e30-d02de11cae94
+
+	measure T_P3_Cams = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ตารางผลกระทบรายกล้อง (ชื่อถนนไทยและอังกฤษ)", "Per-Camera Leaderboard (Thai & English Road Names)")
+		lineageTag: 3089b97b-e236-53d4-bc04-5fad42e7443f
+
+	measure T_P3_Flood = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "จุดวัดน้ำท่วม DDS >= 5 ซม. (ถนนเพชรบุรี)", "DDS Flood Sensors >= 5 cm (FL.RTW.02 Phetchaburi Rd)")
+		lineageTag: 57464aa9-e01f-5e93-8192-c81d12ba0592
+
+	measure T_P4_C1 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ค่า R2 ทดสอบ HistGB (มีค่าฐาน)", "HistGB Test R2 (With Baseline)")
+		lineageTag: e1cf7490-d4df-5631-86d2-2c0b2d30aeaa
+
+	measure T_P4_C2 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ระดับน้ำสูงสุดจากเซนเซอร์ (ซม.)", "Max Recorded Flood Sensor (cm)")
+		lineageTag: de453345-c8bd-52f1-b189-a74cd532a54d
+
+	measure T_P4_C3 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "การเปลี่ยนแปลงปริมาณรถรวมทั่วกรุง (%)", "Overall Frame Volume Delta (%)")
+		lineageTag: 955a623e-345c-5907-8735-fc6ddd07fa22
+
+	measure T_P4_Imp = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ปัจจัยสำคัญใน ML (ฝนมีผลต่อมอเตอร์ไซค์สูงสุด)", "ML Permutation Importance (Rain_mm Drives Moto Drops)")
+		lineageTag: 79b6360b-1597-547f-8869-250e46ce4d8e
+
+	measure T_P4_Corr = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "สหสัมพันธ์เชิงเส้น (ระยะรถไฟฟ้า r=-0.26)", "Linear Correlations (Rail Distance r=-0.26)")
+		lineageTag: 362a83b8-4db6-544f-bcc8-32092a401460
+
+	measure T_P4_Met = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "เปรียบเทียบประสิทธิภาพโมเดล ML (9,996 ชม.กล้อง)", "Regression & Classification Benchmark (n=9,996 camera-hours)")
+		lineageTag: 78f6bfaa-cda3-5e6d-bd00-26e431555d6e
+
+	measure T_P5_Act1 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "1. แจ้งเตือนรถฟีดเดอร์ BTS/MRT ล่วงหน้า", "1. BTS/MRT Feeder Alerting")
+		lineageTag: 0c91e80d-13c6-58e3-a8d8-781176030311
+
+	measure T_P5_Act2 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "2. กระจายรถ 4 ล้อรับช่วงฝนตกเฉพาะจุด", "2. Ride-Hailing Fleet Pre-Positioning")
+		lineageTag: 6e818d8e-b188-5161-93eb-91caf20c1eec
+
+	measure T_P5_Act3 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "3. กรองภาพกล้องขาวขัดข้องอัตโนมัติ", "3. Automated Feed QA Guardrail")
+		lineageTag: dd88663a-d47c-5727-b0fa-0564a33f026f
+
+	measure T_P5_Road = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "แผนต่อยอดข้อมูลเมืองอัจฉริยะระยะถัดไป", "Next-Phase Data Adaptability Roadmap")
+		lineageTag: 4c8ca00f-4f90-5762-8b63-19134f2ddf98
+
+	measure M_P5_Act1 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ช่วงฝนตกวันทำงาน 16:00-20:00 น. มอเตอร์ไซค์ลดลง -30.5% รอบสถานีรถไฟฟ้า (r = -0.26) ควรเสริมรถฟีดเดอร์ทันทีเมื่อฝนเกิน 1 มม./ชม.", "During weekday 16:00-20:00 rain, motorcycle supply plunges -30.5% near transit hubs (r = -0.26). Dispatch feeder shuttles when gauges cross 1 mm/h.")
+		lineageTag: ca7b84cc-8d37-5301-8e9b-2bcd56595186
+
+	measure M_P5_Act2 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "ถนนจุดที่ฝนตกมีสัดส่วนรถยนต์สูงกว่าพื้นที่แห้งใกล้เคียง +12.6 จุด ใช้สัญญาณวัดฝน 129 จุดร่วมกับ ML จัดส่งรถยนต์ก่อนดีมานด์พุ่ง", "Locally wet roads show +12.6 pts higher car share vs dry roads within 3 km. Pair 129 BMA rain gauges with ML forecasts to pre-stage 4-wheel supply.")
+		lineageTag: dd704524-d681-54c6-9aa7-b040f3769c5c
+
+	measure M_P5_Act3 = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "กล้อง กทม. ส่งภาพขาวขนาด 1.4 KB ช่วง 07:21-07:26 น. การกรอง file_size_bytes < 3 KB ใน PyDuckLake ช่วยป้องกันสัญญาณเตือนรถหายผิดพลาด", "BMA cameras emitted 1.4 KB solid-white outage frames around 07:21-07:26. Filtering file_size_bytes < 3 KB in Silver/Gold prevents false zero alerts.")
+		lineageTag: 3c409dac-0c8b-5436-aeeb-baf6a0f520fb
+
+	measure M_P5_Road = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", "1) เชื่อมข้อมูลจำนวนผู้โดยสารเข้าสถานี BTS/MRT 2) เพิ่มพิกัด GPS ในตารางเซนเซอร์น้ำท่วม DDS 3) เพิ่มความถี่ภาพ 1 นาทีหรือ Optical Flow เพื่อวัดความเร็วรถจริง", "1) Add BTS/MRT turnstile tap-in telemetry to verify rail passenger shift. 2) Add GPS coordinates to DDS flood gauges for point-level causality. 3) Sample 1-min video optical flow to capture travel speed.")
+		lineageTag: 8dd64e37-4a5a-53fc-9b4e-8046a8411519
+
+	column lang
+		dataType: string
+		lineageTag: 493cd54e-379d-524f-a964-40eb8fccfadc
+		summarizeBy: none
+		sourceColumn: lang
+
+	column Language
+		dataType: string
+		lineageTag: 56f949f5-e4d8-57f7-84ac-938c50ef20b9
+		summarizeBy: none
+		sourceColumn: Language
+
+	partition ui_lang = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\ui_lang.csv"), [Delimiter=",", Columns=2, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"lang", type text}, {"Language", type text}})
+			in
+				ChangedType

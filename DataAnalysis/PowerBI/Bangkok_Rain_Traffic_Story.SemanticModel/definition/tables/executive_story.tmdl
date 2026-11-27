@@ -1,6 +1,21 @@
 table executive_story
 	lineageTag: 50cb9e0e-4618-5b3a-8ec1-6a66426bc51b
 
+	measure 'Active Step' = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", MAX(executive_story[step_th]), MAX(executive_story[step]))
+		lineageTag: 793932fe-abe8-5672-b872-70c4a17ecd4e
+
+	measure 'Active Headline' = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", MAX(executive_story[headline_th]), MAX(executive_story[headline]))
+		lineageTag: 5cdefead-d72d-5227-9bab-75e93d6a3944
+
+	measure 'Active Evidence' = IF(SELECTEDVALUE(ui_lang[lang], "en") = "th", MAX(executive_story[evidence_th]), MAX(executive_story[evidence]))
+		lineageTag: 2747469f-7ed4-5b77-9eb1-1888e3d7a927
+
+	column step_no
+		dataType: int64
+		lineageTag: 2dd25d6c-9c26-5f2d-a680-09731f2f249b
+		summarizeBy: none
+		sourceColumn: step_no
+
 	column step
 		dataType: string
 		lineageTag: 997a0e80-53fa-5bf6-8cfd-5cb2a4147d7f
@@ -19,12 +34,30 @@ table executive_story
 		summarizeBy: none
 		sourceColumn: evidence
 
+	column step_th
+		dataType: string
+		lineageTag: 9d458ed3-430e-5127-85e4-b413ea0db877
+		summarizeBy: none
+		sourceColumn: step_th
+
+	column headline_th
+		dataType: string
+		lineageTag: 4e4cd364-8d36-530f-b7db-132436e4d470
+		summarizeBy: none
+		sourceColumn: headline_th
+
+	column evidence_th
+		dataType: string
+		lineageTag: 5108076a-4afa-5518-8c91-3a243500000d
+		summarizeBy: none
+		sourceColumn: evidence_th
+
 	partition executive_story = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\executive_story.csv"), [Delimiter=",", Columns=3, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\executive_story.csv"), [Delimiter=",", Columns=7, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
-				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"step", type text}, {"headline", type text}, {"evidence", type text}})
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"step_no", Int64.Type}, {"step", type text}, {"headline", type text}, {"evidence", type text}, {"step_th", type text}, {"headline_th", type text}, {"evidence_th", type text}})
 			in
 				ChangedType

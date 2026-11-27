@@ -3,9 +3,9 @@
   "name": "p3_flood",
   "position": {
     "x": 780,
-    "y": 382,
+    "y": 394,
     "z": 5,
-    "height": 312,
+    "height": 300,
     "width": 476,
     "tabOrder": 5
   },
@@ -74,8 +74,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'DDS Flood Sensors >= 5 cm (FL.RTW.02 Phetchaburi Rd)'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P3_Flood"
                 }
               }
             }

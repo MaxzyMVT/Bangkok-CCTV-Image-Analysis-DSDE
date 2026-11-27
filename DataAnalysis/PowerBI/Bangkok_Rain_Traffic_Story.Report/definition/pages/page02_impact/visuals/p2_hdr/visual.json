@@ -3,33 +3,82 @@
   "name": "p2_hdr",
   "position": {
     "x": 24,
-    "y": 16,
+    "y": 12,
     "z": 1,
-    "height": 48,
-    "width": 1232,
+    "height": 54,
+    "width": 1020,
     "tabOrder": 1
   },
   "visual": {
-    "visualType": "textbox",
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "H_P2_Title"
+                }
+              },
+              "queryRef": "ui_lang.H_P2_Title",
+              "nativeQueryRef": "H_P2_Title"
+            }
+          ]
+        }
+      }
+    },
     "objects": {
-      "general": [
+      "categoryLabels": [
         {
           "properties": {
-            "paragraphs": [
-              {
-                "textRuns": [
-                  {
-                    "value": "Who Disappears in Rain? Motorcycles Plunge -21%, While Rain Timing Drives Weekday Differences",
-                    "textStyle": {
-                      "fontSize": "18pt",
-                      "fontFamily": "Segoe UI",
-                      "color": "#0F172A",
-                      "fontWeight": "bold"
-                    }
-                  }
-                ]
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
               }
-            ]
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "16D"
+                }
+              }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
           }
         }
       ]

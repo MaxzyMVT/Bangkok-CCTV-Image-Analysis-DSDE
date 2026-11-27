@@ -61,8 +61,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'Citywide Motorcycle Drop'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P1_C3"
                 }
               }
             }

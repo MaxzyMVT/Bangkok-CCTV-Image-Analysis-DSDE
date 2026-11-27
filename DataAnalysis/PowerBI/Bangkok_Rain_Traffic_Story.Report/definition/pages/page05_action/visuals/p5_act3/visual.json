@@ -3,32 +3,87 @@
   "name": "p5_act3",
   "position": {
     "x": 864,
-    "y": 86,
+    "y": 114,
     "z": 4,
-    "height": 250,
+    "height": 246,
     "width": 392,
     "tabOrder": 4
   },
   "visual": {
-    "visualType": "textbox",
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "M_P5_Act3"
+                }
+              },
+              "queryRef": "ui_lang.M_P5_Act3",
+              "nativeQueryRef": "M_P5_Act3"
+            }
+          ]
+        }
+      }
+    },
     "objects": {
-      "general": [
+      "categoryLabels": [
         {
           "properties": {
-            "paragraphs": [
-              {
-                "textRuns": [
-                  {
-                    "value": "3. Automated Feed QA Guardrail\nBMA feeds emitted 1.4 KB solid-white outage frames at 07:21–07:26 (e.g., Aug 27 07:00). Filtering file_size_bytes < 3 KB in PyDuckLake Silver/Gold prevents false zero-traffic alarms.",
-                    "textStyle": {
-                      "fontSize": "13pt",
-                      "fontFamily": "Segoe UI",
-                      "color": "#0F172A"
-                    }
-                  }
-                ]
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
               }
-            ]
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "13D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P5_Act3"
+                }
+              }
+            }
           }
         }
       ]

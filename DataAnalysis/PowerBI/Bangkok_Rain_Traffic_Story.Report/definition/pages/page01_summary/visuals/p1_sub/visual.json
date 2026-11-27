@@ -3,32 +3,82 @@
   "name": "p1_sub",
   "position": {
     "x": 24,
-    "y": 68,
+    "y": 66,
     "z": 2,
     "height": 34,
-    "width": 1232,
+    "width": 1020,
     "tabOrder": 2
   },
   "visual": {
-    "visualType": "textbox",
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "H_P1_Sub"
+                }
+              },
+              "queryRef": "ui_lang.H_P1_Sub",
+              "nativeQueryRef": "H_P1_Sub"
+            }
+          ]
+        }
+      }
+    },
     "objects": {
-      "general": [
+      "categoryLabels": [
         {
           "properties": {
-            "paragraphs": [
-              {
-                "textRuns": [
-                  {
-                    "value": "100 BMA CCTV Cameras (60,721 Clean Counts) + 129 Rain Gauges + 188 Transit Hubs + Supervised ML (25–31 Aug 2026)",
-                    "textStyle": {
-                      "fontSize": "11pt",
-                      "fontFamily": "Segoe UI",
-                      "color": "#475569"
-                    }
-                  }
-                ]
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
               }
-            ]
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
           }
         }
       ]

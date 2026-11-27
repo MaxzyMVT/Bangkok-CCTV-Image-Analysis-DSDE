@@ -3,32 +3,87 @@
   "name": "p5_act1",
   "position": {
     "x": 24,
-    "y": 86,
+    "y": 114,
     "z": 2,
-    "height": 250,
+    "height": 246,
     "width": 392,
     "tabOrder": 2
   },
   "visual": {
-    "visualType": "textbox",
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "M_P5_Act1"
+                }
+              },
+              "queryRef": "ui_lang.M_P5_Act1",
+              "nativeQueryRef": "M_P5_Act1"
+            }
+          ]
+        }
+      }
+    },
     "objects": {
-      "general": [
+      "categoryLabels": [
         {
           "properties": {
-            "paragraphs": [
-              {
-                "textRuns": [
-                  {
-                    "value": "1. BTS/MRT Feeder Alerting\nDuring weekday 16:00–20:00 rain, motorcycle supply plunges -30.5% while station-adjacent cameras carry high volume (r = -0.26). Trigger dynamic bus/shuttle feeder dispatch on rail hubs.",
-                    "textStyle": {
-                      "fontSize": "13pt",
-                      "fontFamily": "Segoe UI",
-                      "color": "#0F172A"
-                    }
-                  }
-                ]
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
               }
-            ]
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "13D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P5_Act1"
+                }
+              }
+            }
           }
         }
       ]

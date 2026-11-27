@@ -3,9 +3,9 @@
   "name": "p3_nat",
   "position": {
     "x": 24,
-    "y": 76,
+    "y": 106,
     "z": 2,
-    "height": 290,
+    "height": 274,
     "width": 580,
     "tabOrder": 2
   },
@@ -70,8 +70,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'Same-Hour Neighbor Test (<=3 km, 15 hrs): Cars +12.6 pts Higher Where Rain Falls'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P3_Nat"
                 }
               }
             }

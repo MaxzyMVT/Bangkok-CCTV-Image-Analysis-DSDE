@@ -3,9 +3,9 @@
   "name": "p3_den",
   "position": {
     "x": 620,
-    "y": 76,
+    "y": 106,
     "z": 3,
-    "height": 290,
+    "height": 274,
     "width": 636,
     "tabOrder": 3
   },
@@ -89,8 +89,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'Shelter & Station Share Comparison: No Congestion Concentration'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P3_Den"
                 }
               }
             }

@@ -4,6 +4,7 @@ model Model
 	sourceQueryCulture: en-US
 	annotation PBI_ProTooling = ["DevMode"]
 
+ref table ui_lang
 ref table city_effect
 ref table stratified_effects
 ref table rain_timing

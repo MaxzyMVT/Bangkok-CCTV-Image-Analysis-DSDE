@@ -3,9 +3,9 @@
   "name": "p4_imp",
   "position": {
     "x": 24,
-    "y": 186,
+    "y": 208,
     "z": 5,
-    "height": 255,
+    "height": 240,
     "width": 608,
     "tabOrder": 5
   },
@@ -88,8 +88,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'ML Permutation Importance (Rain_mm Drives Motorcycle Drops)'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P4_Imp"
                 }
               }
             }

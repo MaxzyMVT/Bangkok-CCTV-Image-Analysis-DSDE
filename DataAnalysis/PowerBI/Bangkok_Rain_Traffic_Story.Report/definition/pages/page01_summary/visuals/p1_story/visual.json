@@ -23,39 +23,53 @@
                       "Entity": "executive_story"
                     }
                   },
-                  "Property": "step"
+                  "Property": "step_no"
                 }
               },
-              "queryRef": "executive_story.step",
-              "nativeQueryRef": "step"
+              "queryRef": "executive_story.step_no",
+              "nativeQueryRef": "step_no"
             },
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
                       "Entity": "executive_story"
                     }
                   },
-                  "Property": "headline"
+                  "Property": "Active Step"
                 }
               },
-              "queryRef": "executive_story.headline",
-              "nativeQueryRef": "headline"
+              "queryRef": "executive_story.Active Step",
+              "nativeQueryRef": "Active Step"
             },
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
                       "Entity": "executive_story"
                     }
                   },
-                  "Property": "evidence"
+                  "Property": "Active Headline"
                 }
               },
-              "queryRef": "executive_story.evidence",
-              "nativeQueryRef": "evidence"
+              "queryRef": "executive_story.Active Headline",
+              "nativeQueryRef": "Active Headline"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "executive_story"
+                    }
+                  },
+                  "Property": "Active Evidence"
+                }
+              },
+              "queryRef": "executive_story.Active Evidence",
+              "nativeQueryRef": "Active Evidence"
             }
           ]
         }
@@ -74,8 +88,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'Executive Insights & Operational Actions'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P1_Story"
                 }
               }
             }

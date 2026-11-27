@@ -3,9 +3,9 @@
   "name": "p2_strat",
   "position": {
     "x": 648,
-    "y": 392,
+    "y": 404,
     "z": 5,
-    "height": 304,
+    "height": 292,
     "width": 608,
     "tabOrder": 5
   },
@@ -88,8 +88,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'Subgroup Splits (Weekday/Weekend & Light/Heavy Rain)'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P2_Strat"
                 }
               }
             }

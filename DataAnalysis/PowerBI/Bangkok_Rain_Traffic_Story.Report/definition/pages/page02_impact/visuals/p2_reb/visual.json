@@ -3,9 +3,9 @@
   "name": "p2_reb",
   "position": {
     "x": 24,
-    "y": 392,
+    "y": 404,
     "z": 4,
-    "height": 304,
+    "height": 292,
     "width": 608,
     "tabOrder": 4
   },
@@ -88,8 +88,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'Post-Rain Recovery Curve: Cancelled Trips Don't Bounce Back Immediately'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P2_Reb"
                 }
               }
             }

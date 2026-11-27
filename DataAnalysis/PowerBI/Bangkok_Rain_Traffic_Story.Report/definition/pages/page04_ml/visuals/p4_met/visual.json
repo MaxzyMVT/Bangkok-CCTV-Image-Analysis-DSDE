@@ -3,9 +3,9 @@
   "name": "p4_met",
   "position": {
     "x": 24,
-    "y": 456,
+    "y": 460,
     "z": 7,
-    "height": 240,
+    "height": 236,
     "width": 1232,
     "tabOrder": 7
   },
@@ -130,8 +130,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'Cross-Validated Regression & Classification Benchmark (Aug 25–31, n=9,996 clean camera-hours)'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P4_Met"
                 }
               }
             }

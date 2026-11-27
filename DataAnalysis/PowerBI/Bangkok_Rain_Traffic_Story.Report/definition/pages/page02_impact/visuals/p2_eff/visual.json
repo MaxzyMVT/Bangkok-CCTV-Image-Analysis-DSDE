@@ -3,9 +3,9 @@
   "name": "p2_eff",
   "position": {
     "x": 24,
-    "y": 76,
+    "y": 106,
     "z": 2,
-    "height": 300,
+    "height": 286,
     "width": 608,
     "tabOrder": 2
   },
@@ -88,8 +88,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'Rain Impact by Vehicle Mode & Time Window (%)'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P2_Eff"
                 }
               }
             }

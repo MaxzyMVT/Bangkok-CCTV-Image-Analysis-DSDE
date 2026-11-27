@@ -3,32 +3,87 @@
   "name": "p5_road",
   "position": {
     "x": 24,
-    "y": 356,
+    "y": 376,
     "z": 5,
-    "height": 336,
+    "height": 316,
     "width": 1232,
     "tabOrder": 5
   },
   "visual": {
-    "visualType": "textbox",
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "M_P5_Road"
+                }
+              },
+              "queryRef": "ui_lang.M_P5_Road",
+              "nativeQueryRef": "M_P5_Road"
+            }
+          ]
+        }
+      }
+    },
     "objects": {
-      "general": [
+      "categoryLabels": [
         {
           "properties": {
-            "paragraphs": [
-              {
-                "textRuns": [
-                  {
-                    "value": "Next-Phase Data Adaptability Roadmap:\n• Add BTS/MRT Turnstile Tap-In Telemetry -> Directly validate passenger transit shift volumes.\n• Add GPS Coordinates to DDS Flood Sensors -> Enable point-to-camera flood/congestion causality beyond road-name joins.\n• Capture 1-Minute Video / Optical Flow Speed -> Measure true queue delay & capacity drop alongside frame vehicle counts.",
-                    "textStyle": {
-                      "fontSize": "13pt",
-                      "fontFamily": "Segoe UI",
-                      "color": "#334155"
-                    }
-                  }
-                ]
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
               }
-            ]
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "14D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P5_Road"
+                }
+              }
+            }
           }
         }
       ]

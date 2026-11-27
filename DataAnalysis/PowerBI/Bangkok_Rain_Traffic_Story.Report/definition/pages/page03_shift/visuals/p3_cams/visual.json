@@ -3,9 +3,9 @@
   "name": "p3_cams",
   "position": {
     "x": 24,
-    "y": 382,
+    "y": 394,
     "z": 4,
-    "height": 312,
+    "height": 300,
     "width": 740,
     "tabOrder": 4
   },
@@ -42,6 +42,20 @@
               },
               "queryRef": "camera.location_th",
               "nativeQueryRef": "location_th"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "camera"
+                    }
+                  },
+                  "Property": "location_en"
+                }
+              },
+              "queryRef": "camera.location_en",
+              "nativeQueryRef": "location_en"
             },
             {
               "field": {
@@ -116,8 +130,13 @@
             },
             "text": {
               "expr": {
-                "Literal": {
-                  "Value": "'Per-Camera Rain Effect Leaderboard (14 Clears, 5 Denser, 57 Unaffected)'"
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ui_lang"
+                    }
+                  },
+                  "Property": "T_P3_Cams"
                 }
               }
             }
