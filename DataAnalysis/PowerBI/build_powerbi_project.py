@@ -1,10 +1,10 @@
-"""Generate a Hackathon Storytelling Power BI Project (.pbip) backed by DataAnalysis/output/*.csv.
+"""Generate the Power BI Project (.pbip) backed by DataAnalysis/output/*.csv.
 
 Produces:
   DataAnalysis/PowerBI/
   ├── Bangkok_Rain_Traffic_Story.pbip
-  ├── Bangkok_Rain_Traffic_Story.SemanticModel/   (TMDL model + M parameter + Business DAX measures)
-  └── Bangkok_Rain_Traffic_Story.Report/          (PBIR 5-page executive storytelling deck)
+  ├── Bangkok_Rain_Traffic_Story.SemanticModel/   (TMDL model + Business DAX measures)
+  └── Bangkok_Rain_Traffic_Story.Report/          (PBIR 5-page analytical report)
 
 Usage:
     python DataAnalysis/PowerBI/build_powerbi_project.py
@@ -285,14 +285,14 @@ def _table_visual(vis_id: str, x: int, y: int, w: int, h: int, z: int, title: st
 
 def build_project() -> Path:
     """Create the full Power BI Project (.pbip + SemanticModel + 5-Page Report)."""
-    # Ensure Executive Summary narrative CSV exists for Page 1 & Page 5
+    # Ensure Executive Summary CSV exists for Page 1 & Page 5
     exec_csv = OUT_DIR / "executive_story.csv"
     pd.DataFrame([
-        {"step": "1. Hook & Baseline", "headline": "Total traffic falls -5.4% in rain — why?", "evidence": "Motorcycles plunge -21.0% (-30.5% in rush hours) across 293 wet camera-hours, hiding a modal shift to cars."},
-        {"step": "2. Hidden Modal Shift", "headline": "Localized rain shifts travel from 2-wheelers to 4-wheelers", "evidence": "In 15 hours comparing wet vs dry cameras <=3km apart (172 pairs), cars jump +12.6 percentage points."},
-        {"step": "3. Myth Debunked", "headline": "Footbridge sheltering & station proximity do not explain congestion", "evidence": "Stationary bikes near shelters changed 2.5% dry vs 2.8% wet (sidewalk parking); only 20% of denser cams sit near rail."},
-        {"step": "4. Predictive ML & QA", "headline": "Rain is the #1 weather feature for motorcycle prediction", "evidence": "HistGradientBoosting reaches R2=0.83 (total) & 0.75 (moto); BMA 07:00 drop proved to be 1.4 KB white feed outage frames."},
-        {"step": "5. Hackathon Action", "headline": "Turn rain radar into transit feeder & fleet dispatch alerts", "evidence": "Pre-position 4-wheel ride-hailing + BTS/MRT feeder shuttles on high rail-density corridors before peak 16:00-20:00 rain."},
+        {"step": "1. Citywide Impact", "headline": "Total traffic falls -5.4% in rain", "evidence": "Motorcycles drop -21.0% (-30.5% in rush hours) across 293 wet camera-hours, masking a car shift."},
+        {"step": "2. Localized Modal Shift", "headline": "Localized rain shifts travel from 2-wheelers to 4-wheelers", "evidence": "Across 15 hours comparing wet vs dry cameras <=3km apart (172 pairs), cars rise +12.6 percentage points."},
+        {"step": "3. Sheltering & Station Test", "headline": "Footbridge sheltering & station proximity do not explain congestion", "evidence": "Stationary bikes near shelters shifted only 2.5% dry vs 2.8% wet (sidewalk parking); 20% of denser cams sit near rail."},
+        {"step": "4. Predictive ML & QA", "headline": "Rain is the #1 weather feature for motorcycle prediction", "evidence": "HistGradientBoosting reaches R2=0.83 (total) & 0.75 (moto); BMA 07:00 drop proved to be 1.4 KB blank outage frames."},
+        {"step": "5. Operational Actions", "headline": "Connect rain alerts to transit feeder & fleet dispatch", "evidence": "Pre-position 4-wheel ride-hailing + BTS/MRT feeder shuttles on high rail-density corridors ahead of 16:00-20:00 rain."},
     ]).to_csv(exec_csv, index=False, lineterminator="\n")
 
     sm_dir = PBI_DIR / f"{PROJECT_NAME}.SemanticModel"
@@ -402,7 +402,7 @@ def build_project() -> Path:
     })
 
     pages = [
-        ("page01_hook", "01. Executive Hook", [
+        ("page01_summary", "01. Executive Summary", [
             _textbox(_vid("p1-hdr"), 24, 16, 1232, 54, 1,
                      "Bangkok Rain & Urban Mobility: Still Frames Miss the Modal Shift", "22pt", True, "#0F172A"),
             _textbox(_vid("p1-sub"), 24, 68, 1232, 34, 2,
@@ -412,7 +412,7 @@ def build_project() -> Path:
             _card_visual(_vid("p1-c3"), 522, 114, 235, 118, 5, "city_effect", "Moto Rain Effect %", "Citywide Motorcycle Drop"),
             _card_visual(_vid("p1-c4"), 771, 114, 235, 118, 6, "city_effect", "Rush Moto Drop %", "Rush Hour Moto Drop"),
             _card_visual(_vid("p1-c5"), 1020, 114, 236, 118, 7, "city_effect", "Localized Car Shift (pts)", "Wet vs Dry Cars (<=3km)"),
-            _table_visual(_vid("p1-story"), 24, 248, 740, 444, 8, "Hackathon Storytelling Arc (From Evidence to Action)",
+            _table_visual(_vid("p1-story"), 24, 248, 740, 444, 8, "Executive Insights & Operational Actions",
                           [("executive_story", "step"), ("executive_story", "headline"), ("executive_story", "evidence")]),
             _chart_visual(_vid("p1-bar"), "clusteredColumnChart", 782, 248, 474, 444, 9,
                           "Headline Change in Vehicles Visible per Frame (%)", "city_effect", "cls",
@@ -436,12 +436,12 @@ def build_project() -> Path:
         ]),
         ("page03_shift", "03. Modal Shift & Spatial Proof", [
             _textbox(_vid("p3-hdr"), 24, 16, 1232, 48, 1,
-                     "Natural Experiment & Hypothesis Audit: Modal Shift Proof + Myths Debunked", "18pt", True, "#0F172A"),
+                     "Natural Experiment & Hypothesis Verification: Modal Shift & Spatial Controls", "18pt", True, "#0F172A"),
             _chart_visual(_vid("p3-nat"), "clusteredColumnChart", 24, 76, 580, 290, 2,
                           "Same-Hour Neighbor Test (<=3 km, 15 hrs): Cars +12.6 pts Higher Where Rain Falls",
                           "natural_experiment", "cls", [("natural_experiment", "effect_pct_points", False)]),
             _chart_visual(_vid("p3-den"), "clusteredBarChart", 620, 76, 636, 290, 3,
-                          "Myth Check: Shelter & Station Share Shows No Congestion Concentration",
+                          "Shelter & Station Share Comparison: No Congestion Concentration",
                           "denser_share", "feature", [("denser_share", "denser_share", False), ("denser_share", "other_share", False)]),
             _table_visual(_vid("p3-cams"), 24, 382, 740, 312, 4,
                           "Per-Camera Rain Effect Leaderboard (14 Clears, 5 Denser, 57 Unaffected)",

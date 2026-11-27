@@ -1,19 +1,19 @@
-# Power BI Executive Storyboard (`DataAnalysis/PowerBI/`)
+# Power BI Executive Report (`DataAnalysis/PowerBI/`)
 
-This folder contains a complete, ready-to-open **Microsoft Power BI Project (`.pbip`)** presenting our Bangkok Rain & Urban Mobility findings as a **5-page Hackathon Business Storytelling Deck**:
+This folder contains a ready-to-open **Microsoft Power BI Project (`.pbip`)** presenting our Bangkok Rain & Urban Mobility findings as a **5-page Executive Business Intelligence Report**:
 
-1. **`01. Executive Hook`** — Headline KPIs (`100` CCTV cameras, `293` wet camera-hours, `-21.0%` motorcycle drop, `-30.5%` rush-hour drop, `+12.6 pts` localized car mode shift) and full narrative arc.
+1. **`01. Executive Summary`** — Headline KPIs (`100` CCTV cameras, `293` wet camera-hours, `-21.0%` motorcycle drop, `-30.5%` rush-hour drop, `+12.6 pts` localized car mode shift) and key executive findings.
 2. **`02. Rain Effect & Timing`** — Mode breakdown (`city_effect`), weekday vs. weekend timing trap (`rain_timing`, showing overlap only at `16:00–17:00`), and post-rain `rebound` recovery curve.
-3. **`03. Modal Shift & Spatial Proof`** — Natural experiment (`+12.6 pts` cars within 3 km), footbridge/station myth debunking (`2.5%` dry vs. `2.8%` wet), per-camera leaderboard (`camera.csv` with Thai street names), and `FL.RTW.02` Phetchaburi flood readings.
+3. **`03. Modal Shift & Spatial Proof`** — Natural experiment (`+12.6 pts` cars within 3 km), footbridge sheltering & station proximity checks (`2.5%` dry vs. `2.8%` wet), per-camera leaderboard (`camera.csv` with Thai street names), and `FL.RTW.02` Phetchaburi flood readings.
 4. **`04. Supervised ML & Drivers`** — Model benchmarks (`RandomForest R² = 0.64`, `HistGradientBoosting R² = 0.83–0.89`), permutation feature importance (`rain_mm` #1 weather driver for motorcycles), and empirical correlations (`rail_dist_m r = -0.26`).
-5. **`05. Action & Adaptability`** — Business actions (BTS/MRT feeder alerting, ride-hailing pre-positioning, automated `1.4 KB` blank-frame feed QA) and next-phase sensor roadmap.
+5. **`05. Action & Adaptability`** — Operational recommendations (BTS/MRT feeder alerting, ride-hailing pre-positioning, automated `1.4 KB` blank-frame feed QA) and next-phase sensor roadmap.
 
 ---
 
 ## How to Install & Open Power BI on Windows
 
-### Step 1: Install Power BI Desktop (Free)
-Power BI Desktop is **not currently installed** on this machine. Install it using **one** of these methods:
+### Step 1: Install Power BI Desktop (Free, if needed)
+Install Power BI Desktop using **one** of these methods:
 - **Fastest (PowerShell / Terminal via winget):**
   ```powershell
   winget install Microsoft.PowerBI
@@ -35,4 +35,4 @@ All table partitions point directly to `DataAnalysis/output/*.csv` (avoiding Pow
 - If you regenerate analysis/ML tables (`python -m DataAnalysis.rain.run_all`, `python DataAnalysis/rain/ml_model.py`, `python DataAnalysis/PowerBI/build_powerbi_project.py`), simply click **Refresh** in Power BI Desktop.
 
 > [!NOTE]
-> Because Power BI Desktop was not installed on this workstation, the `.pbip`, TMDL semantic model, and PBIR report JSON files were validated against Microsoft's official JSON schemas (`developer.microsoft.com`) rather than opened inside the Power BI Desktop GUI.
+> The `.pbip`, TMDL semantic model, and PBIR report JSON definitions are validated against Microsoft's Fabric schemas (`developer.microsoft.com`) and Power BI Desktop's `Microsoft.PowerBI.Tabular.dll` parser.
