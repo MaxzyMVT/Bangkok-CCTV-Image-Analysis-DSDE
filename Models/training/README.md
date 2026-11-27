@@ -72,9 +72,10 @@ Report: `runs/eval/report_<split>_<date>.json`.
 `--model` argument → `CCTV_MODEL` env var → `Models/weights/best.pt` → `yolov8n.pt`.
 
 ```bash
-python Apps/app.py --port 8080                      # uses best.pt if present
+python Apps/main.py --port 8080                      # unified app hub; uses best.pt if present
+python Apps/Detection-Classification/app.py          # standalone detection & classification UI
 python Models/pipeline.py --output-csv DataEngineering/vehicle_counts.csv
-set CCTV_MODEL=yolov8n.pt && python Apps/app.py     # force the old pretrained model
+set CCTV_MODEL=yolov8n.pt && python Apps/main.py     # force the old pretrained model
 ```
 
 `pipeline.py` skips frames from frozen camera feeds listed in `DataEngineering/quality/frozen_frames.csv`

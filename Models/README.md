@@ -1,80 +1,56 @@
 # Computer Vision & Deep Learning Models (`Models/`)
 
-This directory houses the computer vision architecture and deep learning inference pipelines designed to detect, classify, and count urban vehicles from Bangkok BMA traffic surveillance cameras.
+Houses the YOLO11s computer vision inference, model registry, batch counting pipeline, and fine-tuning scripts for low-resolution ($352 \times 288$) Bangkok BMA surveillance footage.
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```text
 Models/
-├── detector.py                  # YOLOVehicleDetector class (inference, telemetry & overlays)
-├── pipeline.py                  # Batch feature extraction pipeline (processes image collections)
-├── test_detection.py            # Quick standalone inference test script
-├── training_prep.py             # Domain-adaptation dataset preparation & pseudo-labeling
-├── resolution_adaptation_guide.md # Technical guide for low-resolution CIF (352x288) streams
-└── weights/                     # Pre-trained and domain-fine-tuned YOLO weights
+├── detector.py                    # YOLOVehicleDetector (IoS containment suppression, agnostic NMS, solar threshold)
+├── model_registry.py              # Resolves best.pt -> yolov8n.pt cleanly across apps and scripts
+├── pipeline.py                    # Batch inference runner (writes vehicle_counts.csv, skips frozen feeds)
+├── test_detection.py              # Standalone single-frame verification script
+├── training_prep.py               # Pseudo-labeling & dataset bootstrapping helpers
+├── resolution_adaptation_guide.md # Architectural guide for low-res CIF streams
+├── training/
+│   ├── README.md                  # Build, train & evaluation guide
+│   └── train_pipeline.py          # Stratified sampler + YOLO11s fine-tuning & count-MAE evaluator
+└── weights/
+    ├── best.pt & best.json        # Fine-tuned Bangkok YOLO11s checkpoint & validation metadata
+    └── best_prev.pt               # Previous promoted checkpoint (local)
 ```
 
 ---
 
-## 🚘 Vehicle Detection Architecture
+## Target Vehicle Classes
 
-The core detector (`detector.py`) uses Ultralytics YOLO architectures optimized for traffic monitoring:
-
-### Target Vehicle Classes
-Standard COCO vehicle classes are mapped to four primary urban transportation categories:
-
-| Target Class | ID | COCO Class Origin | Description |
-| :--- | :---: | :--- | :--- |
-| **Car** | `0` | `car` | Personal passenger automobiles, sedans, SUVs, and taxis. |
-| **Motorcycle** | `1` | `motorcycle` | Two-wheeled motorized vehicles, motorcycle taxis, and delivery scooters. |
-| **Bus** | `2` | `bus` | BMTA public transit buses, minibuses, and private coach buses. |
-| **Truck** | `3` | `truck` | Light commercial trucks, pickup trucks, and heavy cargo vehicles. |
+| Target Class | ID | Scope |
+| :--- | :---: | :--- |
+| **Car** | `0` | Sedans, pickups, taxis, vans, tuk-tuks, songthaews, minibuses |
+| **Motorcycle** | `1` | Motorbikes and scooters (with or without rider) |
+| **Bus** | `2` | BMTA city buses and full-size coaches |
+| **Truck** | `3` | 6-wheel+ trucks, box trucks, lorries, trailers |
 
 ---
 
-## 🚀 Usage & API
+## Usage
 
-### 1. Programmatic Detection (`YOLOVehicleDetector`)
+### 1. Programmatic Detection
 ```python
-from Models.detector import YOLOVehicleDetector
-import cv2
+from Models.detector import YOLOVehicleDetector, imread_unicode
+from Models.model_registry import resolve_model
 
-# Initialize detector (automatically loads weights)
-detector = YOLOVehicleDetector(model_name="yolov8n.pt", conf_thresh=0.25)
-
-# Perform inference on an image
-image = cv2.imread("sample_cctv.jpg")
-results = detector.detect(image)
-
-# Access detection counts
-print("Vehicle Counts:", results["counts"])
-# Output: {'car': 12, 'motorcycle': 18, 'bus': 2, 'truck': 1, 'total': 33}
-
-# Annotated image with bounding boxes & HUD telemetry
-annotated_img = results["annotated_image"]
+detector = YOLOVehicleDetector(model_name=resolve_model())
+results = detector.detect(imread_unicode("sample_cctv.jpg"))
+print(results["counts"])
 ```
 
-### 2. Standalone Verification (`test_detection.py`)
-Run inference on a single image to verify model behavior and visualize output annotations:
-```bash
-python Models/test_detection.py
-```
-
-### 3. Batch Extraction Pipeline (`pipeline.py`)
-Processes complete folders of CCTV footage, generating structured CSV files containing vehicle counts indexed by timestamp and camera ID:
+### 2. Batch Extraction
 ```bash
 python Models/pipeline.py --input dataset/100_cameras/cctv_images --output DataEngineering/vehicle_counts.csv
 ```
 
----
-
-## 🔍 Low-Resolution CIF Adaptation
-
-Over 99% of municipal traffic cameras in Bangkok stream at **CIF resolution ($352 \times 288$)**. Standard models trained on high-resolution $640 \times 640$ imagery encounter significant accuracy drop due to interpolation artifacts and feature map downsampling.
-
-Key adaptation techniques implemented in this project (detailed in [`resolution_adaptation_guide.md`](resolution_adaptation_guide.md)):
-1. **Aspect-Ratio Preserved Rectangular Inference**: Eliminating non-uniform square stretching by preserving the native $1.22$ aspect ratio (`rect=True`, `imgsz=384`).
-2. **P2 High-Resolution Stride-4 Detection Head**: Retaining shallow spatial feature representations so distant 10–15 pixel vehicles remain detectable.
-3. **Domain-Specific Pseudo-Labeling (`training_prep.py`)**: Bootstrapping training datasets directly from unannotated Bangkok frames to fine-tune network backbones on local lighting, camera angles, and road geometry.
+### 3. Low-Resolution CIF Engineering
+See [`resolution_adaptation_guide.md`](resolution_adaptation_guide.md) and [`training/README.md`](training/README.md) for rectangular inference (`rect=True`), Intersection-over-Smaller (IoS) duplicate box suppression, solar-adaptive confidence thresholding (`0.28` daytime / `0.20` night via `silver.sun_times`), and temporal train/val splits.

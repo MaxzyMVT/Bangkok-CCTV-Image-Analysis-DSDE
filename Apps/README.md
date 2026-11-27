@@ -1,85 +1,47 @@
 # Interactive Web Applications (`Apps/`)
 
-This directory houses the unified web application suite for the Bangkok CCTV Image Analysis platform, combining geospatial GIS visualization with real-time deep learning detection and multi-camera control room interfaces.
+Unified multi-page web platform built with Python's `ThreadingHTTPServer`, combining GIS mapping, YOLO11s computer vision, PyDuckLake SQL exploration, and rain-impact storytelling.
 
 ---
 
-## 🚀 Running the Web Suite
-
-All components are served via a unified, zero-external-framework Python web server:
+## Running the Web Suite
 
 ```bash
-# Launch both Camera Map (/) and Detection Inspector (/inspect) on port 8080
+# Full server: Map (/), Detect (/inspect), Lakehouse (/lakehouse), and Insights (/insights) on port 8080
 python Apps/main.py
 
-# Optional: customize port
+# Custom port
 python Apps/main.py --port 9000
+
+# Lightweight mode (Insights only, without initializing YOLO or Lakehouse workers)
+python Apps/main.py --insights-only
 ```
 
 ### Application Routes
 
-| Path | Interface | Purpose |
+| Route | Module | Purpose |
 | :--- | :--- | :--- |
-| `/` | **Camera Map** | Interactive Leaflet GIS map with custom CCTV beacons, transit overlays, and frame timeline replay. |
-| `/inspect` | **Vehicle Inspector** | YOLO deep learning inference, vehicle count breakdown, 10-minute snapshot cycler, and 16-grid control room. |
-| `/insights` | **Rain & Traffic Insights** | Interactive charts, camera map, evidence map of the project idea chart, and a new rain-timing audit. |
+| `/` | `Apps/Camera-Map/` | Interactive Leaflet GIS map with 100 BMA cameras, BTS/MRT route overlays, and historical frame playback. |
+| `/inspect` | `Apps/Detection-Classification/` | Fine-tuned YOLO11s single-frame inspector, telemetry HUD, 10-minute cycler, and 16-camera control matrix. |
+| `/lakehouse` | `Apps/Lakehouse-Viewer/` | PyDuckLake Bronze/Silver/Gold schema browser, paginated record viewer, CSV export, and read-only SQL workbench. |
+| `/insights` | `Apps/Traffic-Insights/` | Rain telemetry findings dashboard, weekday/weekend rain timing audit, camera response filter, and conceptual scorecard. |
 
 ---
 
-## 🗺️ Camera Map Interface (`Apps/Camera-Map/`)
-
-An interactive mapping environment built with **Leaflet.js**, featuring:
-
-- **Custom CCTV Beacons**: High-visibility markers with inline camera icons and dual-contrast outlines (dark perimeter + bright rim) ensuring high legibility over dark, street, and satellite basemaps.
-- **Dynamic Basemap Styles**:
-  - `Dark`: CartoDB Dark Matter for command-center night visibility.
-  - `Streets`: Standard OpenStreetMap road layout with street names and landmarks.
-  - `Minimal`: Clean OpenFreeMap vector style highlighting major road arteries without visual clutter.
-  - `Satellite`: Esri World Imagery providing real aerial photography of intersections.
-- **Mass Transit Overlay (BTS & MRT)**: Real route alignments and station markers in official line colors. Stations display bilingual names and interchange tags.
-- **Historical Frame Replay (ภาพย้อนหลัง)**: Integrated preview player inside camera popups with timeline scrubbing, next/previous frame cycling, and automated slideshow playback.
+## Key Modules
+- **Camera Map (`Apps/Camera-Map/`):** Uses Leaflet.js across Dark, Streets, Minimal, and Satellite basemaps with bilingual transit overlays (`bangkok_rail.geojson`) and bi-directional deep links (`?camera=<id>&frame=<filename>`). Camera metadata loads directly from `lake.silver.cameras` joined with `lake.silver.camera_transit_proximity`.
+- **Detection & Control Room (`Apps/Detection-Classification/`):** Supports keyboard navigation (`←`/`→`, `Space`, `R`), auto-detect timeline playback, 4×4 matrix batch detection, and background batch ingestion into PyDuckLake (`vehicle_counts.csv` $\to$ Bronze $\to$ Silver).
+- **Lakehouse Viewer (`Apps/Lakehouse-Viewer/`):** Inspects all 73 tables across `bronze`, `silver`, and `gold` namespaces, executes custom read-only DuckDB SQL queries, and triggers scraper/ETL refreshes.
+- **Traffic Insights (`Apps/Traffic-Insights/`):** Queries `lake.gold.rain_*` and `lake.silver.cameras` via `query_lake` to serve `/api/insights` JSON to its SVG UI.
 
 ---
 
-## 🚗 Detection & Control Room (`Apps/Detection-Classification/`)
-
-A traffic analytics interface powered by YOLO vehicle detection models:
-
-- **Single Camera Inspector**:
-  - Detects and counts **Cars**, **Motorcycles**, **Buses**, and **Trucks**.
-  - Renders colored bounding boxes and a telemetric HUD displaying vehicle counts and confidence scores.
-  - **Keyboard Controls**:
-    - `←` or `A`: Previous 10-minute snapshot.
-    - `→` or `D`: Next 10-minute snapshot.
-    - `Spacebar`: Toggle playback of timelapse slideshow.
-    - `R`: Re-run YOLO detection on current frame.
-  - **Auto-Detect Mode**: Automatically performs model inference whenever the timeline advances.
-- **16-Camera Control Room (4×4 Matrix)**:
-  - **Time Sequence Mode**: 16 consecutive frames for one camera covering 160 continuous minutes of traffic flow.
-  - **City-Wide Mode**: 16 different Bangkok intersections sampled at the exact same point in time.
-  - **Batch Detection**: Evaluates vehicle counts across all 16 tiles simultaneously.
-
----
-
-## 🔗 Bi-Directional Deep Linking
-
-The application supports state synchronization between the Map and Detect views via URL search parameters:
-- `?camera=<camera_id>&frame=<filename>`
-
-### Workflows:
-1. **Map to Detect**: Clicking any camera preview or "Open in Detect" (`เปิดใน Detect`) navigates to `/inspect` with that camera and frame preselected.
-2. **Detect to Map**: In the inspector, clicking "View Camera on Map" (`ดูตำแหน่งกล้องบนแผนที่`) navigates to `/`, flies the map camera to that coordinate, highlights the beacon, and loads the frame in the popup player.
-
----
-
-## 🔌 API Endpoints
-
-The backend exposes lightweight JSON endpoints consumed by the frontends:
+## API Endpoints
 
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
-| `/api/camera-images?camera_id=<id>` | `GET` | Returns list of available captured frames with timestamps for a camera. |
-| `/api/cctv-info` | `GET` | Returns spatial coordinates, descriptions, and road names for all cameras. |
-| `/api/detect` | `POST` | Executes YOLO inference on a target frame or uploaded image and returns bounding boxes, labels, and counts. |
-| `/images/<camera_id>/<filename>` | `GET` | Serves raw CCTV JPEG frames with HTTP caching. |
-| `/static/map/<filename>` | `GET` | Serves map assets including `bangkok_rail.geojson`. |
+| `/api/map/cameras` & `/api/map/frame` | `GET` | Camera coordinates, transit proximity, and frame existence metadata. |
+| `/api/cameras` & `/api/predict` | `GET` / `POST` | Frame indexes and live YOLO11s bounding-box inference. |
+| `/api/insights` | `GET` | Preaggregated Gold rain effects, stratified timing, and per-camera Thai/English names from PyDuckLake. |
+| `/api/lakehouse/summary`, `/api/lakehouse/table`, `/api/lakehouse/query` | `GET` / `POST` | Live PyDuckLake catalog metrics, table previews, and custom read-only SQL execution. |
+| `/images/<camera_id>/<filename>` & `/static/map/<filename>` | `GET` | Raw CCTV JPEG frames and map GeoJSON/icon assets. |

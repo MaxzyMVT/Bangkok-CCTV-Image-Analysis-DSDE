@@ -1,222 +1,149 @@
-# Bangkok CCTV Image Analysis & Traffic Intelligence Platform
+# Bangkok CCTV Image Analysis & Urban Mobility Intelligence Platform
 
-An end-to-end spatial-temporal traffic analytics and computer vision platform designed to monitor, detect, and analyze urban vehicular movement across Bangkok, Thailand. The system processes high-volume visual feeds from the Bangkok Metropolitan Administration (BMA) traffic camera network, performs automated vehicle detection, and correlates traffic density with geographic infrastructure and mass transit networks.
-
-Rain and traffic findings (25–31 Aug 2026) are available in the [interactive Streamlit dashboard](DataAnalysis/README.md) and the [analysis report](DataAnalysis/rain/README.md).
-
-The unified web server also serves the [Rain & Traffic Insights app](Apps/Traffic-Insights/README.md) at `http://localhost:8080/insights` alongside the camera map, inspector, and lakehouse viewer.
+An end-to-end **Data Engineering, Computer Vision, Machine Learning, and Business Intelligence** platform analyzing traffic dynamics across **100 Bangkok Metropolitan Administration (BMA) CCTV cameras** (`61,319` frames, 25–31 August 2026), correlated with **BMA rain/flood gauges**, **188 rapid transit stations (BTS/MRT/ARL/SRT)**, **Traffy Fondue citizen complaints**, **FM91 traffic news**, **Open-Meteo / METAR weather**, and **OpenStreetMap urban infrastructure**.
 
 ---
 
-## 📌 Project Overview
+## Key Analytical Insights & Findings
 
-Urban traffic congestion in Bangkok is influenced by complex spatial-temporal dynamics, road topography, and mass transit connectivity. This project provides a unified data science and data engineering platform that:
-- **Catalogs & Ingests**: Standardizes over 61,000 CCTV frames across 100 camera locations with microsecond-level temporal attribution and spatial coordinates.
-- **Extracts Geospatial Context**: Integrates Bangkok's complete BTS and MRT mass transit network geometries and station nodes via OpenStreetMap Overpass queries.
-- **Deep Learning Vision**: Deploys lightweight YOLO object detection adapted for low-resolution surveillance footage (CIF $352 \times 288$) to classify and count vehicles across four key categories: *Cars*, *Motorcycles*, *Buses*, and *Heavy Trucks*.
-- **Interactive Command Center**: Hosts a high-performance web platform uniting an interactive geospatial camera map with a multi-camera control room and fine-grained frame inspector.
+- **Citywide Rain Effect (`-21.0%` Motorcycles, `-5.4%` Total):** Comparing wet hours ($\ge 1\text{ mm/h}$) against each camera's dry baseline at the **same clock hour and weekday/weekend type** (`293` wet camera-hours across `94` cameras), visible motorcycles drop **`-21.0%`** (95% CI `-27.4%` to `-14.4%`; rush hours **`-30.5%`**), while passenger cars stay near zero (`-2.2%`, CI `-6.4%` to `+2.2%`).
+- **Hidden Modal Shift (`+12.6 pts` Cars in Localized Rain):** In a **15-hour same-hour natural experiment** comparing rained-on cameras against dry neighbor cameras within $\le 3\text{ km}$ (`172` pairs), cars read **`+12.59 percentage points` higher** (CI `+2.2` to `+20.7`), pointing toward a localized shift from two-wheelers to four-wheelers even when citywide two-wheeler trips decline.
+- **Weekday vs. Weekend Timing Confounder (`16:00–17:00` Overlap):** Weekday rain fell across `69` camera-hours spanning **only 8 clock hours (16:00–20:00)**, whereas weekend rain fell across `224` camera-hours (**12:00–17:00**), overlapping at only `16:00` and `17:00`. Subgroup comparisons without controlling for clock hour are misleading.
+- **Disproved Sheltering & Flood Assumptions:** Stationary motorcycles near footbridges/expressways changed negligibly (`2.5%` dry vs. `2.8%` wet; sidewalk parking rather than main-lane blockages), and all `13` flood readings $\ge 5\text{ cm}$ (`FL.RTW.02` Phetchaburi Rd) showed no vehicle count rise at road-matched cameras `250` & `256`.
+- **Empirical Correlations & Supervised ML:** Proximity to BTS/MRT (`rail_dist_m`) correlates strongest with density (`motorcycle r = -0.2567`, `total r = -0.1992`). Supervised `RandomForest` / `HistGradientBoosting` models predict held-out weekend traffic density at **$R^2 = 0.6423$** (without baseline) and **$R^2 = 0.8299$** (with baseline), with `rain_mm` ranking as the #1 weather permutation driver for motorcycle predictions (`R² = 0.7536`).
+- **Data Quality Audit (`Aug 27 07:00` Blank-Frame Outage):** `71 / 73` snapshots at `2026-08-27 07:21–07:26` (and similar 07:00–08:00 subsets across Aug 26–31) were `1,402–1,404 byte` solid-white BMA server outage placeholders rather than YOLO misdetections.
+
+---
+
+## System Architecture (PyDuckLake Bronze → Silver → Gold)
 
 ```mermaid
 flowchart TD
-    subgraph Data_Ingestion ["1. Data Engineering & Extraction"]
-        A["BMA Traffic CCTV Streams (61,319 frames)"] --> B["dataset_downloader.py"]
-        B --> C["generate_metadata_csv.py"]
-        C --> D[("cctv_images_metadata.csv<br/>(27 Rich Attributes)")]
-        E["OpenStreetMap Overpass API"] --> F["build_rail_geojson.py"]
-        F --> G[("bangkok_rail.geojson<br/>(BTS / MRT Lines & Stations)")]
+    subgraph Sources ["1. Multi-Source Data Ingestion & Web Scraping"]
+        A["BMA CCTV Streams (61,319 frames, 100 cams)"] --> B["dataset_downloader.py & generate_metadata_csv.py"]
+        E["External Scrapers (BMA Rain/Flood/Canal, OSM Rail/POI, Traffy, FM91, Open-Meteo, METAR, BOT, TMD)"]
     end
 
-    subgraph Modeling ["2. Computer Vision & Inference"]
-        A --> H["YOLOVehicleDetector (detector.py)"]
-        H --> I["Bounding Box Detection<br/>(Cars, Motos, Buses, Trucks)"]
-        H --> J["HUD Telemetry Overlay & Counting"]
-        I --> K[("vehicle_counts.csv<br/>(Structured Vehicle Counts)")]
+    subgraph Vision ["2. Low-Res Computer Vision (Models/)"]
+        A --> H["Fine-Tuned YOLO11s (best.pt) + Solar-Adaptive Thresholding & IoS NMS"]
+        H --> K["Vehicle Counts & Frozen-Frame QA"]
     end
 
-    subgraph Applications ["3. Interactive Web Applications (Apps/main.py)"]
-        D & G --> L["Camera Map (/)<br/>Leaflet.js + High-Vis Beacons + Timeline Replay"]
-        D & I & J --> M["Vehicle Inspector (/inspect)<br/>10-Min Cycler + 16-Grid Control Room"]
-        L <==> |"Bi-Directional Deep Linking"| M
+    subgraph Lakehouse ["3. PyDuckLake Lakehouse (73 Parquet Tables)"]
+        B & E & K --> BR["Bronze Layer (24 Raw Tables + SHA-256 Guard)"]
+        BR --> SL["Silver Layer (26 Cleaned, Typed & Spatial Marts)"]
+        SL --> GL["Gold Layer (23 Rain Insights, Network Metrics & ML Predictions)"]
+    end
+
+    subgraph Serving ["4. Web Hub, Interactive Analytics & BI"]
+        GL & SL --> W["Unified Server (Apps/main.py): Map (/), Detect (/inspect), Lakehouse (/lakehouse), Insights (/insights)"]
+        GL & SL --> ST["Streamlit App (DataAnalysis/dashboard.py): Plotly, Tall PyDeck Map, PyVis Network, ML Simulator"]
+        GL --> BI["Power BI Project (DataAnalysis/PowerBI/*.pbip): 5-Page Business Storyboard"]
     end
 ```
 
 ---
 
-## 📁 Repository Structure
+## Complete Repository Structure
 
 ```text
 Bangkok-CCTV-Image-Analysis-DSDE/
-├── Apps/                                # Unified Web Applications
-│   ├── main.py                          # Integrated web server (Map at /, Detect at /inspect)
-│   ├── README.md                        # Application suite documentation
-│   ├── Camera-Map/                      # Interactive GIS map application
-│   │   ├── app.py                       # Standalone map backend & data endpoints
-│   │   ├── static/
-│   │   │   ├── bangkok_rail.geojson     # Generated BTS/MRT line and station geometries
-│   │   │   └── bts.png, mrt.png         # Transit branding assets
-│   │   └── templates/index.html         # Leaflet GIS interface with custom CCTV beacons
-│   └── Detection-Classification/        # Detection dashboard & control room
-│       ├── app.py                       # Detection REST API & frame cycler service
-│       └── templates/index.html         # Single inspector & 16-camera matrix dashboard
-├── DataEngineering/                     # Data Ingestion, Extraction & Schemas
-│   ├── README.md                        # Data engineering documentation
-│   ├── dataset_downloader.py            # Automated dataset fetcher
-│   ├── generate_metadata_csv.py         # CCTV metadata catalog generator
-│   ├── build_rail_geojson.py            # Backward-compatible proxy to rail extractor
-│   ├── cctv_images_metadata.csv         # Full catalog of 61,319 images with 27 attributes
-│   └── WebScraping/                     # Web extraction modules
-│       ├── README.md                    # Web extraction documentation
-│       ├── build_rail_geojson.py        # OpenStreetMap Overpass extractor for transit
-│       ├── sun_times.py, open_meteo.py, metar.py, osm_overpass.py, bma_open_data.py,
-│       │   traffy_fondue.py, fm91_news.py, tmd_weekly_summary.py, bot_holidays.py,
-│       │   bma_drainage.py              # External source scrapers
-│       └── external_lakehouse.py        # Bronze -> Silver loader for scraped sources
-├── Models/                              # Computer Vision & Inference Pipelines
-│   ├── README.md                        # Modeling documentation
-│   ├── detector.py                      # YOLOVehicleDetector class (inference & telemetry)
-│   ├── pipeline.py                      # Batch feature extraction pipeline
-│   ├── test_detection.py                # Standalone verification script
-│   ├── training_prep.py                 # Dataset bootstrapping & pseudo-labeling
-│   ├── resolution_adaptation_guide.md   # Architectural guide for low-resolution CIF imagery
-│   └── weights/                         # Model weight storage
-├── DataAnalysis/                        # Exploratory data analysis notebooks & statistical scripts
-└── dataset/                             # Local dataset storage (ignored from version control)
-    └── 100_cameras/
-        ├── cctv_info.csv                # Camera locations, coordinates, and road descriptions
-        └── cctv_images/                 # Captured frames (Aug 25 - Aug 31, 2026)
+├── Apps/                                  # Unified Multi-App Web Server (:8080)
+│   ├── main.py                            # Combined HTTP server (/ , /inspect, /lakehouse, /insights)
+│   ├── README.md                          # Web applications & API documentation
+│   ├── Camera-Map/                        # Interactive Leaflet GIS map (/)
+│   ├── Detection-Classification/          # YOLO11s single & 16-grid control room (/inspect)
+│   ├── Lakehouse-Viewer/                  # PyDuckLake catalog browser & SQL workbench (/lakehouse)
+│   └── Traffic-Insights/                  # Rain telemetry & mobility findings dashboard (/insights)
+├── DataEngineering/                       # ETL, Labeling, Quality & PyDuckLake Pipeline
+│   ├── README.md                          # Lakehouse Bronze/Silver/Gold schema guide
+│   ├── lakehouse_pipeline.py              # PyDuckLake orchestrator & shared query_lake / write_lake_table API
+│   ├── dataset_downloader.py              # Google Drive dataset retriever
+│   ├── generate_metadata_csv.py           # Master 61,319-frame metadata catalog generator
+│   ├── build_rail_geojson.py              # Proxy to OSM rail geometry extractor
+│   ├── cctv_images_metadata.csv           # Image metadata catalog (init source)
+│   ├── vehicle_counts.csv                 # YOLO11s batch detection counts (init source)
+│   ├── lakehouse/                         # bkk_cctv.ducklake catalog & Parquet partitions (gitignored)
+│   ├── quality/                           # Frozen-frame QA detector (find_frozen_frames.py)
+│   ├── labeling/                          # Human review web UI & dataset merge utilities
+│   ├── reviews/                           # Reviewed human box labels (train/test queues)
+│   ├── train_set/ & test_set/             # YOLO fine-tuning & evaluation sets
+│   └── WebScraping/                       # 11 scrapers + external_lakehouse.py + raw/ caches
+├── Models/                                # Computer Vision & Fine-Tuning
+│   ├── README.md                          # YOLO architecture & CIF adaptation guide
+│   ├── detector.py                        # YOLOVehicleDetector (IoS suppression, solar threshold)
+│   ├── model_registry.py                  # Weight resolution (best.pt / yolov8n.pt)
+│   ├── pipeline.py                        # Batch inference runner skipping frozen frames
+│   ├── training/                          # train_pipeline.py & training docs
+│   └── weights/                           # Committed fine-tuned best.pt + metrics
+├── DataAnalysis/                          # Analytics, ML, NetworkX & BI Reporting
+│   ├── README.md                          # Analytics, Streamlit & Power BI entry guide
+│   ├── dashboard.py                       # 7-tab Streamlit dashboard (PyDuckLake + Plotly + PyDeck + PyVis + ML)
+│   ├── rain_insight.ipynb                 # Summary notebook
+│   ├── requirements-dashboard.txt         # Dashboard & ML dependencies
+│   ├── rain/                              # Modular analysis, ML, & PyVis network scripts
+│   │   ├── common.py, prepare.py, effects.py, shelter.py, traffy.py, policy.py
+│   │   ├── stratified.py, recount.py, run_all.py, figures.py
+│   │   ├── ml_model.py                    # Supervised Regression, Surge Classification & Correlations
+│   │   └── network_viz.py                 # Sparse k-NN NetworkX + PyVis community graph
+│   ├── PowerBI/                           # 5-page Power BI Project (.pbip + TMDL + PBIR) & guide
+│   ├── output/                            # Exported Gold CSV marts (for Power BI / init)
+│   ├── figures/                           # Static verification plots (*.png)
+│   └── data/counts_v2.csv                 # Recount dataset bootstrapped to silver.counts_v2
+├── dataset/                               # BMA 100_cameras imagery (downloaded automatically, gitignored)
+├── tests/                                 # Unit & integration test suites (rain, models, labeling, webscraping)
+├── GEMINI.md                              # Workspace Git conventions
+└── README.md                              # Project documentation (this file)
 ```
 
 ---
 
-## 🚀 Quickstart & Setup
+## Quickstart & Launch Commands
 
-### 1. Prerequisites & Environment Setup
-Clone the repository and configure a Python 3.10+ environment:
+### 1. Environment Setup
 ```bash
-git clone https://github.com/MaxzyMVT/Bangkok-CCTV-Image-Analysis-DSDE.git
-cd Bangkok-CCTV-Image-Analysis-DSDE
-
-# Create and activate environment
 conda create -n dsde python=3.11 -y
 conda activate dsde
-
-# Install required dependencies
-pip install ultralytics opencv-python-headless pillow requests gdown beautifulsoup4 lxml selenium pandas playwright duckdb pyducklake pytz
+pip install ultralytics opencv-python-headless pillow requests gdown beautifulsoup4 lxml selenium playwright duckdb pyducklake pytz
+pip install -r DataAnalysis/requirements-dashboard.txt
 python -m playwright install chromium
 ```
 
-### 2. Launch the Unified Web Application
-Start both the **Camera Map** and the **Vehicle Detection Dashboard** using the master application runner:
+### 2. Initialize PyDuckLake & Run Analytics / ML Pipelines
 ```bash
-python Apps/main.py
-```
-By default, the server runs on port `8080`. Specify a custom port with `--port`:
-```bash
-python Apps/main.py --port 9000
+# 1. Build Bronze -> Silver -> Gold lakehouse from local raw CSVs (add --scrape to re-fetch missing sources)
+python DataEngineering/lakehouse_pipeline.py
+
+# 2. Recompute Rain Insights & ML Prediction tables in Gold (plus Power BI CSV exports)
+python -m DataAnalysis.rain.run_all
+python DataAnalysis/rain/ml_model.py
 ```
 
-| Application View | URL Route | Description |
+### 3. Launch Applications & Dashboards
+| Interface | Command | URL / Access |
 | :--- | :--- | :--- |
-| **Camera Map** | [`http://localhost:8080/`](http://localhost:8080/) | Geospatial overview of all 100 cameras, BTS/MRT routes, and frame timeline replay |
-| **Vehicle Inspector** | [`http://localhost:8080/inspect`](http://localhost:8080/inspect) | YOLO inference, vehicle telemetry HUD, 10-minute snapshot cycler, and 16-camera matrix |
+| **Unified Web Hub** | `python Apps/main.py` | [`/`](http://localhost:8080/) Map · [`/inspect`](http://localhost:8080/inspect) YOLO · [`/lakehouse`](http://localhost:8080/lakehouse) SQL · [`/insights`](http://localhost:8080/insights) Rain Story |
+| **Insights-Only Mode** | `python Apps/main.py --insights-only` | [`http://localhost:8080/insights`](http://localhost:8080/insights) (no GPU/CV startup needed) |
+| **Streamlit Analytics** | `streamlit run DataAnalysis/dashboard.py` | [`http://localhost:8501`](http://localhost:8501) (Plotly, Tall PyDeck Map, PyVis Network, ML Simulator) |
+| **Power BI Report** | Open `DataAnalysis/PowerBI/Bangkok_Rain_Traffic_Story.pbip` | Power BI Desktop ([setup guide](DataAnalysis/PowerBI/README.md)) |
 
-> [!NOTE]
-> On the initial launch, if the CCTV image archive is not found locally, `dataset_downloader.py` automatically fetches and extracts the dataset files into `dataset/100_cameras/`.
-
-### 3. Run the Web Scraping & Lakehouse Pipeline
-Scrape all external sources (Aug 25–31, 2026) and load them into the lakehouse (Bronze → Silver) in one command:
+### 4. Run Automated Tests
 ```bash
-python DataEngineering/lakehouse_pipeline.py --scrape
-```
-Scrapers only run for raw files that are missing. Re-scrape every source with `--rescrape`, rebuild the lakehouse from scratch with `--reset`. The full first run takes about 2 hours 15 minutes, mostly BMA Drainage canal levels and the Overpass API. See [`DataEngineering/WebScraping/README.md`](DataEngineering/WebScraping/README.md) for the sources, methods, and output columns.
-
----
-
-## 🗺️ Interactive Camera Map (`/`)
-
-The geospatial platform visualizes all 100 BMA traffic cameras across Bangkok with real-time frame inspection:
-
-* **High-Visibility CCTV Beacons**: Custom multi-layer beacons featuring inline CCTV camera glyphs. Engineered with high-contrast dual borders (midnight outer ring + bright inner rim + ambient drop shadow) ensuring crisp visibility across all basemaps:
-  - **Electric Cyan Beacon**: Camera online with captured historical frames.
-  - **Vibrant Amber Beacon with Sonar Pulse**: Active selected camera with animated radar waves expanding from the ground coordinate.
-  - **Slate Gray Beacon with Strike**: Camera location recorded without captured still images.
-* **Multi-Basemap Switcher**: Switch instantly between **Dark**, **Streets**, **Minimal** (clean OpenFreeMap vector style), and **Satellite** imagery.
-* **Mass Transit Rail Overlay (BTS / MRT)**: Displays real alignments and station stops for BTS Sukhumvit, Silom, Gold Line, and MRT Blue, Purple, Yellow, and Pink lines in official transit colors. Stations dynamically scale from zoom level 13 with Thai names appearing at zoom 15.
-* **Historical Frame Replay**: Built-in timeline player inside the camera popup. Step through frames (`⏮` previous / `▶` play / `⏭` next), scrub through daily timelines, or select specific observation dates.
-* **Bi-Directional Deep Linking**:
-  - Click any camera frame or **"Open in Detect"** (`เปิดใน Detect`) to immediately launch that exact frame in the detection inspector.
-  - In Detect, clicking **"View Camera on Map"** (`ดูตำแหน่งกล้องบนแผนที่`) flies the map directly to that camera marker with the matching timestamp.
-
----
-
-## 🚗 Vehicle Detection & Control Room (`/inspect`)
-
-The computer vision platform provides interactive inference and telemetry:
-
-1. **Single Camera Inspector**:
-   - Runs deep learning inference to identify, localize, and count **Cars**, **Motorcycles**, **Buses**, and **Trucks**.
-   - Displays a live HUD overlay detailing vehicle breakdown, detection confidence, timestamp, and camera identifiers.
-   - **Keyboard Navigation**:
-     - `←` / `A`: Step backward by 10 minutes.
-     - `→` / `D`: Step forward by 10 minutes.
-     - `Spacebar`: Toggle automatic timelapse slideshow playback.
-     - `R`: Re-run YOLO detection on current frame.
-   - **Continuous Auto-Detect**: Optional toggle to perform instant detection automatically as you advance through the timeline.
-
-2. **16-Camera Control Room Matrix (4×4 Grid)**:
-   - **Time Sequence Mode**: Inspect 16 sequential 10-minute intervals for a single camera (spanning 160 continuous minutes of traffic evolution).
-   - **City-Wide Mode**: Monitor 16 distinct geographic intersections across Bangkok simultaneously at the same timestamp.
-   - **Batch YOLO Inference**: Execute vehicle detection across all 16 tiles simultaneously with aggregate vehicle count summaries.
-   - Click any camera tile to zoom directly into the Single Camera Inspector.
-
----
-
-## 📊 Data Engineering & Metadata Catalog
-
-The project processes and catalogs the BMA CCTV image dataset through reproducible extraction scripts:
-
-### Metadata Catalog (`DataEngineering/cctv_images_metadata.csv`)
-Generated by `DataEngineering/generate_metadata_csv.py`, indexing all **61,319 images** across 27 structured attributes:
-* **Identification**: `image_id`, `camera_id`, `filename`, `relative_path`
-* **Spatial Geometry**: `location_th`, `direction_th`, `location_en`, `location_detail_en`, `latitude`, `longitude`, `ip_address`
-* **Temporal Attributes**: ISO `timestamp`, `date`, `time`, `year`, `month`, `day`, `day_of_week`, `is_weekend`, `hour`, `minute`, `second`, and categorized `time_period` (*Early Morning*, *Morning Rush*, *Midday*, *Evening Rush*, *Night*)
-* **Image Specifications**: `width` (352), `height` (288), `aspect_ratio` (1.22), `file_size_bytes`
-
-### Transit Geospatial Extraction (`DataEngineering/WebScraping/build_rail_geojson.py`)
-Queries the OpenStreetMap Overpass API to download line geometries and station nodes for all Bangkok rapid transit routes, outputting `Apps/Camera-Map/static/bangkok_rail.geojson`.
-```bash
-python DataEngineering/WebScraping/build_rail_geojson.py
+python -m unittest discover -s tests/rain -t . -v
 ```
 
 ---
 
-## 🧠 Low-Resolution Computer Vision Strategy
-
-A key engineering challenge of municipal CCTV surveillance is video resolution: over 99% of Bangkok BMA traffic cameras output **CIF resolution ($352 \times 288$ pixels)**.
-
-Standard object detection models trained on $640 \times 640$ datasets encounter severe degradation:
-- Upscaling introduces bilinear interpolation blur.
-- Small vehicles (motorcycles and distant sedans spanning only 10–15 pixels) vanish through successive pooling layers.
-
-### Architectural Adaptations
-Documented in detail in [`Models/resolution_adaptation_guide.md`](Models/resolution_adaptation_guide.md):
-1. **Aspect-Ratio Preserved Native Input**: Model trained with rectangular inference (`rect=True`) at native resolution scales (`imgsz=384`) rather than square upscaling.
-2. **P2 High-Resolution Feature Stride**: Integration of a stride-4 detection head to capture fine spatial details before semantic pooling.
-3. **Pseudo-Labeling Pipeline**: Automated bootstrapping script (`Models/training_prep.py`) generating silver labels across the 61,000 Bangkok frames for iterative domain adaptation.
+## Tech Stack
+- **Computer Vision:** Ultralytics YOLO11s, PyTorch, OpenCV, Pillow
+- **Data Engineering & Lakehouse:** PyDuckLake, DuckDB, Apache Parquet, Python `urllib`/`csv`/`json`, Gdown
+- **Web Scraping:** Playwright, Selenium, BeautifulSoup4 (`lxml`), OpenStreetMap Overpass API, Open-Meteo, IEM METAR, Traffy Fondue API, BMA Open Data & Drainage
+- **Analytics, ML & Networks:** Pandas, NumPy, Scikit-Learn (`HistGradientBoosting`, `RandomForest`, `Ridge`, `DBSCAN`), NetworkX, SciPy
+- **Visualization & BI:** Streamlit, Plotly, PyDeck, PyVis, Leaflet.js, Matplotlib, Microsoft Power BI (`.pbip` / TMDL / PBIR)
 
 ---
 
-## 🛠️ Tech Stack
-
-- **Computer Vision**: Ultralytics YOLO, OpenCV, NumPy, Pillow
-- **Web Applications**: Python HTTP Server, Leaflet.js, OpenFreeMap, OpenStreetMap
-- **Data Engineering**: Overpass API (OSM), Python standard library (`urllib`, `csv`, `json`), Gdown
-- **Data Formats**: GeoJSON, CSV, JSON, JPEG
-
----
-
-## 📄 License & Attribution
-
-- **CCTV Imagery & Metadata**: Bangkok Metropolitan Administration (BMA).
-- **Map Geometries & Transit Data**: © [OpenStreetMap](https://www.openstreetmap.org/) contributors, licensed under the [Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/).
-- **Vector Map Tiles**: © [OpenFreeMap](https://openfreemap.org/) / OpenMapTiles.
+## Attribution & Licenses
+- **CCTV Imagery & Drainage / Open Data:** Bangkok Metropolitan Administration (BMA).
+- **Map Geometries & Transit Routes:** © [OpenStreetMap](https://www.openstreetmap.org/) contributors ([ODbL](https://opendatacommons.org/licenses/odbl/)).
+- **Meteorological Data:** Open-Meteo (CC BY 4.0) & Iowa Environmental Mesonet (METAR).

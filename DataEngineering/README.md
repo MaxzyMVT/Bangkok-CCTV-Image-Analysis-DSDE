@@ -1,144 +1,80 @@
-# Data Engineering & Lakehouse Pipelines (`DataEngineering/`)
+# Data Engineering & PyDuckLake Lakehouse (`DataEngineering`)
 
-This directory houses the end-to-end Data Engineering architecture for the Bangkok CCTV Analysis platform, implementing an ACID-compliant two-layer Lakehouse (Bronze $\rightarrow$ Silver) using **PyDuckLake** and storage-optimized **Apache Parquet** files.
+End-to-end ingestion, data-quality filtering, annotation management, and 3-layer **PyDuckLake Lakehouse** pipeline (`Bronze -> Silver -> Gold`) backing every downstream dashboard, API, and model in the repository.
 
 ---
 
-## 📁 Pipeline Architecture & Structure
+## Architecture: 3-Layer PyDuckLake (`lakehouse/bkk_cctv.ducklake`)
+
+Powered by `DuckLake` (`duckdb` + `pyducklake` catalog metadata + `1,697` Parquet files, `51.87 MB`, `73` tables total across 3 layers) managed through [lakehouse_pipeline.py](lakehouse_pipeline.py):
+
+| Layer | Purpose | Key Tables |
+| :--- | :--- | :--- |
+| **Bronze** (`24` tables) | Raw ingested CCTV CSVs, frame metadata (`306,595` rows across snapshots), raw vehicle counts (`122,052`), weather, transit, BMA drainage, OSM roads/POIs, and Traffy Fondue CSVs with SHA-256 & row audit columns. | `bronze.cameras_raw`, `bronze.cctv_images_raw`, `bronze.vehicle_counts_raw`, `bronze.transit_stations_raw`, `bronze.weather_hourly_bangkok_raw`, `bronze.traffy_complaints_raw`, `bronze.drainage_flood_hourly_raw` |
+| **Silver** (`26` tables) | Strongly typed, deduplicated operational tables and spatial marts ready for analytics and model serving. | `silver.cameras` (`100`), `silver.cctv_frames` (`61,319`), `silver.vehicle_counts` (`60,721`), `silver.counts_v2` (`60,721`), `silver.transit_lines` (`10`), `silver.transit_stations` (`188`), `silver.camera_transit_proximity` (`100`), `silver.sun_times` (`7`), `silver.district_stats` (`50`), `silver.osm_roads` (`19,602`), `silver.osm_poi` (`12,212`), `silver.traffy_complaints` (`7,247`) |
+| **Gold** (`23` tables) | Analytical outputs synced by `run_all.py`, `ml_model.py`, and `ingest_analysis_init_tables()`. | `gold.rain_city_effect`, `gold.rain_camera`, `gold.rain_camera_hour`, `gold.rain_camera_effect`, `gold.rain_stratified_effects`, `gold.rain_natural_experiment`, `gold.rain_shelter_*`, `gold.rain_flood_*`, `gold.rain_policy_stations`, `gold.rain_correlations`, `gold.ml_metrics`, `gold.ml_feature_importance`, `gold.ml_predictions`, `gold.rain_ml_*`, `gold.rain_executive_story` |
+
+> **Runtime Rule:** Downstream apps (`DataAnalysis/dashboard.py`, `Apps/Traffic-Insights/app.py`, `Apps/Camera-Map`, `Apps/Lakehouse-Viewer`) query `bkk_cctv.ducklake` directly via `query_lake`, `load_silver_cameras`, `load_silver_sun_times`, `load_gold`, and `DuckLakehouse`. Repository CSV files serve as initialization/rebuild seeds and Power BI Desktop extracts.
+
+---
+
+## Directory Structure
 
 ```text
 DataEngineering/
-├── lakehouse_pipeline.py        # End-to-end PyDuckLake Lakehouse orchestrator
-├── dataset_downloader.py        # Automated dataset retriever from Google Drive
-├── generate_metadata_csv.py     # Parser & catalog generator for all CCTV frames
-├── build_rail_geojson.py        # Backward-compatible proxy to rail extractor
-├── cctv_images_metadata.csv     # Master tabular catalog (61,319 records, 27 fields)
-├── lakehouse/                   # Lakehouse database storage
-│   ├── bkk_cctv.ducklake        # PyDuckLake catalog database
-│   └── data/                    # Physical Parquet data files (Bronze & Silver partitions)
-└── WebScraping/                 # Geospatial and web extraction modules
-    ├── README.md                # Web extraction documentation (sources, methods, silver columns)
-    ├── build_rail_geojson.py    # OpenStreetMap transit alignment extractor (BTS/MRT/ARL/SRT)
-    ├── sun_times.py, open_meteo.py, metar.py, osm_overpass.py, bma_open_data.py,
-    │   traffy_fondue.py, fm91_news.py, tmd_weekly_summary.py, bot_holidays.py,
-    │   bma_drainage.py          # External source scrapers
-    ├── external_lakehouse.py    # Bronze -> Silver loader for the scraped sources
-    └── raw/                     # Scraper output files (committed, so the pipeline runs without re-scraping)
+├── lakehouse/
+│   ├── bkk_cctv.ducklake          # DuckLake metadata catalog
+│   └── data/                      # Parquet storage partitioned by bronze/silver/gold
+├── quality/
+│   ├── find_frozen_frames.py      # Pixel-diff detector isolating frozen/stuck CCTV feeds
+│   ├── frozen_frames.csv          # Per-frame frozen audit flags
+│   └── frozen_summary.csv         # Per-camera frozen frame statistics
+├── labeling/                      # Web-based YOLO pre-labeling & human review app (see labeling/README.md)
+├── reviews/                       # Human annotation audit outputs (train/ & test/)
+├── train_set/ & test_set/         # Curated YOLO dataset splits
+├── WebScraping/                   # 13 external Bangkok collectors & external_lakehouse.py (see WebScraping/README.md)
+├── lakehouse_pipeline.py          # Core PyDuckLake builder, query helpers & schema definitions
+├── generate_metadata_csv.py       # Rebuilds cctv_images_metadata.csv from image folders & sun times
+├── build_rail_geojson.py          # Helper converting transit data to GeoJSON
+├── dataset_downloader.py          # Downloads CCTV image dataset
+├── cctv_images_metadata.csv       # Seed CSV: 61,319 CCTV frames with spatial & sun-phase metadata
+└── vehicle_counts.csv             # Seed CSV: YOLO vehicle counts (car, motorcycle, bus, truck)
 ```
-
-External web scraping sources (weather, METAR, OSM, BMA open data, Traffy Fondue, FM91, TMD weekly summaries, Bank of Thailand holidays, BMA Drainage) are loaded into their own `bronze.<table>_raw` and `silver.<table>` tables by `python DataEngineering/lakehouse_pipeline.py --scrape`. See [`WebScraping/README.md`](WebScraping/README.md) for the full table list and columns.
 
 ---
 
-## 🏗️ Two-Layer Lakehouse Architecture (PyDuckLake)
+## Core Helpers (`lakehouse_pipeline.py`)
 
-```mermaid
-flowchart TD
-    subgraph Sources ["Raw Extraction & Data Ingestion"]
-        A["cctv_info.csv (100 cameras)"]
-        B["cctv_images_metadata.csv (61,319 frames)"]
-        C["OpenStreetMap Overpass API (Web Scraping)"] --> D["bangkok_rail.geojson (10 Transit Lines & Stations)"]
-    end
-
-    subgraph Bronze ["Bronze Layer (Raw Text + Audit Provenance)"]
-        A -->|Idempotent Ingestion| B1[("bronze.cameras_raw<br/>(100 rows, Parquet)")]
-        B -->|SHA-256 File Guard| B2[("bronze.cctv_images_raw<br/>(61,319 rows, Parquet)")]
-        D -->|Overpass Parsing| B3[("bronze.transit_lines_raw<br/>(10 lines, Parquet)")]
-        D -->|Station Extraction| B4[("bronze.transit_stations_raw<br/>(192 stations, Parquet)")]
-    end
-
-    subgraph Silver ["Silver Layer (Typed, Cleaned & Enriched)"]
-        B1 -->|Deduplicate & GPS Validation| S1[("silver.cameras<br/>(WGS84 Coordinates)")]
-        B2 -->|TimestampTZ & Bangkok Date| S2[("silver.cctv_frames<br/>(Typed Frame Log)")]
-        B3 -->|System & Brand Palettes| S3[("silver.transit_lines<br/>(BTS, MRT, ARL, SRT)")]
-        B4 -->|Interchange Deduplication| S4[("silver.transit_stations<br/>(188 Station Hubs)")]
-        S1 & S4 -->|Haversine Geodesic Join| S5[("silver.camera_transit_proximity<br/>(Spatial Mart: Nearest Station & Distance)")]
-    end
-```
-
-### 1. Bronze Layer (Raw Ingestion)
-- **Lossless Ingestion**: Retains every incoming field as raw text to preserve exact original representation.
-- **Audit Columns**: Every bronze record is enriched with:
-  - `source_file`: Origin file name.
-  - `source_row_number`: 1-based index within the source file.
-  - `file_sha256`: Cryptographic hash for idempotency and duplicate load prevention.
-  - `ingested_at`: Microsecond-precision ingestion timestamp (`TimestampTZ` in Bangkok time).
-
-### 2. Silver Layer (Cleaned & Enriched)
-- **Strong Typing**: Values converted with `TRY_CAST` into native types (`Double`, `Integer`, `BigInt`, `Date`, `TimestampTZ`).
-- **Data Quality**: Validates geographic coordinate boundaries, trims whitespace, standardizes timestamps to `Asia/Bangkok`.
-- **Deduplication**: Enforces single record per primary key using `QUALIFY ROW_NUMBER() OVER (...) = 1`.
-- **Spatial Intelligence Mart (`silver.camera_transit_proximity`)**: Computes spherical Haversine geodesic distance in meters from each CCTV camera to all Bangkok transit stations, tagging nodes within a 500-meter walk shed (`is_near_transit = TRUE`).
+- `query_lake(sql, params=None) -> pd.DataFrame`: Opens an ephemeral DuckDB connection attached to `lake`, executes parameterized SQL, and returns a pandas DataFrame cleanly closing handles.
+- `write_lake_table(schema, table, df, message)`: Materializes DataFrames into `lake.<schema>.<table>` with snapshot commit messages.
+- `lake_has_table(schema, table) -> bool`: Checks table availability inside `bkk_cctv.ducklake`.
+- `ingest_analysis_init_tables()`: Loads `counts_v2.csv` (`silver.counts_v2`) and all `DataAnalysis/output/*.csv` extracts into `gold.rain_*`.
+- `load_silver_cameras()` & `load_silver_sun_times()`: Fast Silver lookups with automatic fallback to seed CSVs if the lakehouse has not been built yet.
 
 ---
 
-## 🚀 Running the Pipeline
+## Commands
 
-Execute the full end-to-end pipeline with a single command:
-
-```bash
-# Standard execution (idempotent, uses file guards)
+```powershell
+# Initialize / update Bronze & Silver tables (skipping unchanged files via SHA-256 guard)
 python DataEngineering/lakehouse_pipeline.py
 
-# Complete rebuild from scratch
+# Run missing external WebScraping collectors first, then build Bronze & Silver
+python DataEngineering/lakehouse_pipeline.py --scrape
+
+# Full clean rebuild of bkk_cctv.ducklake from scratch
 python DataEngineering/lakehouse_pipeline.py --reset
 
-# Force re-ingestion bypassing file guards
-python DataEngineering/lakehouse_pipeline.py --force
+# Rebuild cctv_images_metadata.csv from raw image folders
+python DataEngineering/generate_metadata_csv.py
+
+# Detect frozen CCTV camera frames
+python DataEngineering/quality/find_frozen_frames.py
 ```
-
-### Verified Pipeline Output
-
-| Table | Layer | Row Count | Description |
-| :--- | :--- | :---: | :--- |
-| `bronze.cameras_raw` | Bronze | 100 | Raw BMA camera coordinates and street descriptions |
-| `bronze.cctv_images_raw` | Bronze | 61,319 | Raw image metadata with parsed filenames |
-| `bronze.transit_lines_raw` | Bronze | 10 | BTS, MRT, ARL, and SRT route geometries from OSM |
-| `bronze.transit_stations_raw` | Bronze | 192 | Raw station nodes and interchange connections |
-| `silver.cameras` | Silver | 100 | Validated camera nodes with coordinate bounds |
-| `silver.cctv_frames` | Silver | 61,319 | Typed frame catalog with temporal attributes |
-| `silver.transit_lines` | Silver | 10 | Rapid transit lines with official brand colors |
-| `silver.transit_stations` | Silver | 188 | Deduplicated station nodes with interchange tags |
-| `silver.camera_transit_proximity` | Silver | 100 | Nearest transit station and walking distance in meters |
 
 ---
 
-## 🚆 Rapid Transit Coverage (BTS / MRT / ARL / SRT)
+## Sub-Module Documentation
 
-The extraction module (`DataEngineering/WebScraping/build_rail_geojson.py`) queries the OpenStreetMap Overpass API for all Bangkok rapid rail systems:
-1. **BTS Sukhumvit Line** (`#65B724`, Green)
-2. **BTS Silom Line** (`#02817D`, Dark Green)
-3. **BTS Gold Line** (`#A58704`, Gold Monorail)
-4. **MRT Blue Line** (`#1E398D`, Blue Loop Line)
-5. **MRT Purple Line** (`#893B90`, Purple Line)
-6. **MRT Yellow Line** (`#FFD400`, Yellow Monorail)
-7. **MRT Pink Line** (`#E76589`, Pink Monorail)
-8. **Airport Rail Link (ARL)** (`#91278F`, Suvarnabhumi Airport Link)
-9. **SRT Dark Red Line** (`#B81D24`, Bang Sue - Rangsit)
-10. **SRT Light Red Line** (`#E83D3D`, Bang Sue - Taling Chan)
-
----
-
-## 🔍 Querying the Lakehouse
-
-Downstream data science and dashboard scripts can query the lakehouse directly using DuckDB or PyDuckLake:
-
-```python
-import duckdb
-
-con = duckdb.connect()
-# Attach PyDuckLake catalog
-con.execute("ATTACH 'DataEngineering/lakehouse/bkk_cctv.ducklake' AS lake (TYPE ducklake)")
-
-# Find CCTV cameras closest to mass transit stations
-df = con.execute("""
-    SELECT
-        camera_id, camera_name_th, nearest_station_th, transit_system, distance_meters
-    FROM lake.silver.camera_transit_proximity
-    WHERE is_near_transit = TRUE
-    ORDER BY distance_meters ASC
-    LIMIT 10;
-""").df()
-
-print(df)
-```
+- **External Web Scrapers (Weather, Transit, Floods, Roads, Holidays):** [WebScraping/README.md](WebScraping/README.md)
+- **Human-in-the-Loop YOLO Labeling & QA:** [labeling/README.md](labeling/README.md)
