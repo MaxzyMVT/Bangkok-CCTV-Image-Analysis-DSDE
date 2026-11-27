@@ -31,12 +31,14 @@ def write_tables(tables: dict, out: Path, write_lake: bool = False) -> None:
 def main():
     out = common.OUT_DIR
     counts = common.load_counts()
-    cams = common.load_camera_meta()[["camera_id", "latitude", "longitude"]]
+    meta = common.load_camera_meta()
+    cams = meta[["camera_id", "latitude", "longitude"]]
 
     tr = common.load_traffy()
     flood_pts = traffy.flood_points(tr)
     rail = common.load_rail()
     cameras = prepare.camera_table(cams, common.load_gauges(), rail, common.load_shelters(), flood_pts)
+    cameras = cameras.merge(meta[["camera_id", "location_th", "location_en"]], on="camera_id", how="left")
     ch = prepare.camera_hour(counts, cameras, common.load_rain())
     cam_eff = effects.camera_effect(ch)
 

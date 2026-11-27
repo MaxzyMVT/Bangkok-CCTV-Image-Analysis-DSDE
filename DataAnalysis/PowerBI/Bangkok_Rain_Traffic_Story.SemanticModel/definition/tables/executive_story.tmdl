@@ -1,0 +1,30 @@
+table executive_story
+	lineageTag: 50cb9e0e-4618-5b3a-8ec1-6a66426bc51b
+
+	column step
+		dataType: string
+		lineageTag: 997a0e80-53fa-5bf6-8cfd-5cb2a4147d7f
+		summarizeBy: none
+		sourceColumn: step
+
+	column headline
+		dataType: string
+		lineageTag: a79406a3-7f3f-50d7-8117-ffedfc3a6b8b
+		summarizeBy: none
+		sourceColumn: headline
+
+	column evidence
+		dataType: string
+		lineageTag: 4783ea69-2799-5850-a577-0d822917928a
+		summarizeBy: none
+		sourceColumn: evidence
+
+	partition executive_story = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "executive_story.csv"), [Delimiter=",", Columns=3, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"step", type text}, {"headline", type text}, {"evidence", type text}})
+			in
+				ChangedType

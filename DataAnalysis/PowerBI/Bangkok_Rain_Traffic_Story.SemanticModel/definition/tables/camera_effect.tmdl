@@ -1,0 +1,48 @@
+table camera_effect
+	lineageTag: 46bf8a96-91e4-57e5-af7b-2a9b391c9b56
+
+	column camera_id
+		dataType: int64
+		lineageTag: 195347b9-0616-5013-8f57-b3b9f379c2ea
+		summarizeBy: none
+		sourceColumn: camera_id
+
+	column effect_pct
+		dataType: double
+		lineageTag: 242c0310-f83e-56b8-8ca8-03b85e508a8a
+		summarizeBy: average
+		sourceColumn: effect_pct
+
+	column ci_low
+		dataType: double
+		lineageTag: 090a1f42-b94b-5d86-b485-139e44e9d10b
+		summarizeBy: average
+		sourceColumn: ci_low
+
+	column ci_high
+		dataType: double
+		lineageTag: e1136bdd-779c-51ef-a53e-1fd5bee41f1e
+		summarizeBy: average
+		sourceColumn: ci_high
+
+	column n_wet_hours
+		dataType: int64
+		lineageTag: d03dbcc6-0897-593e-a9de-efd2587685e1
+		summarizeBy: average
+		sourceColumn: n_wet_hours
+
+	column label
+		dataType: string
+		lineageTag: eb4c57b2-dca8-5a40-96cf-a7a3fe7c90c3
+		summarizeBy: none
+		sourceColumn: label
+
+	partition camera_effect = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "camera_effect.csv"), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"camera_id", Int64.Type}, {"effect_pct", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_wet_hours", Int64.Type}, {"label", type text}})
+			in
+				ChangedType

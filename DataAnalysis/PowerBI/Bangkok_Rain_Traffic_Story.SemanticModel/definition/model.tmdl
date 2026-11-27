@@ -1,0 +1,20 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	annotation PBI_ProTooling = ["DevMode"]
+
+ref table city_effect
+ref table stratified_effects
+ref table rain_timing
+ref table natural_experiment
+ref table rebound
+ref table camera
+ref table camera_effect
+ref table camera_hour
+ref table denser_share
+ref table flood_sensor_hours
+ref table ml_metrics
+ref table ml_feature_importance
+ref table correlations
+ref table executive_story

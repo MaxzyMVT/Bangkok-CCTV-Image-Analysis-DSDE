@@ -1,0 +1,84 @@
+table ml_metrics
+	lineageTag: 7b70f45d-29e0-57ec-bd5a-3f2213dd6d59
+
+	column task
+		dataType: string
+		lineageTag: 5443be52-bd2a-58dc-950e-3d9cf0c89d13
+		summarizeBy: none
+		sourceColumn: task
+
+	column target
+		dataType: string
+		lineageTag: 92ab5742-d991-5ed1-99da-771ee64acf26
+		summarizeBy: none
+		sourceColumn: target
+
+	column model
+		dataType: string
+		lineageTag: d793df54-62e5-53f3-a078-b1b2099747fc
+		summarizeBy: none
+		sourceColumn: model
+
+	column split
+		dataType: string
+		lineageTag: 7399aaa3-8798-5090-ae42-d84bde13c45e
+		summarizeBy: none
+		sourceColumn: split
+
+	column mae
+		dataType: double
+		lineageTag: aa115008-2695-579a-aac8-7584c09699ee
+		summarizeBy: average
+		sourceColumn: mae
+
+	column rmse
+		dataType: double
+		lineageTag: f1361f0f-7e35-5700-9294-e7a0bf47f867
+		summarizeBy: average
+		sourceColumn: rmse
+
+	column r2
+		dataType: double
+		lineageTag: 8d078b38-cdd7-5921-8f1a-7144ecec45ba
+		summarizeBy: average
+		sourceColumn: r2
+
+	column accuracy
+		dataType: double
+		lineageTag: 31e5d2a6-2abf-563e-8c9b-29e574fa7e7c
+		summarizeBy: average
+		sourceColumn: accuracy
+
+	column f1
+		dataType: double
+		lineageTag: 34ed338a-b711-5400-914f-03b72acfbc18
+		summarizeBy: average
+		sourceColumn: f1
+
+	column roc_auc
+		dataType: double
+		lineageTag: f4b83038-dbf0-5d10-bffd-5df9fb865558
+		summarizeBy: average
+		sourceColumn: roc_auc
+
+	column n_train
+		dataType: int64
+		lineageTag: 0a523c7a-fee0-5eb9-aa84-67373549d83d
+		summarizeBy: average
+		sourceColumn: n_train
+
+	column n_test
+		dataType: int64
+		lineageTag: a395a1a3-0d6d-58ae-af62-4fb346ae9281
+		summarizeBy: average
+		sourceColumn: n_test
+
+	partition ml_metrics = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "ml_metrics.csv"), [Delimiter=",", Columns=12, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"task", type text}, {"target", type text}, {"model", type text}, {"split", type text}, {"mae", type number}, {"rmse", type number}, {"r2", type number}, {"accuracy", type number}, {"f1", type number}, {"roc_auc", type number}, {"n_train", Int64.Type}, {"n_test", Int64.Type}})
+			in
+				ChangedType

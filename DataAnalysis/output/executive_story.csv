@@ -1,0 +1,6 @@
+step,headline,evidence
+1. Hook & Baseline,Total traffic falls -5.4% in rain — why?,"Motorcycles plunge -21.0% (-30.5% in rush hours) across 293 wet camera-hours, hiding a modal shift to cars."
+2. Hidden Modal Shift,Localized rain shifts travel from 2-wheelers to 4-wheelers,"In 15 hours comparing wet vs dry cameras <=3km apart (172 pairs), cars jump +12.6 percentage points."
+3. Myth Debunked,Footbridge sheltering & station proximity do not explain congestion,Stationary bikes near shelters changed 2.5% dry vs 2.8% wet (sidewalk parking); only 20% of denser cams sit near rail.
+4. Predictive ML & QA,Rain is the #1 weather feature for motorcycle prediction,HistGradientBoosting reaches R2=0.83 (total) & 0.75 (moto); BMA 07:00 drop proved to be 1.4 KB white feed outage frames.
+5. Hackathon Action,Turn rain radar into transit feeder & fleet dispatch alerts,Pre-position 4-wheel ride-hailing + BTS/MRT feeder shuttles on high rail-density corridors before peak 16:00-20:00 rain.

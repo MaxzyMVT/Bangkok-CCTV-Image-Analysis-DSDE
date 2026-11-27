@@ -1,0 +1,78 @@
+table camera
+	lineageTag: 1bab74ab-fd7d-5060-a7fc-d98fe5f854aa
+
+	column camera_id
+		dataType: int64
+		lineageTag: 74f88533-93ec-5c81-b949-96e9e4a4602f
+		summarizeBy: none
+		sourceColumn: camera_id
+
+	column latitude
+		dataType: double
+		lineageTag: 0d886343-5437-5778-bf25-c4e53e61e5ef
+		summarizeBy: none
+		sourceColumn: latitude
+
+	column longitude
+		dataType: double
+		lineageTag: 16423c24-9f4b-514c-83cc-8bd97068af00
+		summarizeBy: none
+		sourceColumn: longitude
+
+	column gauge
+		dataType: string
+		lineageTag: 9d06b70e-095f-5d84-addd-ee22aacd255c
+		summarizeBy: none
+		sourceColumn: gauge
+
+	column gauge_dist_m
+		dataType: int64
+		lineageTag: d8dd7c14-90f2-5826-8597-c28568cee455
+		summarizeBy: average
+		sourceColumn: gauge_dist_m
+
+	column rail_dist_m
+		dataType: int64
+		lineageTag: ee4ac72d-391f-502e-801e-649f352a2524
+		summarizeBy: average
+		sourceColumn: rail_dist_m
+
+	column near_rail
+		dataType: boolean
+		lineageTag: 57df6077-f3d5-5782-ad20-b03a571a58b4
+		summarizeBy: none
+		sourceColumn: near_rail
+
+	column near_shelter
+		dataType: boolean
+		lineageTag: a21072e9-1d5b-593a-a4c8-2919b2074edd
+		summarizeBy: none
+		sourceColumn: near_shelter
+
+	column in_flood_area
+		dataType: boolean
+		lineageTag: 7fdee3ca-bf0b-5614-ab4b-7f69885b92e3
+		summarizeBy: none
+		sourceColumn: in_flood_area
+
+	column location_th
+		dataType: string
+		lineageTag: 5b3892eb-a2f1-50b6-a542-eb4cc223995a
+		summarizeBy: none
+		sourceColumn: location_th
+
+	column location_en
+		dataType: string
+		lineageTag: 6b03397e-c12c-5c9d-967a-c53d9222479c
+		summarizeBy: none
+		sourceColumn: location_en
+
+	partition camera = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "camera.csv"), [Delimiter=",", Columns=11, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"camera_id", Int64.Type}, {"latitude", type number}, {"longitude", type number}, {"gauge", type text}, {"gauge_dist_m", Int64.Type}, {"rail_dist_m", Int64.Type}, {"near_rail", type logical}, {"near_shelter", type logical}, {"in_flood_area", type logical}, {"location_th", type text}, {"location_en", type text}})
+			in
+				ChangedType

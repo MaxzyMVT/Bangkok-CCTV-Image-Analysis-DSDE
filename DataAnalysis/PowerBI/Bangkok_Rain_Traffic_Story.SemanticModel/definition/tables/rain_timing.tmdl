@@ -1,0 +1,42 @@
+table rain_timing
+	lineageTag: d79eb785-3116-5e72-8e78-f8fe963a2634
+
+	column day_type
+		dataType: string
+		lineageTag: f4ed2911-3925-5cf4-8d02-8d15861f9eef
+		summarizeBy: none
+		sourceColumn: day_type
+
+	column hour
+		dataType: int64
+		lineageTag: 0526c859-04f5-5f39-97d9-5da1f80c19a7
+		summarizeBy: none
+		sourceColumn: hour
+
+	column n_camera_hours
+		dataType: int64
+		lineageTag: bccd8747-0691-5e92-8056-fcdc8b883b62
+		summarizeBy: average
+		sourceColumn: n_camera_hours
+
+	column n_clock_hours
+		dataType: int64
+		lineageTag: 02d26d17-2852-52f8-bbd1-4c192f73db5c
+		summarizeBy: average
+		sourceColumn: n_clock_hours
+
+	column motorcycle_effect_pct
+		dataType: double
+		lineageTag: d11f8ce7-046c-5fe6-82c3-b01e29278672
+		summarizeBy: average
+		sourceColumn: motorcycle_effect_pct
+
+	partition rain_timing = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "rain_timing.csv"), [Delimiter=",", Columns=5, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"day_type", type text}, {"hour", Int64.Type}, {"n_camera_hours", Int64.Type}, {"n_clock_hours", Int64.Type}, {"motorcycle_effect_pct", type number}})
+			in
+				ChangedType

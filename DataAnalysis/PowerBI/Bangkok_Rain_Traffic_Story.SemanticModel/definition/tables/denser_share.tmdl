@@ -1,0 +1,60 @@
+table denser_share
+	lineageTag: 35add463-a310-50e1-a286-978e0c653789
+
+	column feature
+		dataType: string
+		lineageTag: 40b9b498-f556-5d2f-be70-7b1d2bf5e37a
+		summarizeBy: none
+		sourceColumn: feature
+
+	column denser_share
+		dataType: double
+		lineageTag: 5f8e0f7e-0afb-541e-a064-32f1867155c2
+		summarizeBy: average
+		sourceColumn: denser_share
+
+	column other_share
+		dataType: double
+		lineageTag: 3fda84ae-c325-5ea2-b920-ae23ce02f45f
+		summarizeBy: average
+		sourceColumn: other_share
+
+	column diff_points
+		dataType: double
+		lineageTag: 64ecc6b0-16f7-5c30-b222-425d6ce662dc
+		summarizeBy: average
+		sourceColumn: diff_points
+
+	column ci_low
+		dataType: double
+		lineageTag: cb80fa5f-8df6-52c6-89e6-b25b0b4f5be4
+		summarizeBy: average
+		sourceColumn: ci_low
+
+	column ci_high
+		dataType: double
+		lineageTag: d3f15687-c939-53af-ac94-af6db12ceb29
+		summarizeBy: average
+		sourceColumn: ci_high
+
+	column n_denser
+		dataType: int64
+		lineageTag: 2389607b-1507-5d30-9da1-3ffa5ac34263
+		summarizeBy: average
+		sourceColumn: n_denser
+
+	column n_other
+		dataType: int64
+		lineageTag: 76a856ee-6fc9-591c-89fe-9324004beb1c
+		summarizeBy: average
+		sourceColumn: n_other
+
+	partition denser_share = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "denser_share.csv"), [Delimiter=",", Columns=8, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"feature", type text}, {"denser_share", type number}, {"other_share", type number}, {"diff_points", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_denser", Int64.Type}, {"n_other", Int64.Type}})
+			in
+				ChangedType

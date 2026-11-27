@@ -1,0 +1,114 @@
+table camera_hour
+	lineageTag: 6e58947c-8f2c-5ae8-814f-97fa0a2ec52b
+
+	column camera_id
+		dataType: int64
+		lineageTag: e4382e34-f1c9-5cdf-8b85-e9b5429919ce
+		summarizeBy: none
+		sourceColumn: camera_id
+
+	column hour_ts
+		dataType: dateTime
+		lineageTag: f25787f1-6806-5973-a5a5-4e0b652cf67b
+		summarizeBy: none
+		sourceColumn: hour_ts
+
+	column n_frames
+		dataType: int64
+		lineageTag: 2044e40f-11cb-58d2-9d4e-ba25823f8345
+		summarizeBy: average
+		sourceColumn: n_frames
+
+	column car
+		dataType: double
+		lineageTag: a43fc378-a21b-5aca-9c05-53b496fd4f6c
+		summarizeBy: average
+		sourceColumn: car
+
+	column motorcycle
+		dataType: double
+		lineageTag: 86cb05c0-e5a6-5cc2-9ea9-e6be86d9b486
+		summarizeBy: average
+		sourceColumn: motorcycle
+
+	column bus
+		dataType: double
+		lineageTag: 53b3491d-7b6b-517c-8b9e-86b7e4819a99
+		summarizeBy: average
+		sourceColumn: bus
+
+	column truck
+		dataType: double
+		lineageTag: 2a2f4b29-cd6d-5d0d-9ade-56cb01feb8d9
+		summarizeBy: average
+		sourceColumn: truck
+
+	column total
+		dataType: double
+		lineageTag: 883f7a43-1700-52d9-9817-541e2b5bb35d
+		summarizeBy: average
+		sourceColumn: total
+
+	column hod
+		dataType: int64
+		lineageTag: e710cb6c-b3ae-5037-901c-85a7b3c9c2e6
+		summarizeBy: none
+		sourceColumn: hod
+
+	column weekend
+		dataType: boolean
+		lineageTag: 34fc9952-afef-5556-b996-6bd620069ed0
+		summarizeBy: none
+		sourceColumn: weekend
+
+	column gauge
+		dataType: string
+		lineageTag: aeb63906-c199-5787-b12c-5cb8a6907529
+		summarizeBy: none
+		sourceColumn: gauge
+
+	column rain_mm
+		dataType: double
+		lineageTag: 04236b49-a478-5304-a100-bc1001a0ddb3
+		summarizeBy: average
+		sourceColumn: rain_mm
+
+	column wet
+		dataType: boolean
+		lineageTag: bc110fdb-0ab7-500c-86b4-7512932f5f25
+		summarizeBy: none
+		sourceColumn: wet
+
+	column heavy
+		dataType: boolean
+		lineageTag: 0b6525aa-48fd-57b3-bb26-c8c0a2b95f03
+		summarizeBy: none
+		sourceColumn: heavy
+
+	column car_base
+		dataType: double
+		lineageTag: 7ba8b564-8aa0-5b0a-b437-f4be1039e0af
+		summarizeBy: average
+		sourceColumn: car_base
+
+	column motorcycle_base
+		dataType: double
+		lineageTag: 34dc469c-bdea-5237-b5a4-ada2cc98784e
+		summarizeBy: average
+		sourceColumn: motorcycle_base
+
+	column total_base
+		dataType: double
+		lineageTag: 44c114bd-e9d1-5369-9b84-4d75f504f2b2
+		summarizeBy: average
+		sourceColumn: total_base
+
+	partition camera_hour = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "camera_hour.csv"), [Delimiter=",", Columns=17, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"camera_id", Int64.Type}, {"hour_ts", type datetime}, {"n_frames", Int64.Type}, {"car", type number}, {"motorcycle", type number}, {"bus", type number}, {"truck", type number}, {"total", type number}, {"hod", Int64.Type}, {"weekend", type logical}, {"gauge", type text}, {"rain_mm", type number}, {"wet", type logical}, {"heavy", type logical}, {"car_base", type number}, {"motorcycle_base", type number}, {"total_base", type number}})
+			in
+				ChangedType

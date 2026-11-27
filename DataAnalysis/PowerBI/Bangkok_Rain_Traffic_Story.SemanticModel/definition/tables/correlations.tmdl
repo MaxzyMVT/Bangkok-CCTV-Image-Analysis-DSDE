@@ -1,0 +1,48 @@
+table correlations
+	lineageTag: 512c4cdf-da63-51c4-beb4-f6f9c7d3f9df
+
+	column scope
+		dataType: string
+		lineageTag: b2984ac5-27a1-5f94-84fd-36cd4a25c7d5
+		summarizeBy: none
+		sourceColumn: scope
+
+	column target
+		dataType: string
+		lineageTag: 5a75f822-14fc-56f2-96fb-b223ea7e68f3
+		summarizeBy: none
+		sourceColumn: target
+
+	column feature
+		dataType: string
+		lineageTag: a5ea40af-ddd5-5dd4-87aa-19e410b15449
+		summarizeBy: none
+		sourceColumn: feature
+
+	column feature_label
+		dataType: string
+		lineageTag: 3a4a00d6-8768-50d2-b290-e5000e89d35c
+		summarizeBy: none
+		sourceColumn: feature_label
+
+	column pearson_r
+		dataType: double
+		lineageTag: b8c5aa18-62e5-5463-b005-8a3012ff385d
+		summarizeBy: average
+		sourceColumn: pearson_r
+
+	column n_obs
+		dataType: int64
+		lineageTag: 01226bf5-f049-54f6-b272-e60180815e8b
+		summarizeBy: average
+		sourceColumn: n_obs
+
+	partition correlations = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "correlations.csv"), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"scope", type text}, {"target", type text}, {"feature", type text}, {"feature_label", type text}, {"pearson_r", type number}, {"n_obs", Int64.Type}})
+			in
+				ChangedType

@@ -1,0 +1,48 @@
+table natural_experiment
+	lineageTag: e036bc48-1df8-5719-b98b-3d5ea2111261
+
+	column cls
+		dataType: string
+		lineageTag: 83694c4a-9f9f-5880-a43c-afd059b383fe
+		summarizeBy: none
+		sourceColumn: cls
+
+	column effect_pct_points
+		dataType: double
+		lineageTag: e174df09-3dad-50fe-825e-509cce47b3f6
+		summarizeBy: average
+		sourceColumn: effect_pct_points
+
+	column ci_low
+		dataType: double
+		lineageTag: 970a128d-4b61-5c29-ad0e-2d3d296d03cf
+		summarizeBy: average
+		sourceColumn: ci_low
+
+	column ci_high
+		dataType: double
+		lineageTag: 8160e1b5-4dc0-5cde-a396-21fd4e67cd4b
+		summarizeBy: average
+		sourceColumn: ci_high
+
+	column n_hours
+		dataType: int64
+		lineageTag: 998aae58-22cc-5e3d-ae47-0da747ad6638
+		summarizeBy: average
+		sourceColumn: n_hours
+
+	column n_pairs
+		dataType: int64
+		lineageTag: fab5beb1-c96b-560d-b3ff-baa78c6a33ec
+		summarizeBy: average
+		sourceColumn: n_pairs
+
+	partition natural_experiment = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "natural_experiment.csv"), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"cls", type text}, {"effect_pct_points", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_hours", Int64.Type}, {"n_pairs", Int64.Type}})
+			in
+				ChangedType

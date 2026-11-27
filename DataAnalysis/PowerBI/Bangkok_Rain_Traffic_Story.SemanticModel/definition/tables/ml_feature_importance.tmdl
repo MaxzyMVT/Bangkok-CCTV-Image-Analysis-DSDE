@@ -1,0 +1,36 @@
+table ml_feature_importance
+	lineageTag: 8e45048b-f586-509f-a87f-2e88dda194a5
+
+	column target
+		dataType: string
+		lineageTag: db5d93d4-1c17-506e-a91b-0b4a6baacba0
+		summarizeBy: none
+		sourceColumn: target
+
+	column feature
+		dataType: string
+		lineageTag: b9397139-67a9-5d30-b716-9b988e0ca867
+		summarizeBy: none
+		sourceColumn: feature
+
+	column importance_mean
+		dataType: double
+		lineageTag: 7396163c-80a0-5708-b6e9-44b657d20772
+		summarizeBy: average
+		sourceColumn: importance_mean
+
+	column importance_std
+		dataType: double
+		lineageTag: 628fca2a-0fed-595a-9c86-443e958d28ea
+		summarizeBy: average
+		sourceColumn: importance_std
+
+	partition ml_feature_importance = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "ml_feature_importance.csv"), [Delimiter=",", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"target", type text}, {"feature", type text}, {"importance_mean", type number}, {"importance_std", type number}})
+			in
+				ChangedType

@@ -1,0 +1,36 @@
+table rebound
+	lineageTag: 0a16b554-75cd-5743-9ba0-ea691f0c2022
+
+	column cls
+		dataType: string
+		lineageTag: 67ac571f-7668-54d6-a00b-9583be69dc53
+		summarizeBy: none
+		sourceColumn: cls
+
+	column minute
+		dataType: int64
+		lineageTag: 373fe1b6-fc5e-53d9-934b-5122ee1fceb3
+		summarizeBy: none
+		sourceColumn: minute
+
+	column ratio
+		dataType: double
+		lineageTag: e6e0a32d-16d6-58be-8ab3-81cc8fdefd02
+		summarizeBy: average
+		sourceColumn: ratio
+
+	column n_events
+		dataType: int64
+		lineageTag: bd96198e-fc45-588f-8ff0-d57a38c05f0c
+		summarizeBy: average
+		sourceColumn: n_events
+
+	partition rebound = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "rebound.csv"), [Delimiter=",", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"cls", type text}, {"minute", Int64.Type}, {"ratio", type number}, {"n_events", Int64.Type}})
+			in
+				ChangedType

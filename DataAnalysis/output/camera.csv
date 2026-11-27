@@ -1,101 +1,101 @@
-camera_id,latitude,longitude,gauge,gauge_dist_m,rail_dist_m,near_rail,near_shelter,in_flood_area
-11,13.76363,100.54106,RF.RTW.01,905,443,True,False,False
-18,13.79339,100.52995,RF.BSU.04,1302,1423,False,True,False
-26,13.70289,100.48853,RF.TBR.03,894,1795,False,False,False
-32,13.72726,100.48711,RF.TBR.01,304,548,False,True,False
-36,13.71497,100.47785,RF.BKY.01,945,150,True,True,False
-68,13.74928,100.50754,RF.PPS.01,1162,620,False,False,False
-70,13.76855,100.50275,RF.PNK.02,414,1985,False,False,False
-75,13.70057,100.5413,RF.YNW.01,488,2012,False,False,False
-82,13.75352,100.54185,RF.RTW.03,787,179,True,True,False
-88,13.70591,100.52866,RF.STN.01,353,1671,False,False,False
-112,13.76947,100.5729,RF.HKG.01,1050,475,True,False,False
-118,13.78979,100.57395,RF.HKG.01,1548,36,True,False,False
-119,13.78971,100.5741,RF.HKG.01,1534,24,True,False,False
-120,13.78968,100.57441,RF.HKG.01,1520,41,True,False,False
-123,13.80536,100.575,RF.CTC.01,479,182,True,True,False
-124,13.80558,100.57475,RF.CTC.01,455,156,True,True,False
-125,13.80547,100.5751,RF.CTC.01,467,172,True,True,False
-126,13.81003,100.57528,RF.CTC.01,51,343,True,True,False
-127,13.81001,100.57511,RF.CTC.01,40,338,True,True,False
-135,13.82394,100.57316,RF.CTC.01,1599,727,False,False,False
-136,13.80954,100.56756,RF.CTC.01,801,665,False,True,False
-137,13.8094,100.56754,RF.CTC.01,804,660,False,True,False
-139,13.81817,100.56304,RF.CTC.02,1479,198,True,True,False
-141,13.81825,100.55845,RF.CTC.02,1338,425,True,True,False
-150,13.78381,100.5346,RF.PYT.01,987,699,False,True,False
-158,13.70981,100.49658,RF.KSN.02,332,1263,False,True,False
-169,13.81863,100.51776,RF.BSU.02,798,1404,False,True,False
-170,13.78402,100.54611,RF.PYT.01,565,506,False,True,False
-176,13.80161,100.55333,RF.BSU.01,1959,121,True,True,False
-177,13.80162,100.553,RF.BSU.01,1927,138,True,True,False
-178,13.76938,100.54086,RF.PYT.01,1204,384,True,False,False
-179,13.76937,100.5407,RF.PYT.01,1208,391,True,False,False
-186,13.69827,100.54035,RF.YNW.01,300,2272,False,True,False
-188,13.7031,100.54591,RF.YNW.01,858,1479,False,False,False
-194,13.72369,100.53598,RF.BRK.01,1526,571,False,True,False
-196,13.70981,100.53647,RF.STN.01,1101,1617,False,True,False
-206,13.70545,100.53835,RF.YNW.01,1103,1924,False,True,False
-211,13.76174,100.56672,RF.DDG.02,1546,458,True,False,False
-212,13.76772,100.57165,RF.HKG.01,1287,240,True,True,False
-215,13.77275,100.57328,RF.HKG.01,768,661,False,True,False
-219,13.78194,100.57389,RF.HKG.01,801,363,True,True,False
-224,13.81524,100.57553,RF.CTC.01,622,922,False,False,False
-225,13.81523,100.57533,RF.CTC.01,619,919,False,False,False
-228,13.74709,100.50944,RF.SPW.01,1162,545,False,False,False
-230,13.78793,100.52695,RF.DST.01,1417,997,False,False,False
-233,13.76967,100.51695,RF.DST.01,886,907,False,False,False
-239,13.73985,100.52987,RF.PTW.01,1003,745,False,True,False
-250,13.74854,100.56598,RF.KTY.05,1891,286,True,True,False
-251,13.74985,100.55148,RF.RTW.03,827,630,False,True,False
-256,13.74953,100.54403,RF.PTW.02,863,601,False,True,False
-277,13.76429,100.53867,RF.RTW.01,757,244,True,True,False
-301,13.77215,100.50944,RF.PNK.02,901,1763,False,False,False
-332,13.77951,100.52231,RF.DST.01,358,824,False,True,False
-363,13.77652,100.52067,RF.DST.01,59,1052,False,True,False
-370,13.76962,100.50368,RF.PNK.02,377,1940,False,True,False
-371,13.76951,100.50385,RF.PNK.02,399,1960,False,True,False
-395,13.7517,100.50174,RF.PNK.03,1305,526,False,False,False
-411,13.76318,100.4949,RF.PNK.01,455,1763,False,True,False
-412,13.76319,100.49491,RF.PNK.01,453,1765,False,True,False
-413,13.75318,100.49848,RF.PNK.03,1285,802,False,False,False
-414,13.74018,100.49792,RF.PNK.03,433,582,False,True,False
-432,13.73258,100.52896,RF.BRK.01,594,138,True,False,False
-500,13.75001,100.54103,RF.PTW.02,567,579,False,True,False
-529,13.78462,100.39461,RF.TLC.02,2865,3106,False,True,False
-542,13.73428,100.54219,RF.PTW.02,1665,649,False,False,True
-546,13.76319,100.51342,RF.PPS.01,550,1275,False,True,False
-556,13.78123,100.50988,RF.DST.02,437,1355,False,False,False
-569,13.75996,100.50763,RF.PPS.01,614,1552,False,False,False
-572,13.78583,100.46178,RF.TLC.03,843,1833,False,False,False
-576,13.76216,100.4983,RF.PNK.01,308,1740,False,True,False
-595,13.73075,100.49476,RF.BKY.02,1166,803,False,True,False
-599,13.72309,100.51926,RF.STN.02,699,487,True,True,False
-603,13.7262,100.52797,RF.BRK.01,669,305,True,True,False
-604,13.72629,100.52776,RF.BRK.01,647,325,True,True,False
-619,13.73104,100.53356,RF.BRK.01,1053,288,True,False,False
-630,13.78334,100.5244,RF.DST.01,838,738,False,True,False
-913,13.74563,100.50571,RF.SPW.01,1084,398,True,False,False
-915,13.72639,100.49213,RF.TBR.01,725,242,True,True,False
-938,13.74761,100.60591,RF.HKG.02,730,806,False,True,False
-939,13.76061,100.62467,RF.WTL.03,1023,1656,False,False,False
-1028,13.79343,100.52996,RF.BSU.04,1298,1419,False,True,False
-1039,13.75485,100.50949,RF.PPS.01,539,1168,False,True,False
-1060,13.74295,100.51573,RF.PTW.01,733,417,True,True,False
-1063,13.76964,100.51698,RF.DST.01,887,903,False,False,False
-1070,13.8085,100.55705,RF.CTC.01,1940,681,False,True,False
-1071,13.79787,100.5512,RF.BSU.01,2004,358,True,False,False
-1076,13.71838,100.48378,RF.TBR.01,758,255,True,True,False
-1078,13.72394,100.50904,RF.KSN.01,724,280,True,True,False
-1103,13.71564,100.47907,RF.BKY.01,908,302,True,True,False
-1112,13.78924,100.56173,RF.PYT.01,2280,1334,False,False,False
-1132,13.72395,100.50916,RF.KSN.01,722,280,True,True,False
-1188,13.78288,100.40926,RF.TLC.02,2015,3404,False,False,False
-1195,13.70319,100.48865,RF.TBR.03,929,1781,False,False,False
-1361,13.76854,100.50265,RF.PNK.02,410,1980,False,False,False
-1362,13.77619,100.52839,RF.PYT.02,399,399,True,False,False
-1368,13.76317,100.51347,RF.PPS.01,548,1270,False,True,False
-1408,13.76938,100.57331,RF.HKG.01,1031,497,True,False,False
-1589,13.75196,100.50886,RF.PPS.01,833,898,False,True,False
-1804,13.71021,100.62955,RF.SLG.02,1416,1585,False,True,False
-1815,13.75599,100.56481,RF.RTW.03,1775,214,True,True,True
+camera_id,latitude,longitude,gauge,gauge_dist_m,rail_dist_m,near_rail,near_shelter,in_flood_area,location_th,location_en
+11,13.76363,100.54106,RF.RTW.01,905,443,True,False,False,ใกล้ซอยราชวิถี-6-ถนนราชวิถี,Traffic Lights near Soi Rajavithi  6 on Rajavithi  Road
+18,13.79339,100.52995,RF.BSU.04,1302,1423,False,True,False,แยกสะพานแดง-ด้านถนนทหาร,Saphan Daeng Intersection
+26,13.70289,100.48853,RF.TBR.03,894,1795,False,False,False,แยกบุคคโล-ด้านถนนเจริญนคร,Near Pao Leng Pharmacy on Mahai Sawan Road (Inbound)
+32,13.72726,100.48711,RF.TBR.01,304,548,False,True,False,แยกบางยี่เรือ-ด้านถนนเทอดไท,Bang Yi Rue Intersection  on Phetkasem Road
+36,13.71497,100.47785,RF.BKY.01,945,150,True,True,False,แยกรัชดา-ราชพฤกษ์-ด้านถนนราช,Near the police box and BRT Ratchapruek Station on Ratchapruek Road
+68,13.74928,100.50754,RF.PPS.01,1162,620,False,False,False,หน้าธนาคารกรุงเทพ-สาขาวรจัก,In front of bangkokbank Worachak Branch on Worachak Road
+70,13.76855,100.50275,RF.PNK.02,414,1985,False,False,False,หน้าธนาคารแห่งประเทศไทย-ถนน,"Near Thanachart Bank Public Company Limited,Branch Bang Khunphrom on Sam Sen Road"
+75,13.70057,100.5413,RF.YNW.01,488,2012,False,False,False,แยกรัชดา-นราธิวาส-ด้านถนนนรา,Under the overpass on Narathiwas Road
+82,13.75352,100.54185,RF.RTW.03,787,179,True,True,False,สะพานลอยใกล้ซอยราชปรารภ-3-ถน,Footbridge near Soi Ratchaprarop 3 on Ratchaprarop Road
+88,13.70591,100.52866,RF.STN.01,353,1671,False,False,False,แยกจันทน์-สาธุประดิษฐ์-ด้านถ,Chan-Sathu Pradit Intersection Intersection
+112,13.76947,100.5729,RF.HKG.01,1050,475,True,False,False,แยกเทียมร่วมมิตร(ถนนเทียมร่,near the police box on Thiam Ruam Mit Road
+118,13.78979,100.57395,RF.HKG.01,1548,36,True,False,False,แยกรัชดา-สุทธิสาร-ด้านถนนสุท,Ratchada-Sutthisan Intersection
+119,13.78971,100.5741,RF.HKG.01,1534,24,True,False,False,แยกรัชดา-สุทธิสาร-ด้านถนนรัช,Ratchada-Sutthisan Intersection
+120,13.78968,100.57441,RF.HKG.01,1520,41,True,False,False,แยกรัชดา-สุทธิสาร-ด้านถนนสุท,Ratchada-Sutthisan Intersection
+123,13.80536,100.575,RF.CTC.01,479,182,True,True,False,แยกรัชดา-ลาดพร้าว-ด้านถนนรัช,Central barrier near the police box on Ratchadaphisek Road
+124,13.80558,100.57475,RF.CTC.01,455,156,True,True,False,แยกรัชดา-ลาดพร้าว-ด้านถนนลาด,Central barrier near the police box on Ratchadaphisek Road
+125,13.80547,100.5751,RF.CTC.01,467,172,True,True,False,แยกรัชดา-ลาดพร้าว-ด้านถนนลาด,Central barrier near the police box on Ratchadaphisek Road
+126,13.81003,100.57528,RF.CTC.01,51,343,True,True,False,TF2-JJ-S66-02-สะพานลอยซอยรัชดาภิเษก-30,Near Soi Lat Phrao 30 on Lat Phrao Road
+127,13.81001,100.57511,RF.CTC.01,40,338,True,True,False,สะพานลอยซอยรัชดาภิเษก-30-ใกล้,Near Soi Lat Phrao 30 on Lat Phrao Road
+135,13.82394,100.57316,RF.CTC.01,1599,727,False,False,False,สะพานลอยหน้าโตโยต้าชัวร์-ถน,Footbridge in front of Toyota Sure on  Ratchadaphisek Road
+136,13.80954,100.56756,RF.CTC.01,801,665,False,True,False,สะพานลอยใกล้บิ๊กซีเอ็กซ์ตร,Footbridge near Big C Extra Entrance to Soi Lat Phrao 7 on Lat Phrao Road
+137,13.8094,100.56754,RF.CTC.01,804,660,False,True,False,สะพานลอยใกล้บิ๊กซีเอ็กซ์ตร,Footbridge near Big C Extra Entrance to Soi Lat Phrao 7 on Lat Phrao Road
+139,13.81817,100.56304,RF.CTC.02,1479,198,True,True,False,สะพานลอยหน้าโรงเรียนหอวัง-ถ,Footbridge in front of Horwang School on Phahon Yothin Road
+141,13.81825,100.55845,RF.CTC.02,1338,425,True,True,False,สะพานลอยหน้าบริษัท-ปตท.-จำกั,Footbridge in front of PTT Public Company Limited near Soi Vibhavadi Rangsit 11 on Vibhavadi Rangsit Road
+150,13.78381,100.5346,RF.PYT.01,987,699,False,True,False,สะพานลอยใกล้-โรงเรียนสามเสน,Footbridge near Samsenwittayalai School on Rama 6 Road
+158,13.70981,100.49658,RF.KSN.02,332,1263,False,True,False,สะพานลอยใกล้ซอยเจริญนคร-46,Footbridge near Soi Charoen Nakhon 46 on Charoen Nakhon Road
+169,13.81863,100.51776,RF.BSU.02,798,1404,False,True,False,สะพานลอยหน้าวัดเสาหิน-ใกล้ซ,Footbridge in front of Wat Sao  Hin  Near Soi Wong Sawang 3 on Wong Sawang Road
+170,13.78402,100.54611,RF.PYT.01,565,506,False,True,False,สะพานลอยใกล้โรงพยาบาลวุฒิส,Footbridge near  Nawati Somdet Ya Hospital on Phahon Yothin Road
+176,13.80161,100.55333,RF.BSU.01,1959,121,True,True,False,สะพานลอยหน้าสวนจตุจักร-ถนนพ,Footbridge in front of Chatuchak Park on Phahon Yothin Road
+177,13.80162,100.553,RF.BSU.01,1927,138,True,True,False,สะพานลอยหน้าสวนจตุจักร-ถนนพ,Footbridge in front of Chatuchak Park on Phahon Yothin Road
+178,13.76938,100.54086,RF.PYT.01,1204,384,True,False,False,สะพานลอยหน้า-โรงพยาบาลพญาไท,Footbridge in front of  PHYATHAI HOSPITAL 2 on Phahon Yothin Road
+179,13.76937,100.5407,RF.PYT.01,1208,391,True,False,False,สะพานลอยหน้า-โรงพยาบาลพญาไท,Footbridge in front of  PHYATHAI HOSPITAL 2 on Phahon Yothin Road
+186,13.69827,100.54035,RF.YNW.01,300,2272,False,True,False,โครงสร้างป้ายบอกทางขึ้นสะพ,Directional sign to Rama 3 Bridge on Ratchadaphisek Road
+188,13.7031,100.54591,RF.YNW.01,858,1479,False,False,False,สะพานลอยใกล้ซอยพระรามที่-3-ซ,Footbridge near Soi Rama 3 Soi68 on Rama 3 Road
+194,13.72369,100.53598,RF.BRK.01,1526,571,False,True,False,สะพานลอยใกล้ปากซอยคอนแวนต์,Footbridge near Entrance to Soi Convent on  South Sathorn Road
+196,13.70981,100.53647,RF.STN.01,1101,1617,False,True,False,สะพานลอยหน้าแมคโคร-ถนนนราธิ,Footbridge in front of Makro on Narathiwas Road
+206,13.70545,100.53835,RF.YNW.01,1103,1924,False,True,False,สะพานลอยใกล้ซอยนราธิวาสราช,Footbridge near Soi Narathiwas 20 on Narathiwas Road
+211,13.76174,100.56672,RF.DDG.02,1546,458,True,False,False,สะพานลอยใกล้ซอยรัชดาภิเษก-3,Footbridge near Soi Ratchadaphisek 3 on Ratchadaphisek Road
+212,13.76772,100.57165,RF.HKG.01,1287,240,True,True,False,สะพานลอยใกล้บิ๊กซีรัชดา-ถนน,Footbridge near Big C Ratchadaphisek on Ratchadaphisek Road
+215,13.77275,100.57328,RF.HKG.01,768,661,False,True,False,สะพานลอยใกล้ซอยรัชดาภิเษก-7,Footbridge near Soi Ratchadaphisek 7 on Ratchadaphisek Road
+219,13.78194,100.57389,RF.HKG.01,801,363,True,True,False,สะพานลอยใกล้ซอยรัชดาภิเษก-14,Footbridge near Soi Ratchadaphisek 14 on Ratchadaphisek Road
+224,13.81524,100.57553,RF.CTC.01,622,922,False,False,False,TF2-JJ-V81-สะพานลอยใกล้ศาลอาญา-ถนน,Footbridge near The Criminal Court on  Ratchadaphisek Road
+225,13.81523,100.57533,RF.CTC.01,619,919,False,False,False,สะพานลอยใกล้ศาลอาญา-ถนนรัชด,Footbridge near The Criminal Court on  Ratchadaphisek Road
+228,13.74709,100.50944,RF.SPW.01,1162,545,False,False,False,หน้า-รพ.กลาง-ถนนหลวง,In front of Klang Hospital on Luang Road
+230,13.78793,100.52695,RF.DST.01,1417,997,False,False,False,ปากซอยระนอง2-ถนนพระรามที่-5,Entrance to Soi Ranong 2 on Rama 5 Road
+233,13.76967,100.51695,RF.DST.01,886,907,False,False,False,ตรงข้ามพระตำหนักจิตรลดารโห,Opposite Chitralada Palace on Rama 5 Road
+239,13.73985,100.52987,RF.PTW.01,1003,745,False,True,False,สะพานลอยใกล้-รร.เตรียมอุดมศึ,Footbridge near Triamudomsuksa School on Phayathai Road
+250,13.74854,100.56598,RF.KTY.05,1891,286,True,True,False,สะพานลอยใกล้ซอยเพชรบุรี-38-ถน,Footbridge near Soi Phetchaburi 38 on Phetchaburi Road
+251,13.74985,100.55148,RF.RTW.03,827,630,False,True,False,สะพานลอยใกล้วัดดิสหงษาราม-ถ,Footbridge near Dishongsaram Temple on Phetchaburi Road
+256,13.74953,100.54403,RF.PTW.02,863,601,False,True,False,สะพานลอยใกล้ซอยเพชรบุรี-27-ถน,Footbridge near Soi Phetchaburi 27 on Phetchaburi Road
+277,13.76429,100.53867,RF.RTW.01,757,244,True,True,False,ทางแยกอ.ชัยสมรภูมิ,Footbridge near Soi Rang Nam on Phayathai Road
+301,13.77215,100.50944,RF.PNK.02,901,1763,False,False,False,แยกอู่ทองนอก,Aoo Tong Nok Intersection
+332,13.77951,100.52231,RF.DST.01,358,824,False,True,False,แยกราชวัตร,Rat Cha Wat Intersection
+363,13.77652,100.52067,RF.DST.01,59,1052,False,True,False,แยกเขตดุสิต,Khatdusit Intersection
+370,13.76962,100.50368,RF.PNK.02,377,1940,False,True,False,แยกเทเวศน์,Thewet Intersection
+371,13.76951,100.50385,RF.PNK.02,399,1960,False,True,False,แยกเทเวศน์,Thewet Intersection
+395,13.7517,100.50174,RF.PNK.03,1305,526,False,False,False,แยกเสาชิงช้า,Sao Chingcha Intersection
+411,13.76318,100.4949,RF.PNK.01,455,1763,False,True,False,แนวถนนพระอาทิตย์-2,Phra Athit Road
+412,13.76319,100.49491,RF.PNK.01,453,1765,False,True,False,แนวถนนพระอาทิตย์-2,Phra Athit Road
+413,13.75318,100.49848,RF.PNK.03,1285,802,False,False,False,แนวถนนตะนาว-1,Tanao Road
+414,13.74018,100.49792,RF.PNK.03,433,582,False,True,False,บริเวณใต้สะพานพุทธ,Below/Under Phra Phuttha Yodfa Bridge (Memorial Bridge)
+432,13.73258,100.52896,RF.BRK.01,594,138,True,False,False,ทางแยกสามย่าน,Pathum Wan  Intersection
+500,13.75001,100.54103,RF.PTW.02,567,579,False,True,False,ทางแยกมิตรสัมพันธ์,Pra Tu Num Intersection
+529,13.78462,100.39461,RF.TLC.02,2865,3106,False,True,False,จุดตัดถนนพุทธมณฑลสาย2-ฝั่งขา,Henri Dunant Intersection
+542,13.73428,100.54219,RF.PTW.02,1665,649,False,False,True,ทางแยกหลังสวน,Chit Lom Intersection
+546,13.76319,100.51342,RF.PPS.01,550,1275,False,True,False,แยกพาณิชยการ,Panichayakarn junction
+556,13.78123,100.50988,RF.DST.02,437,1355,False,False,False,แยกวชิระ,Vajira Intersection
+569,13.75996,100.50763,RF.PPS.01,614,1552,False,False,False,แยกจ.ป.ร.-1,Jor Por Ror  Intersection
+572,13.78583,100.46178,RF.TLC.03,843,1833,False,False,False,ทางคู่ขนานลอยฟ้า-บรมราชชนนี(,Jor Por Ror  Intersection
+576,13.76216,100.4983,RF.PNK.01,308,1740,False,True,False,แยกบางลำพู,Bang Lamphu Intersection
+595,13.73075,100.49476,RF.BKY.02,1166,803,False,True,False,แยกบ้านแขก,Ban Khaek Juncion
+599,13.72309,100.51926,RF.STN.02,699,487,True,True,False,แยกสุรศักดิ์,Surasak Intersection
+603,13.7262,100.52797,RF.BRK.01,669,305,True,True,False,BR-05-01-แยกสีลม-นราธิวาส,Silom-Naradhiwas Intersection
+604,13.72629,100.52776,RF.BRK.01,647,325,True,True,False,แยกสีลม-นราธิวาส,Silom-Naradhiwas Intersection
+619,13.73104,100.53356,RF.BRK.01,1053,288,True,False,False,ทางแยกอังรีดูนังค์,Pathum Wan  Intersection
+630,13.78334,100.5244,RF.DST.01,838,738,False,True,False,แยกเกษะโกมล,Gesagomon Intersection
+913,13.74563,100.50571,RF.SPW.01,1084,398,True,False,False,TF-PP-01-แยกเอส-เอ-บี,connect BMAcctv
+915,13.72639,100.49213,RF.TBR.01,725,242,True,True,False,TF-KS-01-วงเวียนใหญ่,connect BMAcctv
+938,13.74761,100.60591,RF.HKG.02,730,806,False,True,False,TF-KP-03-รามคำแหง-พระราม-9,connect BMAcctv
+939,13.76061,100.62467,RF.WTL.03,1023,1656,False,False,False,TF-KP-04-แยกมหาดไทย,connect BMAcctv
+1028,13.79343,100.52996,RF.BSU.04,1298,1419,False,True,False,แยกสะพานแดง,Red Bridge Intersection
+1039,13.75485,100.50949,RF.PPS.01,539,1168,False,True,False,ใกล้สะพานนริศดำรัส-คลองมหาน,Near the police box on Rama 4 Road (Inbound)
+1060,13.74295,100.51573,RF.PTW.01,733,417,True,True,False,หน้าโรงเรียนสายปัญญา-ถนนกรุ,"In front of Sai Panya School, Krung Kasem Road"
+1063,13.76964,100.51698,RF.DST.01,887,903,False,False,False,ตรงข้ามพระตำหนักจิตรลดารโห,Opposite Chitralada Palace
+1070,13.8085,100.55705,RF.CTC.01,1940,681,False,True,False,สะพานลอยใกล้ซอยพหลโยธิน-18-2-ถ,Footbridge near Soi Phahon Yothin 18/2 on Phahon Yothin Road
+1071,13.79787,100.5512,RF.BSU.01,2004,358,True,False,False,แยกกำแพงเพชร-ด้านถนนพหลโยธิ,Central barrier near Soi Phahon Yothin 18  on Kamphaeng Phet Road
+1076,13.71838,100.48378,RF.TBR.01,758,255,True,True,False,สะพานลอยใกล้ซอยเทอดไท-21-ถนนร,Footbridge near Soi Thoet Thai 21 on Ratchaphruek Road
+1078,13.72394,100.50904,RF.KSN.01,724,280,True,True,False,สะพานลอยหน้าวัดสุวรรณ-ตรงข้,The flyover in front of Wat Suwan
+1103,13.71564,100.47907,RF.BKY.01,908,302,True,True,False,แยกรัชดา-ราชพฤกษ์-ด้านถนนรัช,17/5000 Ratchada-Ratchaphruek Intersection
+1112,13.78924,100.56173,RF.PYT.01,2280,1334,False,False,False,แยกสุทธิสาร(ถนนวิภาวดีรังสิ,Sutthisan Intersection
+1132,13.72395,100.50916,RF.KSN.01,722,280,True,True,False,สะพานลอยหน้าวัดสุวรรณ-ตรงข้,The flyover in front of Wat Suwan
+1188,13.78288,100.40926,RF.TLC.02,2015,3404,False,False,False,จุดตัดถนนพุทธมณฑลสาย2-ฝั่งขา,Ratchathewi Intersection
+1195,13.70319,100.48865,RF.TBR.03,929,1781,False,False,False,แยกบุคคโล(ถนนมไหสวรรค์ขาเข้,Near the police box on Mahai Sawan Road (Inbound)
+1361,13.76854,100.50265,RF.PNK.02,410,1980,False,False,False,หน้าธนาคารแห่งประเทศไทย-ถนน,In front of The Bank of Thailand: BOT on Sam Sen Road
+1362,13.77619,100.52839,RF.PYT.02,399,399,True,False,False,แยกสามเสน,Nakhon Chai Si Intersection
+1368,13.76317,100.51347,RF.PPS.01,548,1270,False,True,False,แยกพาณิชยการ,Lan Phra Rup Intersection
+1408,13.76938,100.57331,RF.HKG.01,1031,497,True,False,False,แยกเทียมร่วมมิตร,Central barrier in front of Cyber World Tower on Thiam Ruam Mit Road
+1589,13.75196,100.50886,RF.PPS.01,833,898,False,True,False,แยกแม้นศรี,
+1804,13.71021,100.62955,RF.SLG.02,1416,1585,False,True,False,ปากซอยอ่อนนุข-33,On Nut Road
+1815,13.75599,100.56481,RF.RTW.03,1775,214,True,True,True,แยกพระราม-9,Rama 9 Intersection

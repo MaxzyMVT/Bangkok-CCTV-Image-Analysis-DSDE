@@ -1,0 +1,90 @@
+table city_effect
+	lineageTag: 186b75c2-ff56-56c6-a4a8-f7da01c41836
+
+	measure 'Moto Rain Effect %' = CALCULATE(AVERAGE(city_effect[effect_pct]), city_effect[cls] = "motorcycle", city_effect[window] = "all")
+		formatString: +0.0"%";-0.0"%";0.0"%"
+		lineageTag: ce1c87e7-693b-521a-b8a2-43f1d9a4e62c
+
+	measure 'Rush Moto Drop %' = CALCULATE(AVERAGE(city_effect[effect_pct]), city_effect[cls] = "motorcycle", city_effect[window] = "rush")
+		formatString: +0.0"%";-0.0"%";0.0"%"
+		lineageTag: eafb0fb3-bfab-57b3-a5cf-c04448c51f47
+
+	measure 'Car Rain Effect %' = CALCULATE(AVERAGE(city_effect[effect_pct]), city_effect[cls] = "car", city_effect[window] = "all")
+		formatString: +0.0"%";-0.0"%";0.0"%"
+		lineageTag: c07f607f-067e-5dde-87ba-630fb3ad0a6f
+
+	measure 'Total Rain Effect %' = CALCULATE(AVERAGE(city_effect[effect_pct]), city_effect[cls] = "total", city_effect[window] = "all")
+		formatString: +0.0"%";-0.0"%";0.0"%"
+		lineageTag: 682c8165-50b7-5780-9ec2-81ff2ba09d08
+
+	measure 'Localized Car Shift (pts)' = CALCULATE(AVERAGE(natural_experiment[effect_pct_points]), natural_experiment[cls] = "car")
+		formatString: +0.00" pts";-0.00" pts";0.00" pts"
+		lineageTag: 702cfa83-9ef8-5e3c-8440-7debfb2a32b9
+
+	measure 'Wet Camera-Hours' = CALCULATE(MAX(city_effect[n_wet_hours]), city_effect[cls] = "total", city_effect[window] = "all")
+		formatString: #,##0
+		lineageTag: f2e5644a-0ae1-58b9-94e7-be0d075c0b24
+
+	measure 'Cameras Analyzed' = COUNTROWS(camera)
+		formatString: #,##0
+		lineageTag: 24e56bc0-9cd7-58f0-a6bb-547cc9f527be
+
+	measure 'ML Weekend R2 (Baseline)' = CALCULATE(MAX(ml_metrics[r2]), ml_metrics[target] = "total (with camera baseline)", ml_metrics[split] = "temporal_aug30_31", ml_metrics[model] = "HistGradientBoosting")
+		formatString: 0.00
+		lineageTag: 1e737c1b-aade-5206-9c63-09e3fa8e506f
+
+	measure 'Peak Flood Depth (cm)' = MAX(flood_sensor_hours[flood_cm])
+		formatString: 0.0" cm"
+		lineageTag: 7311dfaf-cc32-5311-8c2a-0370f8d1fc09
+
+	column cls
+		dataType: string
+		lineageTag: 94a0181c-c126-5b6c-8d3b-8dce2ea7a68d
+		summarizeBy: none
+		sourceColumn: cls
+
+	column window
+		dataType: string
+		lineageTag: 81692d7b-a82d-5b4b-a84f-f8b9d88e22bf
+		summarizeBy: none
+		sourceColumn: window
+
+	column effect_pct
+		dataType: double
+		lineageTag: 58a7a67d-bda5-5038-a05a-97e7c00801ad
+		summarizeBy: average
+		sourceColumn: effect_pct
+
+	column ci_low
+		dataType: double
+		lineageTag: 2669d526-78e6-5f8b-a41f-fd3ba9f6f8d1
+		summarizeBy: average
+		sourceColumn: ci_low
+
+	column ci_high
+		dataType: double
+		lineageTag: 80a2037e-7e26-5b2f-9ec0-9deafbea58d5
+		summarizeBy: average
+		sourceColumn: ci_high
+
+	column n_cameras
+		dataType: int64
+		lineageTag: d87d020b-e166-526d-8780-39778f8a83a9
+		summarizeBy: average
+		sourceColumn: n_cameras
+
+	column n_wet_hours
+		dataType: int64
+		lineageTag: 1c41b3ad-0244-574d-9148-c3c137d6a22e
+		summarizeBy: average
+		sourceColumn: n_wet_hours
+
+	partition city_effect = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents(DataFolder & "city_effect.csv"), [Delimiter=",", Columns=7, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"cls", type text}, {"window", type text}, {"effect_pct", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_cameras", Int64.Type}, {"n_wet_hours", Int64.Type}})
+			in
+				ChangedType
