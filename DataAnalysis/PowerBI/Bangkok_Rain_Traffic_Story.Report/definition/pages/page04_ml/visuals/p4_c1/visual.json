@@ -1,0 +1,74 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p4_c1",
+  "position": {
+    "x": 24,
+    "y": 72,
+    "z": 2,
+    "height": 100,
+    "width": 390,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "city_effect"
+                    }
+                  },
+                  "Property": "ML Weekend R2 (Baseline)"
+                }
+              },
+              "queryRef": "city_effect.ML Weekend R2 (Baseline)",
+              "nativeQueryRef": "ML Weekend R2 (Baseline)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "categoryLabels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'HistGB Test R2 (With Baseline)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p5_act3",
+  "position": {
+    "x": 864,
+    "y": 86,
+    "z": 4,
+    "height": 250,
+    "width": 392,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "3. Automated Feed QA Guardrail\nBMA feeds emitted 1.4 KB solid-white outage frames at 07:21–07:26 (e.g., Aug 27 07:00). Filtering file_size_bytes < 3 KB in PyDuckLake Silver/Gold prevents false zero-traffic alarms.",
+                    "textStyle": {
+                      "fontSize": "13pt",
+                      "fontFamily": "Segoe UI",
+                      "color": "#0F172A"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p2_eff",
+  "position": {
+    "x": 24,
+    "y": 76,
+    "z": 2,
+    "height": 300,
+    "width": 608,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "city_effect"
+                    }
+                  },
+                  "Property": "window"
+                }
+              },
+              "queryRef": "city_effect.window",
+              "nativeQueryRef": "window",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "city_effect"
+                        }
+                      },
+                      "Property": "effect_pct"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(city_effect.effect_pct)",
+              "nativeQueryRef": "effect_pct"
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "city_effect"
+                    }
+                  },
+                  "Property": "cls"
+                }
+              },
+              "queryRef": "city_effect.cls",
+              "nativeQueryRef": "cls"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Rain Impact by Vehicle Mode & Time Window (%)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

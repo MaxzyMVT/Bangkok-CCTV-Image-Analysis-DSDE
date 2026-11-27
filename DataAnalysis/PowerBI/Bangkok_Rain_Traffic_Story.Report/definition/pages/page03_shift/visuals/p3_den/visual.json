@@ -1,0 +1,102 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p3_den",
+  "position": {
+    "x": 620,
+    "y": 76,
+    "z": 3,
+    "height": 290,
+    "width": 636,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "denser_share"
+                    }
+                  },
+                  "Property": "feature"
+                }
+              },
+              "queryRef": "denser_share.feature",
+              "nativeQueryRef": "feature",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "denser_share"
+                        }
+                      },
+                      "Property": "denser_share"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(denser_share.denser_share)",
+              "nativeQueryRef": "denser_share"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "denser_share"
+                        }
+                      },
+                      "Property": "other_share"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(denser_share.other_share)",
+              "nativeQueryRef": "other_share"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Myth Check: Shelter & Station Share Shows No Congestion Concentration'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

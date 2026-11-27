@@ -1,0 +1,87 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p1_story",
+  "position": {
+    "x": 24,
+    "y": 248,
+    "z": 8,
+    "height": 444,
+    "width": 740,
+    "tabOrder": 8
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "executive_story"
+                    }
+                  },
+                  "Property": "step"
+                }
+              },
+              "queryRef": "executive_story.step",
+              "nativeQueryRef": "step"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "executive_story"
+                    }
+                  },
+                  "Property": "headline"
+                }
+              },
+              "queryRef": "executive_story.headline",
+              "nativeQueryRef": "headline"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "executive_story"
+                    }
+                  },
+                  "Property": "evidence"
+                }
+              },
+              "queryRef": "executive_story.evidence",
+              "nativeQueryRef": "evidence"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Hackathon Storytelling Arc (From Evidence to Action)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

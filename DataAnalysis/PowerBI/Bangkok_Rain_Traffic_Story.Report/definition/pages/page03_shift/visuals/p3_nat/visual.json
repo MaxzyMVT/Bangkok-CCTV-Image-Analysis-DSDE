@@ -1,0 +1,83 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p3_nat",
+  "position": {
+    "x": 24,
+    "y": 76,
+    "z": 2,
+    "height": 290,
+    "width": 580,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "natural_experiment"
+                    }
+                  },
+                  "Property": "cls"
+                }
+              },
+              "queryRef": "natural_experiment.cls",
+              "nativeQueryRef": "cls",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "natural_experiment"
+                        }
+                      },
+                      "Property": "effect_pct_points"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(natural_experiment.effect_pct_points)",
+              "nativeQueryRef": "effect_pct_points"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Same-Hour Neighbor Test (<=3 km, 15 hrs): Cars +12.6 pts Higher Where Rain Falls'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

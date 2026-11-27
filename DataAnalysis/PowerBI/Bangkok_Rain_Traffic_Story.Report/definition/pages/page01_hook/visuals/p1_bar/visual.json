@@ -1,0 +1,101 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p1_bar",
+  "position": {
+    "x": 782,
+    "y": 248,
+    "z": 9,
+    "height": 444,
+    "width": 474,
+    "tabOrder": 9
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "city_effect"
+                    }
+                  },
+                  "Property": "cls"
+                }
+              },
+              "queryRef": "city_effect.cls",
+              "nativeQueryRef": "cls",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "city_effect"
+                        }
+                      },
+                      "Property": "effect_pct"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(city_effect.effect_pct)",
+              "nativeQueryRef": "effect_pct"
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "city_effect"
+                    }
+                  },
+                  "Property": "window"
+                }
+              },
+              "queryRef": "city_effect.window",
+              "nativeQueryRef": "window"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Headline Change in Vehicles Visible per Frame (%)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

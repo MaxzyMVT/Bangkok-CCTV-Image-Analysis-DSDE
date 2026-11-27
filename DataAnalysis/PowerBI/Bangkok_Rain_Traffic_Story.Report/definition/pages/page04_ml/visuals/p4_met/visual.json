@@ -1,0 +1,143 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p4_met",
+  "position": {
+    "x": 24,
+    "y": 456,
+    "z": 7,
+    "height": 240,
+    "width": 1232,
+    "tabOrder": 7
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ml_metrics"
+                    }
+                  },
+                  "Property": "target"
+                }
+              },
+              "queryRef": "ml_metrics.target",
+              "nativeQueryRef": "target"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ml_metrics"
+                    }
+                  },
+                  "Property": "model"
+                }
+              },
+              "queryRef": "ml_metrics.model",
+              "nativeQueryRef": "model"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ml_metrics"
+                    }
+                  },
+                  "Property": "split"
+                }
+              },
+              "queryRef": "ml_metrics.split",
+              "nativeQueryRef": "split"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ml_metrics"
+                    }
+                  },
+                  "Property": "mae"
+                }
+              },
+              "queryRef": "ml_metrics.mae",
+              "nativeQueryRef": "mae"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ml_metrics"
+                    }
+                  },
+                  "Property": "rmse"
+                }
+              },
+              "queryRef": "ml_metrics.rmse",
+              "nativeQueryRef": "rmse"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ml_metrics"
+                    }
+                  },
+                  "Property": "r2"
+                }
+              },
+              "queryRef": "ml_metrics.r2",
+              "nativeQueryRef": "r2"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ml_metrics"
+                    }
+                  },
+                  "Property": "roc_auc"
+                }
+              },
+              "queryRef": "ml_metrics.roc_auc",
+              "nativeQueryRef": "roc_auc"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Cross-Validated Regression & Classification Benchmark (Aug 25–31, n=9,996 clean camera-hours)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

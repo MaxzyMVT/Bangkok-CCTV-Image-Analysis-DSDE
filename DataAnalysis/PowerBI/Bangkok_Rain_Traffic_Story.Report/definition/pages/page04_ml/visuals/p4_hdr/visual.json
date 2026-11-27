@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p4_hdr",
+  "position": {
+    "x": 24,
+    "y": 16,
+    "z": 1,
+    "height": 48,
+    "width": 1232,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Predictive ML Models & Spatial Drivers: What Drives Urban Volume vs Rain Drop?",
+                    "textStyle": {
+                      "fontSize": "18pt",
+                      "fontFamily": "Segoe UI",
+                      "color": "#0F172A",
+                      "fontWeight": "bold"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

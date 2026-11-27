@@ -1,0 +1,74 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p1_c2",
+  "position": {
+    "x": 273,
+    "y": 114,
+    "z": 4,
+    "height": 118,
+    "width": 235,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "city_effect"
+                    }
+                  },
+                  "Property": "Wet Camera-Hours"
+                }
+              },
+              "queryRef": "city_effect.Wet Camera-Hours",
+              "nativeQueryRef": "Wet Camera-Hours"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "categoryLabels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Matched Rain Hours'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p3_cams",
+  "position": {
+    "x": 24,
+    "y": 382,
+    "z": 4,
+    "height": 312,
+    "width": 740,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "camera"
+                    }
+                  },
+                  "Property": "camera_id"
+                }
+              },
+              "queryRef": "camera.camera_id",
+              "nativeQueryRef": "camera_id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "camera"
+                    }
+                  },
+                  "Property": "location_th"
+                }
+              },
+              "queryRef": "camera.location_th",
+              "nativeQueryRef": "location_th"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "camera_effect"
+                    }
+                  },
+                  "Property": "label"
+                }
+              },
+              "queryRef": "camera_effect.label",
+              "nativeQueryRef": "label"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "camera_effect"
+                    }
+                  },
+                  "Property": "effect_pct"
+                }
+              },
+              "queryRef": "camera_effect.effect_pct",
+              "nativeQueryRef": "effect_pct"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "camera_effect"
+                    }
+                  },
+                  "Property": "n_wet_hours"
+                }
+              },
+              "queryRef": "camera_effect.n_wet_hours",
+              "nativeQueryRef": "n_wet_hours"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "camera"
+                    }
+                  },
+                  "Property": "rail_dist_m"
+                }
+              },
+              "queryRef": "camera.rail_dist_m",
+              "nativeQueryRef": "rail_dist_m"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Per-Camera Rain Effect Leaderboard (14 Clears, 5 Denser, 57 Unaffected)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

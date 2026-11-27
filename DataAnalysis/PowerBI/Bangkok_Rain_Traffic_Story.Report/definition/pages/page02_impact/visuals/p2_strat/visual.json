@@ -1,0 +1,101 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p2_strat",
+  "position": {
+    "x": 648,
+    "y": 392,
+    "z": 5,
+    "height": 304,
+    "width": 608,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "stratified_effects"
+                    }
+                  },
+                  "Property": "segment"
+                }
+              },
+              "queryRef": "stratified_effects.segment",
+              "nativeQueryRef": "segment",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "stratified_effects"
+                        }
+                      },
+                      "Property": "effect_pct"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(stratified_effects.effect_pct)",
+              "nativeQueryRef": "effect_pct"
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "stratified_effects"
+                    }
+                  },
+                  "Property": "cls"
+                }
+              },
+              "queryRef": "stratified_effects.cls",
+              "nativeQueryRef": "cls"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Subgroup Splits (Weekday/Weekend & Light/Heavy Rain)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

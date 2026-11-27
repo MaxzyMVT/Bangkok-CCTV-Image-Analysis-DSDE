@@ -13,6 +13,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import shutil
 import uuid
 from pathlib import Path
 
@@ -26,6 +27,11 @@ PROJECT_NAME = "Bangkok_Rain_Traffic_Story"
 
 def _uid(seed: str) -> str:
     return str(uuid.uuid5(uuid.NAMESPACE_DNS, f"bkk-cctv-{seed}"))
+
+
+def _vid(seed: str) -> str:
+    """Short deterministic PBIR visual identifier safe under Windows MAX_PATH (260 chars)."""
+    return seed.replace("-", "_")
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -400,83 +406,83 @@ def build_project() -> Path:
 
     pages = [
         ("page01_hook", "01. Executive Hook", [
-            _textbox(_uid("p1-hdr"), 24, 16, 1232, 54, 1,
+            _textbox(_vid("p1-hdr"), 24, 16, 1232, 54, 1,
                      "Bangkok Rain & Urban Mobility: Still Frames Miss the Modal Shift", "22pt", True, "#0F172A"),
-            _textbox(_uid("p1-sub"), 24, 68, 1232, 34, 2,
+            _textbox(_vid("p1-sub"), 24, 68, 1232, 34, 2,
                      "100 BMA CCTV Cameras (60,721 Clean Counts) + 129 Rain Gauges + 188 Transit Hubs + Supervised ML (25–31 Aug 2026)", "11pt", False, "#475569"),
-            _card_visual(_uid("p1-c1"), 24, 114, 235, 118, 3, "city_effect", "Cameras Analyzed", "Cameras Monitored"),
-            _card_visual(_uid("p1-c2"), 273, 114, 235, 118, 4, "city_effect", "Wet Camera-Hours", "Matched Rain Hours"),
-            _card_visual(_uid("p1-c3"), 522, 114, 235, 118, 5, "city_effect", "Moto Rain Effect %", "Citywide Motorcycle Drop"),
-            _card_visual(_uid("p1-c4"), 771, 114, 235, 118, 6, "city_effect", "Rush Moto Drop %", "Rush Hour Moto Drop"),
-            _card_visual(_uid("p1-c5"), 1020, 114, 236, 118, 7, "city_effect", "Localized Car Shift (pts)", "Wet vs Dry Cars (<=3km)"),
-            _table_visual(_uid("p1-story"), 24, 248, 740, 444, 8, "Hackathon Storytelling Arc (From Evidence to Action)",
+            _card_visual(_vid("p1-c1"), 24, 114, 235, 118, 3, "city_effect", "Cameras Analyzed", "Cameras Monitored"),
+            _card_visual(_vid("p1-c2"), 273, 114, 235, 118, 4, "city_effect", "Wet Camera-Hours", "Matched Rain Hours"),
+            _card_visual(_vid("p1-c3"), 522, 114, 235, 118, 5, "city_effect", "Moto Rain Effect %", "Citywide Motorcycle Drop"),
+            _card_visual(_vid("p1-c4"), 771, 114, 235, 118, 6, "city_effect", "Rush Moto Drop %", "Rush Hour Moto Drop"),
+            _card_visual(_vid("p1-c5"), 1020, 114, 236, 118, 7, "city_effect", "Localized Car Shift (pts)", "Wet vs Dry Cars (<=3km)"),
+            _table_visual(_vid("p1-story"), 24, 248, 740, 444, 8, "Hackathon Storytelling Arc (From Evidence to Action)",
                           [("executive_story", "step"), ("executive_story", "headline"), ("executive_story", "evidence")]),
-            _chart_visual(_uid("p1-bar"), "clusteredColumnChart", 782, 248, 474, 444, 9,
+            _chart_visual(_vid("p1-bar"), "clusteredColumnChart", 782, 248, 474, 444, 9,
                           "Headline Change in Vehicles Visible per Frame (%)", "city_effect", "cls",
                           [("city_effect", "effect_pct", False)], "city_effect", "window"),
         ]),
         ("page02_impact", "02. Rain Effect & Timing", [
-            _textbox(_uid("p2-hdr"), 24, 16, 1232, 48, 1,
+            _textbox(_vid("p2-hdr"), 24, 16, 1232, 48, 1,
                      "Who Disappears in Rain? Motorcycles Plunge -21%, While Rain Timing Drives Weekday Differences", "18pt", True, "#0F172A"),
-            _chart_visual(_uid("p2-eff"), "clusteredBarChart", 24, 76, 608, 300, 2,
+            _chart_visual(_vid("p2-eff"), "clusteredBarChart", 24, 76, 608, 300, 2,
                           "Rain Impact by Vehicle Mode & Time Window (%)", "city_effect", "window",
                           [("city_effect", "effect_pct", False)], "city_effect", "cls"),
-            _chart_visual(_uid("p2-time"), "clusteredColumnChart", 648, 76, 608, 300, 3,
+            _chart_visual(_vid("p2-time"), "clusteredColumnChart", 648, 76, 608, 300, 3,
                           "Why Timing Matters: Weekday Rain (16-20h) vs Weekend Rain (12-17h)", "rain_timing", "hour",
                           [("rain_timing", "n_camera_hours", False)], "rain_timing", "day_type"),
-            _chart_visual(_uid("p2-reb"), "lineChart", 24, 392, 608, 304, 4,
+            _chart_visual(_vid("p2-reb"), "lineChart", 24, 392, 608, 304, 4,
                           "Post-Rain Recovery Curve: Cancelled Trips Don't Bounce Back Immediately", "rebound", "minute",
                           [("rebound", "ratio", False)], "rebound", "cls"),
-            _chart_visual(_uid("p2-strat"), "clusteredBarChart", 648, 392, 608, 304, 5,
+            _chart_visual(_vid("p2-strat"), "clusteredBarChart", 648, 392, 608, 304, 5,
                           "Subgroup Splits (Weekday/Weekend & Light/Heavy Rain)", "stratified_effects", "segment",
                           [("stratified_effects", "effect_pct", False)], "stratified_effects", "cls"),
         ]),
         ("page03_shift", "03. Modal Shift & Spatial Proof", [
-            _textbox(_uid("p3-hdr"), 24, 16, 1232, 48, 1,
+            _textbox(_vid("p3-hdr"), 24, 16, 1232, 48, 1,
                      "Natural Experiment & Hypothesis Audit: Modal Shift Proof + Myths Debunked", "18pt", True, "#0F172A"),
-            _chart_visual(_uid("p3-nat"), "clusteredColumnChart", 24, 76, 580, 290, 2,
+            _chart_visual(_vid("p3-nat"), "clusteredColumnChart", 24, 76, 580, 290, 2,
                           "Same-Hour Neighbor Test (<=3 km, 15 hrs): Cars +12.6 pts Higher Where Rain Falls",
                           "natural_experiment", "cls", [("natural_experiment", "effect_pct_points", False)]),
-            _chart_visual(_uid("p3-den"), "clusteredBarChart", 620, 76, 636, 290, 3,
+            _chart_visual(_vid("p3-den"), "clusteredBarChart", 620, 76, 636, 290, 3,
                           "Myth Check: Shelter & Station Share Shows No Congestion Concentration",
                           "denser_share", "feature", [("denser_share", "denser_share", False), ("denser_share", "other_share", False)]),
-            _table_visual(_uid("p3-cams"), 24, 382, 740, 312, 4,
+            _table_visual(_vid("p3-cams"), 24, 382, 740, 312, 4,
                           "Per-Camera Rain Effect Leaderboard (14 Clears, 5 Denser, 57 Unaffected)",
                           [("camera", "camera_id"), ("camera", "location_th"), ("camera_effect", "label"),
                            ("camera_effect", "effect_pct"), ("camera_effect", "n_wet_hours"), ("camera", "rail_dist_m")]),
-            _table_visual(_uid("p3-flood"), 780, 382, 476, 312, 5,
+            _table_visual(_vid("p3-flood"), 780, 382, 476, 312, 5,
                           "DDS Flood Sensors >= 5 cm (FL.RTW.02 Phetchaburi Rd)",
                           [("flood_sensor_hours", "station"), ("flood_sensor_hours", "hour_ts"), ("flood_sensor_hours", "flood_cm")]),
         ]),
         ("page04_ml", "04. Supervised ML & Drivers", [
-            _textbox(_uid("p4-hdr"), 24, 16, 1232, 48, 1,
+            _textbox(_vid("p4-hdr"), 24, 16, 1232, 48, 1,
                      "Predictive ML Models & Spatial Drivers: What Drives Urban Volume vs Rain Drop?", "18pt", True, "#0F172A"),
-            _card_visual(_uid("p4-c1"), 24, 72, 390, 100, 2, "city_effect", "ML Weekend R2 (Baseline)", "HistGB Test R2 (With Baseline)"),
-            _card_visual(_uid("p4-c2"), 430, 72, 390, 100, 3, "city_effect", "Peak Flood Depth (cm)", "Max Recorded Flood Sensor"),
-            _card_visual(_uid("p4-c3"), 836, 72, 420, 100, 4, "city_effect", "Total Rain Effect %", "Overall Frame Volume Delta"),
-            _chart_visual(_uid("p4-imp"), "clusteredBarChart", 24, 186, 608, 255, 5,
+            _card_visual(_vid("p4-c1"), 24, 72, 390, 100, 2, "city_effect", "ML Weekend R2 (Baseline)", "HistGB Test R2 (With Baseline)"),
+            _card_visual(_vid("p4-c2"), 430, 72, 390, 100, 3, "city_effect", "Peak Flood Depth (cm)", "Max Recorded Flood Sensor"),
+            _card_visual(_vid("p4-c3"), 836, 72, 420, 100, 4, "city_effect", "Total Rain Effect %", "Overall Frame Volume Delta"),
+            _chart_visual(_vid("p4-imp"), "clusteredBarChart", 24, 186, 608, 255, 5,
                           "ML Permutation Importance (Rain_mm Drives Motorcycle Drops)",
                           "ml_feature_importance", "feature", [("ml_feature_importance", "importance_mean", False)],
                           "ml_feature_importance", "target"),
-            _chart_visual(_uid("p4-corr"), "clusteredBarChart", 648, 186, 608, 255, 6,
+            _chart_visual(_vid("p4-corr"), "clusteredBarChart", 648, 186, 608, 255, 6,
                           "Linear Correlations (Rail Proximity r=-0.26, Weekend r=-0.18)",
                           "correlations", "feature_label", [("correlations", "pearson_r", False)],
                           "correlations", "target"),
-            _table_visual(_uid("p4-met"), 24, 456, 1232, 240, 7,
+            _table_visual(_vid("p4-met"), 24, 456, 1232, 240, 7,
                           "Cross-Validated Regression & Classification Benchmark (Aug 25–31, n=9,996 clean camera-hours)",
                           [("ml_metrics", "target"), ("ml_metrics", "model"), ("ml_metrics", "split"),
                            ("ml_metrics", "mae"), ("ml_metrics", "rmse"), ("ml_metrics", "r2"), ("ml_metrics", "roc_auc")]),
         ]),
         ("page05_action", "05. Action & Adaptability", [
-            _textbox(_uid("p5-hdr"), 24, 16, 1232, 54, 1,
+            _textbox(_vid("p5-hdr"), 24, 16, 1232, 54, 1,
                      "Business Recommendations & Smart-City Data Adaptability", "20pt", True, "#0F172A"),
-            _textbox(_uid("p5-act1"), 24, 86, 392, 250, 2,
+            _textbox(_vid("p5-act1"), 24, 86, 392, 250, 2,
                      "1. BTS/MRT Feeder Alerting\nDuring weekday 16:00–20:00 rain, motorcycle supply plunges -30.5% while station-adjacent cameras carry high volume (r = -0.26). Trigger dynamic bus/shuttle feeder dispatch on rail hubs.", "13pt", False, "#0F172A"),
-            _textbox(_uid("p5-act2"), 444, 86, 392, 250, 3,
+            _textbox(_vid("p5-act2"), 444, 86, 392, 250, 3,
                      "2. Ride-Hailing Fleet Pre-Positioning\nWhere rain falls locally, car demand rises +12.6 pts vs dry neighbors within 3 km. Pair DDS 129-gauge rain alerts with ML forecasts to pre-stage 4-wheel drivers before surge spikes.", "13pt", False, "#0F172A"),
-            _textbox(_uid("p5-act3"), 864, 86, 392, 250, 4,
+            _textbox(_vid("p5-act3"), 864, 86, 392, 250, 4,
                      "3. Automated Feed QA Guardrail\nBMA feeds emitted 1.4 KB solid-white outage frames at 07:21–07:26 (e.g., Aug 27 07:00). Filtering file_size_bytes < 3 KB in PyDuckLake Silver/Gold prevents false zero-traffic alarms.", "13pt", False, "#0F172A"),
-            _textbox(_uid("p5-road"), 24, 356, 1232, 336, 5,
+            _textbox(_vid("p5-road"), 24, 356, 1232, 336, 5,
                      "Next-Phase Data Adaptability Roadmap:\n"
                      "• Add BTS/MRT Turnstile Tap-In Telemetry -> Directly validate passenger transit shift volumes.\n"
                      "• Add GPS Coordinates to DDS Flood Sensors -> Enable point-to-camera flood/congestion causality beyond road-name joins.\n"
@@ -485,6 +491,8 @@ def build_project() -> Path:
     ]
 
     pages_dir = def_rep / "pages"
+    if pages_dir.exists():
+        shutil.rmtree(pages_dir)
     page_ids = [p[0] for p in pages]
     _write_json(pages_dir / "pages.json", {
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.0.0/schema.json",

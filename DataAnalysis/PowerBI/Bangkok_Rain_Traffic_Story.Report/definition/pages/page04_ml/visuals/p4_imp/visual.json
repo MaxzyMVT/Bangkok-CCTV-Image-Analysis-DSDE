@@ -1,0 +1,101 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p4_imp",
+  "position": {
+    "x": 24,
+    "y": 186,
+    "z": 5,
+    "height": 255,
+    "width": 608,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ml_feature_importance"
+                    }
+                  },
+                  "Property": "feature"
+                }
+              },
+              "queryRef": "ml_feature_importance.feature",
+              "nativeQueryRef": "feature",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "ml_feature_importance"
+                        }
+                      },
+                      "Property": "importance_mean"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(ml_feature_importance.importance_mean)",
+              "nativeQueryRef": "importance_mean"
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ml_feature_importance"
+                    }
+                  },
+                  "Property": "target"
+                }
+              },
+              "queryRef": "ml_feature_importance.target",
+              "nativeQueryRef": "target"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ML Permutation Importance (Rain_mm Drives Motorcycle Drops)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

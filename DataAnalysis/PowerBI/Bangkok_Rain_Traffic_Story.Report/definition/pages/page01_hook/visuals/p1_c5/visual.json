@@ -1,0 +1,74 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p1_c5",
+  "position": {
+    "x": 1020,
+    "y": 114,
+    "z": 7,
+    "height": 118,
+    "width": 236,
+    "tabOrder": 7
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "city_effect"
+                    }
+                  },
+                  "Property": "Localized Car Shift (pts)"
+                }
+              },
+              "queryRef": "city_effect.Localized Car Shift (pts)",
+              "nativeQueryRef": "Localized Car Shift (pts)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "categoryLabels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Wet vs Dry Cars (<=3km)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

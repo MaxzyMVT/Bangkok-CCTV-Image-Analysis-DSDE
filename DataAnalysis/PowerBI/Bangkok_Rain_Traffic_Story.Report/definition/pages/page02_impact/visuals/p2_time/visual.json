@@ -1,0 +1,101 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p2_time",
+  "position": {
+    "x": 648,
+    "y": 76,
+    "z": 3,
+    "height": 300,
+    "width": 608,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "rain_timing"
+                    }
+                  },
+                  "Property": "hour"
+                }
+              },
+              "queryRef": "rain_timing.hour",
+              "nativeQueryRef": "hour",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "rain_timing"
+                        }
+                      },
+                      "Property": "n_camera_hours"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Avg(rain_timing.n_camera_hours)",
+              "nativeQueryRef": "n_camera_hours"
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "rain_timing"
+                    }
+                  },
+                  "Property": "day_type"
+                }
+              },
+              "queryRef": "rain_timing.day_type",
+              "nativeQueryRef": "day_type"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Why Timing Matters: Weekday Rain (16-20h) vs Weekend Rain (12-17h)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.7.0/schema.json",
+  "name": "p3_flood",
+  "position": {
+    "x": 780,
+    "y": 382,
+    "z": 5,
+    "height": 312,
+    "width": 476,
+    "tabOrder": 5
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "flood_sensor_hours"
+                    }
+                  },
+                  "Property": "station"
+                }
+              },
+              "queryRef": "flood_sensor_hours.station",
+              "nativeQueryRef": "station"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "flood_sensor_hours"
+                    }
+                  },
+                  "Property": "hour_ts"
+                }
+              },
+              "queryRef": "flood_sensor_hours.hour_ts",
+              "nativeQueryRef": "hour_ts"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "flood_sensor_hours"
+                    }
+                  },
+                  "Property": "flood_cm"
+                }
+              },
+              "queryRef": "flood_sensor_hours.flood_cm",
+              "nativeQueryRef": "flood_cm"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'DDS Flood Sensors >= 5 cm (FL.RTW.02 Phetchaburi Rd)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
