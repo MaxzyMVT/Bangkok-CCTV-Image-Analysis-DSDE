@@ -156,7 +156,9 @@ class NetworkAndPowerBITests(unittest.TestCase):
             self.assertIn("visual", vjson)
 
         story_csv = (ROOT / "DataAnalysis" / "output" / "executive_story.csv").read_text(encoding="utf-8")
-        self.assertIn("Hidden Modal Shift", story_csv)
+        self.assertIn("Localized Modal Shift", story_csv)
+        for forbidden in ("hackathon", "storytelling", "story arc"):
+            self.assertNotIn(forbidden, story_csv.lower())
 
 
 if __name__ == "__main__":
