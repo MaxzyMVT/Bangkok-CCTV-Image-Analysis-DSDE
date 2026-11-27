@@ -81,11 +81,22 @@ class DashboardAppTests(unittest.TestCase):
     def test_streamlit_dashboard_renders_all_tabs_without_errors(self):
         from streamlit.testing.v1 import AppTest
 
-        at = AppTest.from_file(str(ROOT / "DataAnalysis" / "dashboard.py"), default_timeout=45)
+        at = AppTest.from_file(str(ROOT / "DataAnalysis" / "dashboard.py"), default_timeout=60)
         at.run()
         self.assertFalse(list(at.exception), msg=f"Unexpected exceptions: {list(at.exception)}")
         self.assertFalse(list(at.error), msg=f"Unexpected errors: {list(at.error)}")
         self.assertEqual(len(at.tabs), 7)
+        self.assertEqual(at.tabs[0].label, "Overview & Timing")
+
+        at.button(key="lang_toggle_btn").click().run()
+        self.assertFalse(list(at.exception), msg=f"Unexpected Thai exceptions: {list(at.exception)}")
+        self.assertFalse(list(at.error), msg=f"Unexpected Thai errors: {list(at.error)}")
+        self.assertEqual(at.tabs[0].label, "ภาพรวมและช่วงเวลา")
+        self.assertIn("ระบบวิเคราะห์สภาพจราจร", at.title[0].value)
+
+        at.button(key="lang_toggle_btn").click().run()
+        self.assertFalse(list(at.exception))
+        self.assertEqual(at.tabs[0].label, "Overview & Timing")
 
 
 class NetworkAndPowerBITests(unittest.TestCase):
@@ -130,6 +141,7 @@ class NetworkAndPowerBITests(unittest.TestCase):
             sm_def / "expressions.tmdl",
             sm_def / "database.tmdl",
             sm_def / "tables" / "executive_story.tmdl",
+            sm_def / "tables" / "ui_lang.tmdl",
             sm_def / "tables" / "city_effect.tmdl",
             sm_def / "tables" / "ml_metrics.tmdl",
         ):
@@ -147,9 +159,14 @@ class NetworkAndPowerBITests(unittest.TestCase):
         for pid in pages["pageOrder"]:
             page_json = json.loads((rep_def / "pages" / pid / "page.json").read_text(encoding="utf-8"))
             self.assertEqual(page_json["name"], pid)
+            slicer_vis = list((rep_def / "pages" / pid / "visuals").glob("*_lang/visual.json"))
+            self.assertEqual(len(slicer_vis), 1, f"Missing language slicer on {pid}")
+            sj = json.loads(slicer_vis[0].read_text(encoding="utf-8"))
+            self.assertEqual(sj["visual"]["visualType"], "slicer")
+            self.assertEqual(sj["visual"]["syncGroup"]["groupName"], "LangSync")
 
         visual_files = list((rep_def / "pages").rglob("visual.json"))
-        self.assertGreaterEqual(len(visual_files), 30)
+        self.assertGreaterEqual(len(visual_files), 35)
         for vf in visual_files:
             self.assertLess(len(str(vf)), 255, f"Windows MAX_PATH risk: {vf}")
             vjson = json.loads(vf.read_text(encoding="utf-8"))
@@ -157,6 +174,7 @@ class NetworkAndPowerBITests(unittest.TestCase):
 
         story_csv = (ROOT / "DataAnalysis" / "output" / "executive_story.csv").read_text(encoding="utf-8")
         self.assertIn("Localized Modal Shift", story_csv)
+        self.assertIn("การเปลี่ยนโหมดสู่รถยนต์", story_csv)
         for forbidden in ("hackathon", "storytelling", "story arc"):
             self.assertNotIn(forbidden, story_csv.lower())
 
