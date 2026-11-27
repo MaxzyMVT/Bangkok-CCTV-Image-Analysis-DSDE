@@ -135,6 +135,12 @@ class NetworkAndPowerBITests(unittest.TestCase):
         ):
             self.assertTrue(req.exists(), f"Missing SemanticModel file: {req}")
 
+        rel_txt = (sm_def / "relationships.tmdl").read_text(encoding="utf-8")
+        self.assertIn("fromColumn: camera_hour.camera_id", rel_txt)
+        self.assertIn("toColumn: camera.camera_id", rel_txt)
+        self.assertNotIn("fromTable:", rel_txt)
+        self.assertNotIn("toTable:", rel_txt)
+
         rep_def = pb_dir / "Bangkok_Rain_Traffic_Story.Report" / "definition"
         pages = json.loads((rep_def / "pages" / "pages.json").read_text(encoding="utf-8"))
         self.assertEqual(len(pages["pageOrder"]), 5)
