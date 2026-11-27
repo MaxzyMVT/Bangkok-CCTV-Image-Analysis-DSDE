@@ -137,13 +137,20 @@ def load_fm91() -> pd.DataFrame:
 
 @st.cache_data(show_spinner=False)
 def load_rail_stations() -> pd.DataFrame:
-    if not lake_has_table("silver", "osm_poi"):
+    if lake_has_table("silver", "transit_stations"):
+        df = query_lake("""
+            SELECT name_th AS name, name_en, primary_system AS network, latitude, longitude
+            FROM lake.silver.transit_stations
+            WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+        """)
+    elif lake_has_table("silver", "osm_poi"):
+        df = query_lake("""
+            SELECT name, name_en, network, latitude, longitude
+            FROM lake.silver.osm_poi
+            WHERE category = 'rail_station' AND latitude IS NOT NULL AND longitude IS NOT NULL
+        """)
+    else:
         return pd.DataFrame(columns=["name", "name_en", "network", "latitude", "longitude", "station_label"])
-    df = query_lake("""
-        SELECT name, name_en, network, latitude, longitude
-        FROM lake.silver.osm_poi
-        WHERE category = 'rail_station' AND latitude IS NOT NULL AND longitude IS NOT NULL
-    """)
     df["station_label"] = df["name"].fillna(df["name_en"]).fillna("Rail Station")
     return df
 
@@ -468,13 +475,17 @@ def render_dashboard() -> None:
     hours["avg_bytes"] = hours["avg_bytes"].fillna(20000.0)
 
     cam_meta = load_cameras_silver()
-    cameras = gold_table("camera").merge(gold_table("camera_effect"), on="camera_id", how="left").merge(
-        cam_meta, on="camera_id", how="left",
-    )
+    cameras = gold_table("camera").merge(gold_table("camera_effect"), on="camera_id", how="left")
+    if "location_th" not in cameras.columns:
+        cameras = cameras.merge(cam_meta, on="camera_id", how="left")
+    elif not cam_meta.empty:
+        meta_idx = cam_meta.set_index("camera_id")
+        for col in ("location_th", "location_en"):
+            cameras[col] = cameras[col].fillna(cameras["camera_id"].map(meta_idx[col]))
     cameras["label"] = cameras["label"].fillna("no matched rainy hours")
     cameras["n_wet_hours"] = cameras["n_wet_hours"].fillna(0).astype(int)
-    cameras["location_th"] = cameras["location_th"].fillna("")
-    cameras["location_en"] = cameras["location_en"].fillna("")
+    for col in ("location_th", "location_en"):
+        cameras[col] = cameras[col].fillna("") if col in cameras.columns else ""
 
     # ---------------- Sidebar Parameter Sliders ----------------
     with st.sidebar:
@@ -516,18 +527,20 @@ def render_dashboard() -> None:
             show_districts = st.checkbox("Show 50 Bangkok Districts", value=False)
 
         with st.expander("3. Network Graph", expanded=False):
-            rail_radius = st.slider("Camera ↔ Rail Radius (m)", 300, 1500, 800, step=100)
-            cam_radius = st.slider("Camera ↔ Camera Corridor (m)", 400, 2000, 1200, step=100)
+            rail_radius = st.slider("Camera ↔ Rail Max Distance (m)", 300, 1500, 800, step=100)
+            cam_radius = st.slider("Camera ↔ Camera Max Distance (m)", 400, 2000, 900, step=100)
+            k_rail = st.slider("Nearest Rail Hubs per Camera", 1, 3, 1, step=1)
+            k_cam = st.slider("Nearest Neighbor Cams per Camera", 0, 3, 2, step=1)
             net_communities = st.checkbox("Detect Communities (Greedy Modularity)", value=True)
             net_layout = st.selectbox("Layout Algorithm", nv.LAYOUTS, index=0)
             net_size_by = st.selectbox("Node Size By", ["degree", "betweenness", "closeness", "pagerank", "single size"], index=0)
             net_color_by = st.selectbox("Node Color By", (["community"] if net_communities else []) + ["rain_effect", "degree", "betweenness", "closeness", "pagerank"])
-            net_scale = st.slider("Graph Spread Scale", 500, 1800, 950, step=50)
-            net_size_range = st.slider("Node Size Range", 6, 60, (10, 36), step=2)
-            net_noverlap = st.checkbox("Prevent Node Overlap (Noverlap)", value=True)
-            net_labels_n = st.slider("Label Top N Nodes", 0, 120, 25, step=5)
+            net_scale = st.slider("Graph Spread Scale", 600, 2200, 1350, step=50)
+            net_size_range = st.slider("Node Size Range", 6, 48, (10, 30), step=2)
+            net_noverlap = st.checkbox("Prevent Node Overlap (Noverlap)", value=False)
+            net_labels_n = st.slider("Label Top N Cameras", 0, 100, 35, step=5)
             net_font_size = st.slider("Label Font Size", 8, 28, 13, step=1)
-            net_min_comp = st.slider("Hide Components < Nodes", 1, 20, 1, step=1)
+            net_min_comp = st.slider("Hide Clusters Smaller Than (nodes)", 1, 15, 2, step=1)
             net_show_edges = st.checkbox("Show Network Edges", value=True)
 
         with st.expander("4. Supervised ML What-If Simulator", expanded=False):
@@ -640,22 +653,40 @@ def render_dashboard() -> None:
     with tabs[3]:
         rail_df = load_rail_stations()
         st.subheader("Bangkok CCTV & Rapid Transit Corridor Network")
-        G = nv.build_bangkok_network(cameras, rail_df, rail_radius_m=rail_radius, cam_radius_m=cam_radius)
+        G = nv.build_bangkok_network(
+            cameras, rail_df, rail_radius_m=rail_radius, cam_radius_m=cam_radius, k_rail=k_rail, k_cam=k_cam,
+        )
         cent_df = nv.compute_centralities(G)
         communities = nv.detect_communities(G) if net_communities else None
         if communities:
             cent_df.insert(1, "Community", cent_df["Node"].map(communities))
+        cam_links_df, comm_summary_df = nv.connection_summary_tables(G, communities)
 
         stats = nv.compute_basic_stats(G)
         s_cols = st.columns(6)
         s_cols[0].metric("Nodes", stats["Nodes"])
         s_cols[1].metric("Edges", stats["Edges"])
-        s_cols[2].metric("Density", f"{stats['Density']:.3f}")
+        s_cols[2].metric("Communities", len(set(communities.values())) if communities else 0)
         s_cols[3].metric("Diameter", stats["Diameter"])
         s_cols[4].metric("Avg Clustering", f"{stats['Avg Clustering']:.3f}")
         s_cols[5].metric("Avg Path Length", f"{stats['Avg Path Length']:.2f}")
-        if not stats["Connected"]:
-            st.caption(f"Graph has disconnected corridor clusters; diameter and path length reflect the largest connected component ({stats['LCC Size']} of {stats['Nodes']} nodes). Adjust edge parameters in sidebar Section 3.")
+
+        selected_comm = None
+        if communities and not comm_summary_df.empty:
+            comm_choices = ["All Connected Clusters"] + [
+                f"Community #{int(r.Community)} ({int(r.Cameras)} cams, {int(r.Stations)} stations: {r._4})"
+                if hasattr(r, "_4") else f"Community #{int(r.Community)} ({int(r.Cameras)} cams)"
+                for r in comm_summary_df[comm_summary_df["Cameras"] + comm_summary_df["Stations"] >= 2].itertuples(index=False)
+            ]
+            # Build readable labels directly
+            multi_comms = comm_summary_df[comm_summary_df["Cameras"] + comm_summary_df["Stations"] >= 2]
+            labels_map = {
+                f"Community #{int(r['Community'])} — {int(r['Cameras'])} cams, {int(r['Stations'])} rail hubs ({r['Station Hubs'] or 'corridor only'})": int(r["Community"])
+                for _, r in multi_comms.iterrows()
+            }
+            pick = st.selectbox("Zoom Into Community Cluster", ["All Clusters"] + list(labels_map.keys()))
+            if pick != "All Clusters":
+                selected_comm = labels_map[pick]
 
         html_content = nv.render_pyvis_html(
             G,
@@ -671,8 +702,9 @@ def render_dashboard() -> None:
             label_top_n=net_labels_n,
             min_component_size=net_min_comp,
             show_edges=net_show_edges,
+            selected_community=selected_comm,
         )
-        st.iframe(html_content, height=760)
+        st.iframe(html_content, height=740)
 
         dl_col, rand_col = st.columns([1, 2])
         with dl_col:
@@ -686,6 +718,14 @@ def render_dashboard() -> None:
             if st.checkbox("Compare with Random Graph (Erdős–Rényi, same nodes & edges)"):
                 st.dataframe(nv.compare_with_random(G).round(3), width="stretch")
 
+        st.subheader("Who Connects to Whom (Camera ↔ Station ↔ Neighbors)")
+        view_links = cam_links_df if selected_comm is None else cam_links_df[cam_links_df["Community"] == selected_comm]
+        st.dataframe(view_links, width="stretch", height=320, hide_index=True)
+
+        if not comm_summary_df.empty:
+            st.subheader("Detected Spatial Corridor Communities")
+            st.dataframe(comm_summary_df, width="stretch", height=260, hide_index=True)
+
         left_n, right_n = st.columns(2)
         with left_n:
             st.subheader("Degree Distribution")
@@ -693,7 +733,7 @@ def render_dashboard() -> None:
             fig_deg = nv.plot_degree_distribution(G, log_log=(scale_mode == "Log-log (CCDF)"))
             st.pyplot(fig_deg, width="stretch")
         with right_n:
-            st.subheader("Centrality & Community Table")
+            st.subheader("Centrality Scores")
             st.dataframe(cent_df.sort_values("Betweenness", ascending=False), width="stretch", height=400, hide_index=True)
 
     # ---------------- TAB 5: SUPERVISED ML & CORRELATIONS ----------------

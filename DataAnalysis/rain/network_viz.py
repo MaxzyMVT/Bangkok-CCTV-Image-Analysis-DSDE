@@ -24,7 +24,7 @@ MEASURE_COLUMN = {
     "closeness": "Closeness",
     "pagerank": "PageRank",
 }
-LAYOUTS = ["geo_coords", "forceatlas2", "spring", "kamada_kawai", "shell_by_degree", "circular"]
+LAYOUTS = ["forceatlas2", "spring", "geo_coords", "kamada_kawai", "shell_by_degree", "circular"]
 EFFECT_HEX = {
     "clears": "#5bd3dd",
     "denser": "#ff7887",
@@ -34,9 +34,9 @@ EFFECT_HEX = {
     "rail": "#ffd166",
 }
 COMMUNITY_PALETTE = [
-    "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
-    "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe",
-    "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000",
+    "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6",
+    "#06b6d4", "#ec4899", "#84cc16", "#f97316", "#14b8a6",
+    "#6366f1", "#eab308", "#a855f7", "#22c55e", "#0ea5e9",
 ]
 
 JPG_BUTTON_HTML = """
@@ -70,12 +70,18 @@ def _haversine_matrix_m(lat1: np.ndarray, lon1: np.ndarray,
     dp = p2 - p1
     dl = np.radians(lon2)[None, :] - np.radians(lon1)[:, None]
     a = np.sin(dp / 2.0) ** 2 + np.cos(p1) * np.cos(p2) * np.sin(dl / 2.0) ** 2
-    return 2.0 * r * np.arcsin(np.clip(a, 0.0, 1.0))
+    return 2.0 * r * np.arcsin(np.sqrt(np.clip(a, 0.0, 1.0)))
 
 
-def build_bangkok_network(cameras_df: pd.DataFrame, rail_df: pd.DataFrame,
-                          rail_radius_m: int = 800, cam_radius_m: int = 1200) -> nx.Graph:
-    """Build undirected spatial CCTV + BTS/MRT network from PyDuckLake dataframes."""
+def build_bangkok_network(
+    cameras_df: pd.DataFrame,
+    rail_df: pd.DataFrame,
+    rail_radius_m: int = 800,
+    cam_radius_m: int = 900,
+    k_rail: int = 1,
+    k_cam: int = 2,
+) -> nx.Graph:
+    """Build sparse, interpretable CCTV + BTS/MRT corridor network using k-nearest spatial edges."""
     G = nx.Graph()
     cams = cameras_df.dropna(subset=["latitude", "longitude"]).reset_index(drop=True)
     for r in cams.itertuples(index=False):
@@ -87,56 +93,74 @@ def build_bangkok_network(cameras_df: pd.DataFrame, rail_df: pd.DataFrame,
             nid,
             kind="camera",
             camera_id=cid,
+            location_th=loc,
             lat=float(r.latitude),
             lon=float(r.longitude),
             effect_pct=eff,
             effect_label=str(getattr(r, "label", "no matched rainy hours")),
+            nearest_station="—",
+            nearest_station_m=None,
             tooltip=f"{loc} | Rain effect: {f'{eff:+.1f}%' if eff is not None else 'n/a'}",
         )
 
     cam_coords = cams[["latitude", "longitude"]].to_numpy()
-    if len(cams) > 1:
+    if len(cams) > 1 and k_cam > 0:
         cc = _haversine_matrix_m(cam_coords[:, 0], cam_coords[:, 1], cam_coords[:, 0], cam_coords[:, 1])
         np.fill_diagonal(cc, np.inf)
-        # Connect each camera only to its 2 nearest corridor neighbors within cam_radius_m to avoid hairball cliques
         for i in range(len(cams)):
-            nearest_j = np.argsort(cc[i])[:2]
-            for j in nearest_j:
+            for j in np.argsort(cc[i])[:k_cam]:
                 if cc[i, j] <= cam_radius_m:
                     u = f"Cam #{int(cams.iloc[i]['camera_id'])}"
                     v = f"Cam #{int(cams.iloc[j]['camera_id'])}"
                     if not G.has_edge(u, v):
-                        G.add_edge(u, v, weight=round(max(0.1, (cam_radius_m - float(cc[i, j])) / cam_radius_m), 3),
-                                   distance_m=round(float(cc[i, j])))
+                        G.add_edge(
+                            u, v,
+                            edge_type="corridor",
+                            weight=round(max(0.1, (cam_radius_m - float(cc[i, j])) / max(cam_radius_m, 1)), 3),
+                            distance_m=round(float(cc[i, j])),
+                        )
 
-    if not rail_df.empty and not cams.empty:
+    if not rail_df.empty and not cams.empty and k_rail > 0:
         cr = _haversine_matrix_m(
             cam_coords[:, 0], cam_coords[:, 1],
             rail_df["latitude"].to_numpy(), rail_df["longitude"].to_numpy(),
         )
-        linked = np.unique(np.where(cr <= rail_radius_m)[1])
-        rail_ids = {}
-        for r_idx in linked:
-            row = rail_df.iloc[r_idx]
-            rname = f"Rail: {row['station_label']}"
-            rail_ids[r_idx] = rname
-            G.add_node(
-                rname,
-                kind="rail",
-                lat=float(row["latitude"]),
-                lon=float(row["longitude"]),
-                effect_pct=None,
-                effect_label="rail",
-                tooltip=f"{row.get('network', 'BTS/MRT')} Station",
-            )
-        ci, ri = np.where(cr <= rail_radius_m)
-        for c_idx, r_idx in zip(ci, ri):
-            G.add_edge(
-                f"Cam #{int(cams.iloc[c_idx]['camera_id'])}",
-                rail_ids[r_idx],
-                weight=round(max(0.1, (rail_radius_m - float(cr[c_idx, r_idx])) / rail_radius_m), 3),
-                distance_m=round(float(cr[c_idx, r_idx])),
-            )
+        rail_ids: dict[int, str] = {}
+        edges_to_add: list[tuple[str, int, float]] = []
+        for c_idx in range(len(cams)):
+            cam_id = f"Cam #{int(cams.iloc[c_idx]['camera_id'])}"
+            best_r = int(np.argmin(cr[c_idx]))
+            G.nodes[cam_id]["nearest_station"] = str(rail_df.iloc[best_r]["station_label"])
+            G.nodes[cam_id]["nearest_station_m"] = round(float(cr[c_idx, best_r]))
+            for r_idx in np.argsort(cr[c_idx])[:k_rail]:
+                dist_m = float(cr[c_idx, r_idx])
+                if dist_m <= rail_radius_m:
+                    edges_to_add.append((cam_id, int(r_idx), dist_m))
+                    if int(r_idx) not in rail_ids:
+                        row = rail_df.iloc[int(r_idx)]
+                        rname = f"Rail: {row['station_label']}"
+                        rail_ids[int(r_idx)] = rname
+                        G.add_node(
+                            rname,
+                            kind="rail",
+                            location_th=str(row["station_label"]),
+                            lat=float(row["latitude"]),
+                            lon=float(row["longitude"]),
+                            effect_pct=None,
+                            effect_label="rail",
+                            nearest_station=str(row["station_label"]),
+                            nearest_station_m=0,
+                            tooltip=f"{row.get('network', 'BTS/MRT')} Station",
+                        )
+        for cam_id, r_idx, dist_m in edges_to_add:
+            rname = rail_ids[r_idx]
+            if not G.has_edge(cam_id, rname):
+                G.add_edge(
+                    cam_id, rname,
+                    edge_type="transit",
+                    weight=round(max(0.1, (rail_radius_m - dist_m) / max(rail_radius_m, 1)), 3),
+                    distance_m=round(dist_m),
+                )
     return G
 
 
@@ -197,9 +221,9 @@ def compare_with_random(G: nx.Graph, n_samples: int = 5) -> pd.DataFrame:
 
 def compute_centralities(G: nx.Graph) -> pd.DataFrame:
     table = {
-        "Degree": nx.degree_centrality(G),
-        "Betweenness": nx.betweenness_centrality(G),
-        "Closeness": nx.closeness_centrality(G),
+        "Degree": nx.degree_centrality(G) if len(G) else {},
+        "Betweenness": nx.betweenness_centrality(G) if len(G) else {},
+        "Closeness": nx.closeness_centrality(G) if len(G) else {},
         "PageRank": nx.pagerank(G) if G.number_of_edges() else {n: 1.0 / max(len(G), 1) for n in G},
     }
     df = pd.DataFrame(table)
@@ -211,10 +235,11 @@ def compute_centralities(G: nx.Graph) -> pd.DataFrame:
 
 
 def detect_communities(G: nx.Graph) -> Dict[str, int]:
+    """Detect spatial-corridor communities ordered by largest community size (0 = largest)."""
     U = to_simple_undirected(G)
     if U.number_of_edges() == 0:
         return {n: i for i, n in enumerate(U.nodes())}
-    comms = list(nx.community.greedy_modularity_communities(U))
+    comms = sorted(nx.community.greedy_modularity_communities(U), key=len, reverse=True)
     mapping = {}
     for idx, comp in enumerate(comms):
         for n in comp:
@@ -222,7 +247,54 @@ def detect_communities(G: nx.Graph) -> Dict[str, int]:
     return mapping
 
 
-def _compute_layout(G: nx.Graph, layout_type: str, scale_factor: float = 900.0) -> Dict[str, Tuple[float, float]]:
+def connection_summary_tables(G: nx.Graph, communities: Optional[Dict[str, int]] = None) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Return (camera_connections_df, community_summary_df) explaining exact links & clusters."""
+    cam_rows = []
+    for n, attr in G.nodes(data=True):
+        if attr.get("kind") != "camera":
+            continue
+        neighbors = list(G.neighbors(n))
+        rail_links = [
+            f"{nb.removeprefix('Rail: ')} ({G.edges[n, nb].get('distance_m', '?')}m)"
+            for nb in neighbors if G.nodes[nb].get("kind") == "rail"
+        ]
+        cam_links = sorted(
+            [(G.edges[n, nb].get("distance_m", 0), nb) for nb in neighbors if G.nodes[nb].get("kind") == "camera"]
+        )
+        cam_rows.append({
+            "Camera": n,
+            "Location (TH)": attr.get("location_th", ""),
+            "Community": communities.get(n, -1) if communities else None,
+            "Linked Stations": ", ".join(rail_links) if rail_links else f"— (closest: {attr.get('nearest_station')} {attr.get('nearest_station_m')}m)",
+            "Neighbor Cameras": ", ".join(f"{nb} ({d}m)" for d, nb in cam_links) if cam_links else "Isolated",
+            "Degree": G.degree(n),
+            "Rain Effect (%)": attr.get("effect_pct"),
+            "Status": attr.get("effect_label"),
+        })
+    cam_df = pd.DataFrame(cam_rows).sort_values(["Community", "Degree"], ascending=[True, False]).reset_index(drop=True)
+
+    comm_rows = []
+    if communities:
+        by_c: dict[int, list[str]] = {}
+        for n, cid in communities.items():
+            by_c.setdefault(cid, []).append(n)
+        for cid, nodes in sorted(by_c.items()):
+            cams = [n for n in nodes if G.nodes[n].get("kind") == "camera"]
+            rails = sorted(n.removeprefix("Rail: ") for n in nodes if G.nodes[n].get("kind") == "rail")
+            effs = [G.nodes[n]["effect_pct"] for n in cams if G.nodes[n].get("effect_pct") is not None]
+            comm_rows.append({
+                "Community": cid,
+                "Cameras": len(cams),
+                "Stations": len(rails),
+                "Station Hubs": ", ".join(rails[:5]) + ("..." if len(rails) > 5 else ""),
+                "Sample Cameras": ", ".join(cams[:5]) + ("..." if len(cams) > 5 else ""),
+                "Mean Rain Effect (%)": round(float(np.mean(effs)), 2) if effs else None,
+            })
+    comm_df = pd.DataFrame(comm_rows)
+    return cam_df, comm_df
+
+
+def _compute_layout(G: nx.Graph, layout_type: str, scale_factor: float = 1350.0) -> Dict[str, Tuple[float, float]]:
     if len(G) == 0:
         return {}
     if layout_type == "geo_coords":
@@ -237,15 +309,15 @@ def _compute_layout(G: nx.Graph, layout_type: str, scale_factor: float = 900.0) 
         }
     U = to_simple_undirected(G)
     if layout_type == "forceatlas2":
-        pos = nx.rescale_layout_dict(nx.forceatlas2_layout(U, max_iter=200, seed=42), scale=1.0)
+        pos = nx.rescale_layout_dict(nx.forceatlas2_layout(U, max_iter=250, seed=42), scale=1.0)
     elif layout_type == "spring":
-        pos = nx.spring_layout(U, k=2.2 / np.sqrt(max(len(U), 1)), iterations=60, seed=42)
+        pos = nx.spring_layout(U, k=2.8 / np.sqrt(max(len(U), 1)), iterations=80, seed=42)
     elif layout_type == "kamada_kawai":
         pos = nx.kamada_kawai_layout(U)
     elif layout_type == "shell_by_degree":
         order = sorted(U, key=lambda n: U.degree(n), reverse=True)
-        n1 = max(1, round(0.05 * len(U)))
-        n2 = n1 + max(1, round(0.20 * len(U)))
+        n1 = max(1, round(0.08 * len(U)))
+        n2 = n1 + max(1, round(0.25 * len(U)))
         shells = [s for s in (order[:n1], order[n1:n2], order[n2:]) if s]
         pos = nx.shell_layout(U, nlist=shells)
     else:
@@ -254,7 +326,7 @@ def _compute_layout(G: nx.Graph, layout_type: str, scale_factor: float = 900.0) 
 
 
 def _remove_overlaps(pos: Dict[str, Tuple[float, float]], radius: Dict[str, float],
-                     margin: float = 6.0, max_iter: int = 350) -> Dict[str, Tuple[float, float]]:
+                     margin: float = 8.0, max_iter: int = 250) -> Dict[str, Tuple[float, float]]:
     if len(pos) < 2:
         return pos
     nodes = list(pos)
@@ -282,7 +354,7 @@ def _remove_overlaps(pos: Dict[str, Tuple[float, float]], radius: Dict[str, floa
         np.add.at(move, i, -push)
         np.add.at(move, j, push)
         count = np.bincount(np.concatenate([i, j]), minlength=len(P))[:, None]
-        P += 1.4 * move / np.maximum(count, 1)
+        P += 1.2 * move / np.maximum(count, 1)
     return {n: (float(x), float(y)) for n, (x, y) in zip(nodes, P)}
 
 
@@ -290,20 +362,24 @@ def render_pyvis_html(
     G: nx.Graph,
     cent_df: pd.DataFrame,
     communities: Optional[Dict[str, int]] = None,
-    layout: str = "geo_coords",
+    layout: str = "forceatlas2",
     size_by: str = "degree",
     color_by: str = "community",
-    node_size_range: Tuple[int, int] = (10, 38),
-    scale_factor: float = 900.0,
-    no_overlap: bool = True,
-    font_size: int = 14,
-    label_top_n: int = 25,
+    node_size_range: Tuple[int, int] = (10, 30),
+    scale_factor: float = 1350.0,
+    no_overlap: bool = False,
+    font_size: int = 13,
+    label_top_n: int = 35,
     min_component_size: int = 1,
     show_edges: bool = True,
+    selected_community: Optional[int] = None,
 ) -> str:
     """Render an interactive PyVis graph HTML string for the CCTV and rail network."""
     H = G
-    if min_component_size > 1 and len(G):
+    if selected_community is not None and communities:
+        keep = [n for n in G if communities.get(n) == selected_community]
+        H = G.subgraph(keep).copy()
+    elif min_component_size > 1 and len(G):
         keep = [n for c in nx.connected_components(to_simple_undirected(G)) if len(c) >= min_component_size for n in c]
         H = G.subgraph(keep).copy()
     if len(H) == 0:
@@ -316,21 +392,37 @@ def render_pyvis_html(
     lo_s, hi_s = node_size_range
 
     def size_of(n: str) -> float:
+        if H.nodes[n].get("kind") == "rail":
+            return max(18.0, (lo_s + hi_s) * 0.55)
         if size_by == "single size" or max_c == min_c:
             return (lo_s + hi_s) / 2.0
         return lo_s + (cent_vals[n] - min_c) * (hi_s - lo_s) / (max_c - min_c)
 
     if no_overlap:
-        pos = _remove_overlaps(pos, {n: size_of(n) + 2.0 for n in H})
+        pos = _remove_overlaps(pos, {n: size_of(n) + 4.0 for n in H})
 
-    labelled = set(sorted(cent_vals, key=cent_vals.get, reverse=True)[:label_top_n])
+    cam_cents = {n: v for n, v in cent_vals.items() if H.nodes[n].get("kind") == "camera"}
+    labelled = set(sorted(cam_cents, key=cam_cents.get, reverse=True)[:label_top_n])
+    labelled |= {n for n in H if H.nodes[n].get("kind") == "rail"}  # always label station hubs
 
     legend_html = ""
     node_color: Dict[str, str] = {}
     if color_by == "community" and communities:
         node_color = {n: COMMUNITY_PALETTE[communities.get(n, 0) % len(COMMUNITY_PALETTE)] for n in H}
+        n_c = len({communities[n] for n in H if n in communities})
+        legend_html = (
+            '<div style="position:absolute;top:10px;left:10px;z-index:5;padding:7px 10px;'
+            'background:rgba(255,255,255,0.93);border:1px solid #ddd;border-radius:5px;font:12px sans-serif;color:#111">'
+            f'<b>Color:</b> {n_c} Spatial Communities<br><b>◆ Diamonds:</b> BTS/MRT Stations · <b>● Circles:</b> CCTV Cameras</div>'
+        )
     elif color_by == "rain_effect":
         node_color = {n: EFFECT_HEX.get(H.nodes[n].get("effect_label", ""), "#97c2fc") for n in H}
+        legend_html = (
+            '<div style="position:absolute;top:10px;left:10px;z-index:5;padding:7px 10px;'
+            'background:rgba(255,255,255,0.93);border:1px solid #ddd;border-radius:5px;font:12px sans-serif;color:#111">'
+            '<b>◆ Gold:</b> Rail Hubs · <span style="color:#0891b2">● Clears</span> · '
+            '<span style="color:#e11d48">● Denser</span> · <span style="color:#16a34a">● Unaffected</span></div>'
+        )
     elif color_by in MEASURE_COLUMN:
         col = MEASURE_COLUMN[color_by]
         m_map = {r.Node: float(getattr(r, col)) for r in cent_df.itertuples(index=False)}
@@ -339,15 +431,6 @@ def render_pyvis_html(
         r = rankdata(vals)
         frac = (r - r.min()) / (r.max() - r.min()) if r.max() > r.min() else np.full(len(r), 0.5)
         node_color = {n: mcolors.to_hex(colormaps["viridis"](f)) for n, f in zip(shown, frac)}
-        stops = ", ".join(mcolors.to_hex(colormaps["viridis"](f)) for f in np.linspace(0, 1, 11))
-        legend_html = (
-            '<div id="color-legend" style="position:absolute;top:10px;left:10px;z-index:5;width:210px;'
-            'padding:6px 8px;background:rgba(255,255,255,0.92);border:1px solid #ddd;border-radius:4px;'
-            f'font:12px sans-serif;color:#111"><div style="margin-bottom:4px"><b>Node colour: {col}</b></div>'
-            f'<div style="height:10px;background:linear-gradient(to right,{stops})"></div>'
-            '<div style="display:flex;justify-content:space-between;color:#666;margin-top:2px">'
-            '<span>low</span><span>high</span></div></div>'
-        )
     else:
         node_color = {n: "#97c2fc" for n in H}
 
@@ -355,42 +438,47 @@ def render_pyvis_html(
     cent_lookup = cent_df.set_index("Node")
     for n in H:
         row = cent_lookup.loc[n]
-        comm_line = f"Community: {communities[n]}" if communities and n in communities else ""
+        is_rail = H.nodes[n].get("kind") == "rail"
+        neighbors_desc = ", ".join(
+            f"{nb} ({H.edges[n, nb].get('distance_m', '?')}m)" for nb in list(H.neighbors(n))[:5]
+        )
+        comm_line = f"Community: #{communities[n]}" if communities and n in communities else ""
         tip = (
             f"{n}\n{H.nodes[n].get('tooltip', '')}\n"
-            f"Links: {H.degree(n)} | Degree: {row['Degree']:.3g} | "
-            f"Betweenness: {row['Betweenness']:.3g} | PageRank: {row['PageRank']:.3g}"
+            f"Connected: {neighbors_desc or 'Isolated'}\n"
+            f"Nearest Station: {H.nodes[n].get('nearest_station', '—')} ({H.nodes[n].get('nearest_station_m', '?')}m)\n"
+            f"Links: {H.degree(n)} | Betweenness: {row['Betweenness']:.3g} {comm_line}"
         )
-        if comm_line:
-            tip += f"\n{comm_line}"
         node_dict = {
             "id": str(n),
-            "label": str(n) if n in labelled else " ",
-            "shape": "diamond" if H.nodes[n].get("kind") == "rail" else "dot",
+            "label": str(n).replace("Rail: ", "🚉 ") if n in labelled else " ",
+            "shape": "diamond" if is_rail else "dot",
             "size": float(size_of(n)),
             "x": float(pos[n][0]),
             "y": float(pos[n][1]),
             "physics": False,
-            "color": node_color.get(n, "#97c2fc"),
+            "color": "#ffd166" if (is_rail and color_by == "rain_effect") else node_color.get(n, "#97c2fc"),
             "title": tip,
-            "font": {"color": "#111111"},
+            "font": {"color": "#111111", "bold": is_rail},
         }
         nt.nodes.append(node_dict)
         nt.node_ids.append(node_dict["id"])
         nt.node_map[node_dict["id"]] = node_dict
 
     for u, v, d in H.edges(data=True):
+        is_transit = d.get("edge_type") == "transit"
         nt.edges.append({
             "from": str(u),
             "to": str(v),
-            "width": 1.2,
-            "title": f"Distance: {d.get('distance_m', '?')} m",
+            "width": 2.2 if is_transit else 1.1,
+            "color": {"color": "#f59e0b" if is_transit else "rgba(100,116,139,0.5)"},
+            "title": f"{'Station link' if is_transit else 'Road corridor'}: {d.get('distance_m', '?')} m",
         })
 
     nt.set_options(f"""
     {{
         "nodes": {{"font": {{"size": {int(font_size)}}}, "borderWidth": 1.5}},
-        "edges": {{"color": {{"color": "rgba(130,145,160,0.45)"}}, "width": 0.8, "smooth": false, "hidden": {str(not show_edges).lower()}}},
+        "edges": {{"smooth": false, "hidden": {str(not show_edges).lower()}}},
         "physics": {{"enabled": false}},
         "interaction": {{"hover": true, "navigationButtons": true, "tooltipDelay": 80, "zoomView": true, "dragView": true}}
     }}
