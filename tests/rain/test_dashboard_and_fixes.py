@@ -142,6 +142,13 @@ class NetworkAndPowerBITests(unittest.TestCase):
             page_json = json.loads((rep_def / "pages" / pid / "page.json").read_text(encoding="utf-8"))
             self.assertEqual(page_json["name"], pid)
 
+        visual_files = list((rep_def / "pages").rglob("visual.json"))
+        self.assertGreaterEqual(len(visual_files), 30)
+        for vf in visual_files:
+            self.assertLess(len(str(vf)), 255, f"Windows MAX_PATH risk: {vf}")
+            vjson = json.loads(vf.read_text(encoding="utf-8"))
+            self.assertIn("visual", vjson)
+
         story_csv = (ROOT / "DataAnalysis" / "output" / "executive_story.csv").read_text(encoding="utf-8")
         self.assertIn("Hidden Modal Shift", story_csv)
 
