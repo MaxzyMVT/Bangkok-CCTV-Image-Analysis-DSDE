@@ -22,19 +22,27 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from DataAnalysis.i18n import (  # noqa: E402
+    CLASS_NAMES_BY_LANG,
+    DAY_TYPE_BY_LANG,
+    HEAT_OPTIONS_BY_LANG,
+    LABEL_TEXT_BY_LANG,
+    SEGMENT_NAMES_BY_LANG,
+    UI,
+    WINDOW_NAMES_BY_LANG,
+    localize_network_tables,
+    tr,
+)
 from DataAnalysis.rain import network_viz as nv  # noqa: E402
 from DataAnalysis.rain.ml_model import WITH_BASELINE_FEATURES, fit_scenario_predictor  # noqa: E402
 from DataEngineering.lakehouse_pipeline import CATALOG_PATH, lake_has_table, query_lake  # noqa: E402
 
 FIGURES = ROOT / "DataAnalysis" / "figures"
 
-LABEL_TEXT = {
-    "clears": "Clears (-ve)",
-    "denser": "Denser (+ve)",
-    "unaffected": "Unaffected",
-    "too few wet hours": "Too few wet hrs (<3h)",
-    "no matched rainy hours": "No matched rainy hrs",
-}
+LABEL_TEXT = LABEL_TEXT_BY_LANG["en"]
+CLASS_NAMES = CLASS_NAMES_BY_LANG["en"]
+SEGMENT_NAMES = SEGMENT_NAMES_BY_LANG["en"]
+WINDOW_NAMES = WINDOW_NAMES_BY_LANG["en"]
 
 LABEL_RGB = {
     "clears": [91, 211, 221, 225],
@@ -42,27 +50,6 @@ LABEL_RGB = {
     "unaffected": [138, 212, 173, 210],
     "too few wet hours": [247, 170, 88, 200],
     "no matched rainy hours": [119, 139, 160, 180],
-}
-
-CLASS_NAMES = {
-    "total": "All vehicles",
-    "car": "Cars",
-    "motorcycle": "Motorcycles",
-    "bus": "Buses",
-    "truck": "Trucks",
-}
-
-SEGMENT_NAMES = {
-    "weekday": "Weekday (Mon–Fri)",
-    "weekend": "Weekend (Sat–Sun)",
-    "light_1_to_5_mm": "Light rain (1–5 mm/h)",
-    "heavy_5plus_mm": "Heavy rain (≥5 mm/h)",
-}
-
-WINDOW_NAMES = {
-    "all": "All hours (06–21)",
-    "rush": "Rush hours (07–09, 17–20)",
-    "other": "Off-peak hours",
 }
 
 
@@ -194,11 +181,16 @@ def pct(value: float | None) -> str:
     return f"{value:+.1f}%"
 
 
+def _toggle_lang() -> None:
+    st.session_state["lang"] = "th" if st.session_state.get("lang", "en") == "en" else "en"
+
+
 def plot_ci_forest(df: pd.DataFrame, group_col: str, group_labels: dict[str, str],
-                   title: str, x_title: str = "Change when raining (%)") -> go.Figure:
+                   title: str, x_title: str = "Change when raining (%)", lang: str = "en") -> go.Figure:
     """Grouped horizontal 95% CI forest plot with generous non-overlapping margins."""
     fig = go.Figure()
     color_map = {"total": "#8ad4ad", "car": "#5bd3dd", "motorcycle": "#f7aa58"}
+    cls_names = CLASS_NAMES_BY_LANG.get(lang, CLASS_NAMES)
     groups = list(dict.fromkeys(df[group_col]))
     val_col = "effect_pct" if "effect_pct" in df.columns else "effect_pct_points"
 
@@ -209,8 +201,12 @@ def plot_ci_forest(df: pd.DataFrame, group_col: str, group_labels: dict[str, str
         for row in sub.itertuples(index=False):
             n_wet = getattr(row, "n_wet_hours", getattr(row, "n_hours", "—"))
             n_clk = getattr(row, "n_clock_hours", None)
-            extra = f" | Clock hrs: {n_clk}" if n_clk is not None else ""
+            clk_lbl = "ชม.นาฬิกา" if lang == "th" else "Clock hrs"
+            extra = f" | {clk_lbl}: {n_clk}" if n_clk is not None else ""
             custom.append([row.ci_low, row.ci_high, n_wet, extra])
+        cname = cls_names.get(cls, cls)
+        est_lbl = "ค่าประมาณ" if lang == "th" else "Estimate"
+        obs_lbl = "ชม.สังเกต" if lang == "th" else "Obs hours"
         fig.add_trace(go.Scatter(
             x=sub[val_col],
             y=sub["group_label"],
@@ -223,14 +219,14 @@ def plot_ci_forest(df: pd.DataFrame, group_col: str, group_labels: dict[str, str
                 width=5,
             ),
             mode="markers",
-            name=CLASS_NAMES.get(cls, cls),
+            name=cname,
             marker=dict(size=10, color=color_map.get(cls, "#a9bed0")),
             customdata=custom,
             hovertemplate=(
-                "<b>%{y} — " + CLASS_NAMES.get(cls, cls) + "</b><br>"
-                "Estimate: %{x:+.1f}%<br>"
+                f"<b>%{{y}} — {cname}</b><br>"
+                f"{est_lbl}: %{{x:+.1f}}%<br>"
                 "95% CI: [%{customdata[0]:+.1f}%, %{customdata[1]:+.1f}%]<br>"
-                "Obs hours: %{customdata[2]}%{customdata[3]}<extra></extra>"
+                f"{obs_lbl}: %{{customdata[2]}}%{{customdata[3]}}<extra></extra>"
             ),
         ))
 
@@ -254,26 +250,33 @@ def plot_ci_forest(df: pd.DataFrame, group_col: str, group_labels: dict[str, str
     return fig
 
 
-def plot_rain_timing(timing_df: pd.DataFrame) -> go.Figure:
+def plot_rain_timing(timing_df: pd.DataFrame, lang: str = "en") -> go.Figure:
+    day_map = DAY_TYPE_BY_LANG.get(lang, DAY_TYPE_BY_LANG["en"])
     view = timing_df.copy()
-    view["day_label"] = view["day_type"].map({"weekday": "Weekday", "weekend": "Weekend"})
+    view["day_label"] = view["day_type"].map(day_map)
     view["hour_label"] = view["hour"].map(lambda h: f"{int(h):02d}:00")
+    x_lbl = "ชั่วโมงนาฬิกา" if lang == "th" else "Clock hour"
+    y_lbl = "ชั่วโมงกล้องที่มีฝน" if lang == "th" else "Wet camera-hours"
+    d_lbl = "ประเภทวัน" if lang == "th" else "Day type"
     fig = px.bar(
         view,
         x="hour_label",
         y="n_camera_hours",
         color="day_label",
         barmode="group",
-        color_discrete_map={"Weekday": "#5bd3dd", "Weekend": "#f7aa58"},
+        color_discrete_map={day_map["weekday"]: "#5bd3dd", day_map["weekend"]: "#f7aa58"},
         custom_data=["n_clock_hours", "motorcycle_effect_pct"],
-        labels={"hour_label": "Clock hour", "n_camera_hours": "Wet camera-hours", "day_label": "Day type"},
-        title="Weekday vs Weekend Rain Exposure by Clock Hour (Overlap only at 16:00–17:00)",
+        labels={"hour_label": x_lbl, "n_camera_hours": y_lbl, "day_label": d_lbl},
+        title=tr("timing_title", lang),
     )
+    ch_lbl = "ชม.กล้อง" if lang == "th" else "Camera-hours"
+    dc_lbl = "จำนวนชั่วโมงเวลาจริง" if lang == "th" else "Distinct clock hours"
+    mc_lbl = "การเปลี่ยนมอเตอร์ไซค์" if lang == "th" else "Motorcycle change"
     fig.update_traces(hovertemplate=(
         "<b>%{x} (%{fullData.name})</b><br>"
-        "Camera-hours: %{y}<br>"
-        "Distinct clock hours: %{customdata[0]}<br>"
-        "Motorcycle change: %{customdata[1]:+.1f}%<extra></extra>"
+        f"{ch_lbl}: %{{y}}<br>"
+        f"{dc_lbl}: %{{customdata[0]}}<br>"
+        f"{mc_lbl}: %{{customdata[1]:+.1f}}%<extra></extra>"
     ))
     fig.update_layout(
         height=360,
@@ -285,44 +288,51 @@ def plot_rain_timing(timing_df: pd.DataFrame) -> go.Figure:
     return fig
 
 
-def plot_hourly_dual_axis(trend_df: pd.DataFrame, metrics: list[str]) -> go.Figure:
+def plot_hourly_dual_axis(trend_df: pd.DataFrame, metrics: list[str], lang: str = "en") -> go.Figure:
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     colors = {"total": "#8ad4ad", "car": "#5bd3dd", "motorcycle": "#f7aa58", "bus": "#c792ea", "truck": "#ff7887"}
+    cls_names = CLASS_NAMES_BY_LANG.get(lang, CLASS_NAMES)
 
+    rain_hover = "ฝนเฉลี่ย: %{y:.2f} มม./ชม." if lang == "th" else "Mean rain: %{y:.2f} mm/h"
     fig.add_trace(
         go.Bar(
             x=trend_df["hour_ts"],
             y=trend_df["mean_rain_mm"],
-            name="Mean Rain (mm/h)",
+            name=tr("ts_rain_bar", lang),
             marker_color="rgba(91, 211, 221, 0.28)",
-            hovertemplate="%{x|%d %b %H:%M}<br>Mean rain: %{y:.2f} mm/h<extra></extra>",
+            hovertemplate=f"%{{x|%d %b %H:%M}}<br>{rain_hover}<extra></extra>",
         ),
         secondary_y=True,
     )
+    dens_lbl = "ความหนาแน่นเฉลี่ย" if lang == "th" else "Mean density"
+    unit_lbl = "คัน/เฟรม" if lang == "th" else "veh/frame"
+    cam_lbl = "กล้องทำงาน" if lang == "th" else "Active cameras"
+    wet_lbl = "ฝนตก" if lang == "th" else "Wet"
     for cls in metrics:
+        cname = cls_names.get(cls, cls)
         fig.add_trace(
             go.Scatter(
                 x=trend_df["hour_ts"],
                 y=trend_df[cls],
                 mode="lines+markers",
-                name=CLASS_NAMES.get(cls, cls),
+                name=cname,
                 line=dict(width=2.5, color=colors.get(cls, "#ffffff")),
                 marker=dict(size=5),
                 customdata=np.column_stack([trend_df["cameras"], trend_df["wet_cameras"]]),
                 hovertemplate=(
-                    "<b>" + CLASS_NAMES.get(cls, cls) + "</b><br>"
+                    f"<b>{cname}</b><br>"
                     "%{x|%d %b %H:%M}<br>"
-                    "Mean density: %{y:.2f} veh/frame<br>"
-                    "Active cameras: %{customdata[0]} (Wet: %{customdata[1]})<extra></extra>"
+                    f"{dens_lbl}: %{{y:.2f}} {unit_lbl}<br>"
+                    f"{cam_lbl}: %{{customdata[0]}} ({wet_lbl}: %{{customdata[1]}})<extra></extra>"
                 ),
             ),
             secondary_y=False,
         )
 
-    fig.update_yaxes(title_text="Mean vehicles / frame", secondary_y=False, automargin=True)
-    fig.update_yaxes(title_text="Mean gauge rain (mm/h)", secondary_y=True, showgrid=False, automargin=True)
+    fig.update_yaxes(title_text=tr("ts_y1", lang), secondary_y=False, automargin=True)
+    fig.update_yaxes(title_text=tr("ts_y2", lang), secondary_y=True, showgrid=False, automargin=True)
     fig.update_layout(
-        title="Hourly Traffic Density vs Mean Rainfall",
+        title=tr("ts_title", lang),
         height=440,
         hovermode="x unified",
         margin=dict(l=20, r=20, t=68, b=68),
@@ -333,24 +343,27 @@ def plot_hourly_dual_axis(trend_df: pd.DataFrame, metrics: list[str]) -> go.Figu
     return fig
 
 
-def plot_rebound(rebound_df: pd.DataFrame) -> go.Figure:
+def plot_rebound(rebound_df: pd.DataFrame, lang: str = "en") -> go.Figure:
+    cls_names = CLASS_NAMES_BY_LANG.get(lang, CLASS_NAMES)
     view = rebound_df.copy()
-    view["cls_name"] = view["cls"].map(lambda c: CLASS_NAMES.get(c, c))
+    view["cls_name"] = view["cls"].map(lambda c: cls_names.get(c, c))
     fig = px.line(
         view,
         x="minute",
         y="ratio",
         color="cls_name",
         markers=True,
-        color_discrete_map={"Cars": "#5bd3dd", "Motorcycles": "#f7aa58"},
+        color_discrete_map={cls_names["car"]: "#5bd3dd", cls_names["motorcycle"]: "#f7aa58"},
         custom_data=["n_events"],
-        labels={"minute": "Minutes relative to first dry hour after rain (t = 0)",
-                "ratio": "Ratio to matched dry baseline (1.0 = normal)", "cls_name": "Vehicle class"},
-        title="Traffic Recovery Before and After Rain Stops (-60 to +180 min)",
+        labels={"minute": tr("rebound_x", lang), "ratio": tr("rebound_y", lang), "cls_name": tr("rebound_cls", lang)},
+        title=tr("rebound_title", lang),
     )
     fig.add_hline(y=1.0, line_dash="dash", line_color="#7993a9")
     fig.add_vline(x=0, line_dash="dot", line_color="#ff7887")
-    fig.update_traces(hovertemplate="%{x:+d} min · Ratio %{y:.3f}x (events: %{customdata[0]})<extra></extra>")
+    min_u = "นาที" if lang == "th" else "min"
+    ratio_u = "อัตราส่วน" if lang == "th" else "Ratio"
+    ev_u = "เหตุการณ์" if lang == "th" else "events"
+    fig.update_traces(hovertemplate=f"%{{x:+d}} {min_u} · {ratio_u} %{{y:.3f}}x ({ev_u}: %{{customdata[0]}})<extra></extra>")
     fig.update_layout(
         height=370,
         margin=dict(l=20, r=20, t=68, b=64),
@@ -363,7 +376,7 @@ def plot_rebound(rebound_df: pd.DataFrame) -> go.Figure:
 
 def build_pydeck_map(cameras_df: pd.DataFrame, rail_df: pd.DataFrame,
                      traffy_df: pd.DataFrame, traffy_layer_col: str | None,
-                     show_rail: bool, show_districts: bool, map_height: int) -> pdk.Deck:
+                     show_rail: bool, show_districts: bool, map_height: int, lang: str = "en") -> pdk.Deck:
     layers = []
     if show_districts:
         geojson = load_districts_geojson()
@@ -391,7 +404,8 @@ def build_pydeck_map(cameras_df: pd.DataFrame, rail_df: pd.DataFrame,
 
     if show_rail and not rail_df.empty:
         rail_view = rail_df[["longitude", "latitude", "station_label", "network"]].copy()
-        rail_view["tooltip_title"] = "Station: " + rail_view["station_label"].astype(str)
+        st_prefix = "สถานี: " if lang == "th" else "Station: "
+        rail_view["tooltip_title"] = st_prefix + rail_view["station_label"].astype(str)
         rail_view["tooltip_body"] = rail_view["network"].fillna("BTS / MRT").astype(str)
         layers.append(pdk.Layer(
             "ScatterplotLayer",
@@ -404,22 +418,39 @@ def build_pydeck_map(cameras_df: pd.DataFrame, rail_df: pd.DataFrame,
             pickable=True,
         ))
 
+    lbl_map = LABEL_TEXT_BY_LANG.get(lang, LABEL_TEXT)
     cam_view = cameras_df.copy()
     cam_view["fill_color"] = cam_view["label"].map(lambda x: LABEL_RGB.get(x, [119, 139, 160, 180]))
     cam_view["radius"] = np.where(cam_view["label"] == "denser", 260, 175)
+    cam_prefix = "กล้อง #" if lang == "th" else "Cam #"
     cam_view["tooltip_title"] = cam_view.apply(
-        lambda r: f"Cam #{int(r['camera_id'])}" + (f" · {r['location_th']}" if r.get("location_th") else ""),
-        axis=1,
-    )
-    cam_view["tooltip_body"] = cam_view.apply(
-        lambda r: (
-            f"Status: {LABEL_TEXT.get(r.get('label'), r.get('label'))} | "
-            f"Effect: {pct(r.get('effect_pct'))} | "
-            f"Wet hrs: {int(r.get('n_wet_hours', 0))} | "
-            f"Rail: {int(r.get('rail_dist_m', 0))} m"
+        lambda r: f"{cam_prefix}{int(r['camera_id'])}" + (
+            f" · {r['location_th'] or r.get('location_en', '')}"
+            if lang == "th"
+            else f" · {r.get('location_en') or r.get('location_th', '')}"
         ),
         axis=1,
     )
+    if lang == "th":
+        cam_view["tooltip_body"] = cam_view.apply(
+            lambda r: (
+                f"สถานะ: {lbl_map.get(r.get('label'), r.get('label'))} | "
+                f"ผลกระทบ: {pct(r.get('effect_pct'))} | "
+                f"ชม.ฝน: {int(r.get('n_wet_hours', 0))} | "
+                f"รถไฟฟ้า: {int(r.get('rail_dist_m', 0))} ม."
+            ),
+            axis=1,
+        )
+    else:
+        cam_view["tooltip_body"] = cam_view.apply(
+            lambda r: (
+                f"Status: {lbl_map.get(r.get('label'), r.get('label'))} | "
+                f"Effect: {pct(r.get('effect_pct'))} | "
+                f"Wet hrs: {int(r.get('n_wet_hours', 0))} | "
+                f"Rail: {int(r.get('rail_dist_m', 0))} m"
+            ),
+            axis=1,
+        )
     layers.append(pdk.Layer(
         "ScatterplotLayer",
         data=cam_view,
@@ -445,9 +476,29 @@ def build_pydeck_map(cameras_df: pd.DataFrame, rail_df: pd.DataFrame,
 
 
 def render_dashboard() -> None:
-    st.set_page_config(page_title="Bangkok Rain & Traffic Analytics (PyDuckLake)", layout="wide")
-    st.title("Bangkok Rain, Urban Mobility & Traffic Analytics")
-    st.caption("100 BMA CCTV Cameras · 25–31 Aug 2026 · Powered by PyDuckLake Silver & Gold Lakehouse Tables")
+    if "lang" not in st.session_state:
+        st.session_state["lang"] = "en"
+    lang = st.session_state["lang"]
+    cls_names = CLASS_NAMES_BY_LANG.get(lang, CLASS_NAMES)
+    lbl_map = LABEL_TEXT_BY_LANG.get(lang, LABEL_TEXT)
+    seg_map = SEGMENT_NAMES_BY_LANG.get(lang, SEGMENT_NAMES)
+    win_map = WINDOW_NAMES_BY_LANG.get(lang, WINDOW_NAMES)
+    heat_options = HEAT_OPTIONS_BY_LANG.get(lang, HEAT_OPTIONS_BY_LANG["en"])
+
+    st.set_page_config(page_title=tr("page_title", lang), layout="wide")
+    hdr_col, lang_col = st.columns([6, 1])
+    with hdr_col:
+        st.title(tr("main_title", lang))
+        st.caption(tr("subtitle", lang))
+    with lang_col:
+        st.write("")
+        st.button(
+            tr("toggle_btn", lang),
+            key="lang_toggle_btn",
+            on_click=_toggle_lang,
+            help=tr("toggle_help", lang),
+            width="stretch",
+        )
 
     if not CATALOG_PATH.exists():
         st.error(f"PyDuckLake catalog not found at `{CATALOG_PATH}`. Run `python DataEngineering/lakehouse_pipeline.py` first.")
@@ -489,114 +540,93 @@ def render_dashboard() -> None:
 
     # ---------------- Sidebar Parameter Sliders ----------------
     with st.sidebar:
-        st.header("Dashboard Parameters")
-        with st.expander("1. Time Series & Data Quality", expanded=True):
+        st.header(tr("sidebar_header", lang))
+        with st.expander(tr("exp_ts", lang), expanded=True):
             all_dates = sorted(hours["date"].unique())
-            chosen_dates = st.multiselect("Dates", all_dates, default=all_dates)
+            chosen_dates = st.multiselect(tr("dates", lang), all_dates, default=all_dates)
             chosen_classes = st.multiselect(
-                "Vehicle Classes",
+                tr("veh_classes", lang),
                 ["motorcycle", "car", "total", "bus", "truck"],
                 default=["motorcycle", "car"],
-                format_func=lambda x: CLASS_NAMES.get(x, x),
+                format_func=lambda x: cls_names.get(x, x),
             )
             exclude_blank_hours = st.checkbox(
-                "Exclude blank-feed placeholder hours (< 3 KB)",
+                tr("excl_blank", lang),
                 value=True,
-                help="BMA snapshots around 07:21–07:26 (e.g., Aug 27 07:00) contain 1.4 KB solid white frames.",
+                help=tr("excl_blank_help", lang),
             )
 
-        with st.expander("2. Spatial Map (PyDeck)", expanded=True):
-            map_height = st.slider("Map Panel Height (px)", min_value=520, max_value=960, value=760, step=20)
+        with st.expander(tr("exp_map", lang), expanded=True):
+            map_height = st.slider(tr("map_height", lang), min_value=520, max_value=960, value=760, step=20)
             all_labels = sorted(cameras["label"].unique())
             selected_labels = st.multiselect(
-                "Camera Response Filter",
+                tr("cam_filter", lang),
                 all_labels,
                 default=all_labels,
-                format_func=lambda x: LABEL_TEXT.get(x, x),
+                format_func=lambda x: lbl_map.get(x, x),
             )
-            min_wet_slider = st.slider("Minimum Wet Hours", 0, int(cameras["n_wet_hours"].max()), 0)
-            heat_options = {
-                "None": None,
-                "Traffy: Flood Reports": "is_flood",
-                "Traffy: Traffic Jams": "is_traffic",
-                "Traffy: Road Issues": "is_road",
-                "Traffy: Sidewalk Obstructions": "is_sidewalk",
-            }
-            heat_choice = st.selectbox("Traffy Heatmap Overlay", list(heat_options.keys()))
-            show_rail = st.checkbox("Show BTS / MRT Stations", value=True)
-            show_districts = st.checkbox("Show 50 Bangkok Districts", value=False)
+            min_wet_slider = st.slider(tr("min_wet", lang), 0, int(cameras["n_wet_hours"].max()), 0)
+            heat_choice = st.selectbox(tr("traffy_overlay", lang), list(heat_options.keys()))
+            show_rail = st.checkbox(tr("show_rail", lang), value=True)
+            show_districts = st.checkbox(tr("show_dist", lang), value=False)
 
-        with st.expander("3. Network Graph", expanded=False):
-            rail_radius = st.slider("Camera ↔ Rail Max Distance (m)", 300, 1500, 800, step=100)
-            cam_radius = st.slider("Camera ↔ Camera Max Distance (m)", 400, 2000, 900, step=100)
-            k_rail = st.slider("Nearest Rail Hubs per Camera", 1, 3, 1, step=1)
-            k_cam = st.slider("Nearest Neighbor Cams per Camera", 0, 3, 2, step=1)
-            net_communities = st.checkbox("Detect Communities (Greedy Modularity)", value=True)
-            net_layout = st.selectbox("Layout Algorithm", nv.LAYOUTS, index=0)
-            net_size_by = st.selectbox("Node Size By", ["degree", "betweenness", "closeness", "pagerank", "single size"], index=0)
-            net_color_by = st.selectbox("Node Color By", (["community"] if net_communities else []) + ["rain_effect", "degree", "betweenness", "closeness", "pagerank"])
-            net_scale = st.slider("Graph Spread Scale", 600, 2200, 1350, step=50)
-            net_size_range = st.slider("Node Size Range", 6, 48, (10, 30), step=2)
-            net_noverlap = st.checkbox("Prevent Node Overlap (Noverlap)", value=False)
-            net_labels_n = st.slider("Label Top N Cameras", 0, 100, 35, step=5)
-            net_font_size = st.slider("Label Font Size", 8, 28, 13, step=1)
-            net_min_comp = st.slider("Hide Clusters Smaller Than (nodes)", 1, 15, 2, step=1)
-            net_show_edges = st.checkbox("Show Network Edges", value=True)
+        with st.expander(tr("exp_net", lang), expanded=False):
+            rail_radius = st.slider(tr("rail_rad", lang), 300, 1500, 800, step=100)
+            cam_radius = st.slider(tr("cam_rad", lang), 400, 2000, 900, step=100)
+            k_rail = st.slider(tr("k_rail", lang), 1, 3, 1, step=1)
+            k_cam = st.slider(tr("k_cam", lang), 0, 3, 2, step=1)
+            net_communities = st.checkbox(tr("net_comm", lang), value=True)
+            net_layout = st.selectbox(tr("net_layout", lang), nv.LAYOUTS, index=0)
+            net_size_by = st.selectbox(tr("net_size", lang), ["degree", "betweenness", "closeness", "pagerank", "single size"], index=0)
+            net_color_by = st.selectbox(tr("net_color", lang), (["community"] if net_communities else []) + ["rain_effect", "degree", "betweenness", "closeness", "pagerank"])
+            net_scale = st.slider(tr("net_scale", lang), 600, 2200, 1350, step=50)
+            net_size_range = st.slider(tr("net_range", lang), 6, 48, (10, 30), step=2)
+            net_noverlap = st.checkbox(tr("net_noverlap", lang), value=False)
+            net_labels_n = st.slider(tr("net_labels_n", lang), 0, 100, 35, step=5)
+            net_font_size = st.slider(tr("net_font", lang), 8, 28, 13, step=1)
+            net_min_comp = st.slider(tr("net_min_comp", lang), 1, 15, 2, step=1)
+            net_show_edges = st.checkbox(tr("net_edges", lang), value=True)
 
-        with st.expander("4. Supervised ML What-If Simulator", expanded=False):
-            sim_rain = st.slider("Simulated Rain (mm/hr)", 0.0, 35.0, 5.0, step=0.5)
-            sim_hod = st.slider("Hour of Day", 6, 21, 17, step=1)
-            sim_weekend = st.checkbox("Weekend Day", value=False)
-            sim_rail_dist = st.slider("Distance to Nearest BTS/MRT (m)", 50, 3000, 450, step=50)
-            sim_near_shelter = st.checkbox("Near Footbridge / Expressway Shelter", value=True)
-            sim_base_total = st.slider("Typical Dry Baseline Vehicles / Frame", 3.0, 35.0, 14.0, step=0.5)
-            sim_temp = st.slider("Ambient Temperature (°C)", 24.0, 36.0, 29.0, step=0.5)
-            sim_vis = st.slider("METAR Visibility (km)", 2.0, 12.0, 8.0, step=0.5)
+        with st.expander(tr("exp_sim", lang), expanded=False):
+            sim_rain = st.slider(tr("sim_rain", lang), 0.0, 35.0, 5.0, step=0.5)
+            sim_hod = st.slider(tr("sim_hod", lang), 6, 21, 17, step=1)
+            sim_weekend = st.checkbox(tr("sim_weekend", lang), value=False)
+            sim_rail_dist = st.slider(tr("sim_rail_dist", lang), 50, 3000, 450, step=50)
+            sim_near_shelter = st.checkbox(tr("sim_shelter", lang), value=True)
+            sim_base_total = st.slider(tr("sim_base", lang), 3.0, 35.0, 14.0, step=0.5)
+            sim_temp = st.slider(tr("sim_temp", lang), 24.0, 36.0, 29.0, step=0.5)
+            sim_vis = st.slider(tr("sim_vis", lang), 2.0, 12.0, 8.0, step=0.5)
 
     # ---------------- Executive KPI Strip ----------------
-    st.info(
-        "**Key Finding:** Motorcycles visible per frame drop **-21.0%** (95% CI -27.4% to -14.4%, rush hour **-30.5%**) "
-        "during rain compared to dry baselines at the exact same camera, clock hour, and weekday/weekend type. "
-        "Cars overall stay near zero (-2.2%, CI -6.4% to +2.2%), pulling overall frame counts down by -5.4%."
-    )
+    st.info(tr("kpi_banner", lang))
     k1, k2, k3, k4 = st.columns(4)
-    for col, cls, title in zip((k1, k2, k3), ("total", "car", "motorcycle"), ("All Vehicles (Wet)", "Cars (Wet)", "Motorcycles (Wet)")):
+    kpi_titles = (tr("kpi_all", lang), tr("kpi_cars", lang), tr("kpi_moto", lang))
+    for col, cls, title in zip((k1, k2, k3), ("total", "car", "motorcycle"), kpi_titles):
         r = overall.loc[cls]
-        col.metric(title, pct(r["effect_pct"]), help=f"95% CI {pct(r['ci_low'])} to {pct(r['ci_high'])} across {int(r['n_wet_hours'])} wet camera-hours")
+        col.metric(
+            title,
+            pct(r["effect_pct"]),
+            help=tr("kpi_help", lang, lo=pct(r["ci_low"]), hi=pct(r["ci_high"]), n=int(r["n_wet_hours"])),
+        )
     wd = set(timing[timing["day_type"] == "weekday"]["hour"]) if not timing.empty else set()
     we = set(timing[timing["day_type"] == "weekend"]["hour"]) if not timing.empty else set()
-    k4.metric("Weekday–Weekend Rain Overlap", f"{len(wd & we)} hrs", help="Rain fell weekdays 16:00–20:00 (8 clock hrs, 69 cam-hrs) vs weekends 12:00–17:00 (8 clock hrs, 224 cam-hrs)")
+    k4.metric(tr("kpi_overlap", lang), tr("kpi_overlap_hrs", lang, n=len(wd & we)), help=tr("kpi_overlap_help", lang))
 
-    tabs = st.tabs([
-        "Overview & Timing",
-        "Time Series & Anomalies",
-        "Spatial Map (PyDeck)",
-        "Network Analysis (PyVis)",
-        "Supervised ML & Correlations",
-        "Hypotheses, Flood & News",
-        "Data Quality & Causal Audit",
-    ])
+    tabs = st.tabs(UI[lang]["tabs"])
 
     # ---------------- TAB 1: OVERVIEW ----------------
     with tabs[0]:
         c1, c2 = st.columns(2)
         with c1:
-            st.plotly_chart(plot_ci_forest(city, "window", WINDOW_NAMES, "Rain Effect by Time Window (95% CI)"), width="stretch")
+            st.plotly_chart(plot_ci_forest(city, "window", win_map, tr("ci_title_win", lang), tr("ci_x", lang), lang=lang), width="stretch")
         with c2:
             if not stratified.empty:
-                st.plotly_chart(plot_ci_forest(stratified, "segment", SEGMENT_NAMES, "Subgroup Splits: Weekday/Weekend & Rain Intensity"), width="stretch")
+                st.plotly_chart(plot_ci_forest(stratified, "segment", seg_map, tr("ci_title_seg", lang), tr("ci_x", lang), lang=lang), width="stretch")
         if not timing.empty:
-            st.plotly_chart(plot_rain_timing(timing), width="stretch")
-        st.warning(
-            "**Why '69 camera-hours (8 clock hours, 16:00–20:00)' matters:** Across Mon–Fri, rain >= 1 mm only occurred during 8 distinct clock-hour timestamps, hitting multiple cameras at once (summing to 69 camera-hour pairs). "
-            "Weekend rain fell almost exclusively earlier in the day (12:00–17:00), leaving only **16:00 and 17:00** to compare directly."
-        )
-        with st.expander("Why do still-frame counts DECREASE when it rains instead of increasing congestion?"):
-            st.markdown(
-                "- **Frames measure spatial density, not travel speed:** A 10-minute still photo counts how many vehicles are inside the frame at that instant—it cannot measure travel time (km/h) or throughput (`flow = density × speed`).\n"
-                "- **Motorcycles leave open roadways (-21.0% citywide, -30.5% rush hour):** Two-wheelers visibly disappear during rainfall (canceling trips, delaying departures until rain clears as seen in `Rebound`, or stopping under off-road cover). Because motorcycles make up ~20.5% of daytime counts (`113,310 / 551,501`), losing them pulls total vehicle counts down (`-5.4%`).\n"
-                "- **Gridlock limits inflow:** Even when slow traffic builds up upstream, blocked corridors can feed *fewer* passing cars into open main-road frames. Only in our **15-hour same-hour neighbor comparison** (`natural_experiment`: rained-on cameras vs dry neighbors <= 3 km away) do cars read **+12.6 percentage points higher** (95% CI +2.2 to +20.7)."
-            )
+            st.plotly_chart(plot_rain_timing(timing, lang=lang), width="stretch")
+        st.warning(tr("timing_warn", lang))
+        with st.expander(tr("why_dec_exp", lang)):
+            st.markdown(tr("why_dec_md", lang))
 
     # ---------------- TAB 2: TIME SERIES & ANOMALIES ----------------
     with tabs[1]:
@@ -615,44 +645,38 @@ def render_dashboard() -> None:
                 wet_cameras=("wet", "sum"),
                 frames=("n_frames", "sum"),
             )
-            st.plotly_chart(plot_hourly_dual_axis(trend, chosen_classes), width="stretch")
+            st.plotly_chart(plot_hourly_dual_axis(trend, chosen_classes, lang=lang), width="stretch")
         else:
-            st.info("Select at least one date and one vehicle class in the sidebar.")
+            st.info(tr("ts_empty", lang))
 
         rebound = gold_table("rebound")
         if not rebound.empty:
-            st.plotly_chart(plot_rebound(rebound), width="stretch")
+            st.plotly_chart(plot_rebound(rebound, lang=lang), width="stretch")
 
-        st.info(
-            "**Aug 27 07:00 (and 07:00–08:00) Drop Explanation:** Querying `lake.silver.cctv_frames` shows that on **Aug 27 at 07:21–07:26**, **71 of 73 captured frames** (across cameras like `#11, #18, #26`) have file sizes of **1,402–1,404 bytes**—completely solid-white BMA server outage placeholder images (normal frames are 25–35 KB). "
-            "Thus neither YOLO detector failed; the source images were blank. Same 07:00–08:00 outage placeholders occurred across subsets of cameras on Aug 26, 28, 29, 30, and 31. Toggle `Exclude blank-feed placeholder hours` in the sidebar to inspect before vs after."
-        )
+        st.info(tr("outage_info", lang))
 
     # ---------------- TAB 3: TALL PYDECK SPATIAL MAP ----------------
     with tabs[2]:
         rail_df = load_rail_stations()
         traffy_df = load_traffy()
         filtered = cameras[cameras["label"].isin(selected_labels) & (cameras["n_wet_hours"] >= min_wet_slider)].copy()
-        st.caption(
-            f"Showing **{len(filtered)} / {len(cameras)} cameras** · Height: `{map_height}px` · "
-            "Cyan = Clears, Red = Denser, Green = Unaffected, Orange = <3 wet hrs, Slate = No matched rain"
-        )
+        st.caption(tr("map_cap", lang, shown=len(filtered), total=len(cameras), h=map_height))
         if not filtered.empty:
             deck = build_pydeck_map(
-                filtered, rail_df, traffy_df, heat_options[heat_choice], show_rail, show_districts, map_height,
+                filtered, rail_df, traffy_df, heat_options[heat_choice], show_rail, show_districts, map_height, lang=lang,
             )
             st.pydeck_chart(deck, width="stretch", height=map_height)
-            cols_show = ["camera_id", "location_th", "label", "effect_pct", "ci_low", "ci_high",
+            cols_show = ["camera_id", "location_th", "location_en", "label", "effect_pct", "ci_low", "ci_high",
                          "n_wet_hours", "gauge", "gauge_dist_m", "rail_dist_m", "near_rail", "near_shelter"]
             avail = [c for c in cols_show if c in filtered.columns]
             st.dataframe(filtered[avail].sort_values("effect_pct", na_position="last"), width="stretch", hide_index=True)
         else:
-            st.info("No cameras match the current sidebar filter.")
+            st.info(tr("map_empty", lang))
 
     # ---------------- TAB 4: INTERACTIVE PYVIS + NETWORKX ----------------
     with tabs[3]:
         rail_df = load_rail_stations()
-        st.subheader("Bangkok CCTV & Rapid Transit Corridor Network")
+        st.subheader(tr("net_subhdr", lang))
         G = nv.build_bangkok_network(
             cameras, rail_df, rail_radius_m=rail_radius, cam_radius_m=cam_radius, k_rail=k_rail, k_cam=k_cam,
         )
@@ -664,28 +688,31 @@ def render_dashboard() -> None:
 
         stats = nv.compute_basic_stats(G)
         s_cols = st.columns(6)
-        s_cols[0].metric("Nodes", stats["Nodes"])
-        s_cols[1].metric("Edges", stats["Edges"])
-        s_cols[2].metric("Communities", len(set(communities.values())) if communities else 0)
-        s_cols[3].metric("Diameter", stats["Diameter"])
-        s_cols[4].metric("Avg Clustering", f"{stats['Avg Clustering']:.3f}")
-        s_cols[5].metric("Avg Path Length", f"{stats['Avg Path Length']:.2f}")
+        m_lbls = UI[lang]["net_metrics"]
+        s_cols[0].metric(m_lbls[0], stats["Nodes"])
+        s_cols[1].metric(m_lbls[1], stats["Edges"])
+        s_cols[2].metric(m_lbls[2], len(set(communities.values())) if communities else 0)
+        s_cols[3].metric(m_lbls[3], stats["Diameter"])
+        s_cols[4].metric(m_lbls[4], f"{stats['Avg Clustering']:.3f}")
+        s_cols[5].metric(m_lbls[5], f"{stats['Avg Path Length']:.2f}")
 
         selected_comm = None
+        all_cl_label = tr("net_all_clusters", lang)
         if communities and not comm_summary_df.empty:
-            comm_choices = ["All Connected Clusters"] + [
-                f"Community #{int(r.Community)} ({int(r.Cameras)} cams, {int(r.Stations)} stations: {r._4})"
-                if hasattr(r, "_4") else f"Community #{int(r.Community)} ({int(r.Cameras)} cams)"
-                for r in comm_summary_df[comm_summary_df["Cameras"] + comm_summary_df["Stations"] >= 2].itertuples(index=False)
-            ]
-            # Build readable labels directly
             multi_comms = comm_summary_df[comm_summary_df["Cameras"] + comm_summary_df["Stations"] >= 2]
             labels_map = {
-                f"Community #{int(r['Community'])} — {int(r['Cameras'])} cams, {int(r['Stations'])} rail hubs ({r['Station Hubs'] or 'corridor only'})": int(r["Community"])
+                tr(
+                    "net_comm_fmt",
+                    lang,
+                    cid=int(r["Community"]),
+                    cams=int(r["Cameras"]),
+                    st=int(r["Stations"]),
+                    hubs=r["Station Hubs"] or tr("net_corr_only", lang),
+                ): int(r["Community"])
                 for _, r in multi_comms.iterrows()
             }
-            pick = st.selectbox("Zoom Into Community Cluster", ["All Clusters"] + list(labels_map.keys()))
-            if pick != "All Clusters":
+            pick = st.selectbox(tr("net_zoom", lang), [all_cl_label] + list(labels_map.keys()))
+            if pick != all_cl_label:
                 selected_comm = labels_map[pick]
 
         html_content = nv.render_pyvis_html(
@@ -709,73 +736,75 @@ def render_dashboard() -> None:
         dl_col, rand_col = st.columns([1, 2])
         with dl_col:
             st.download_button(
-                "Download Interactive Graph (HTML)",
+                tr("net_dl", lang),
                 data=html_content,
                 file_name="bangkok_cctv_network.html",
                 mime="text/html",
             )
         with rand_col:
-            if st.checkbox("Compare with Random Graph (Erdős–Rényi, same nodes & edges)"):
+            if st.checkbox(tr("net_rand", lang)):
                 st.dataframe(nv.compare_with_random(G).round(3), width="stretch")
 
-        st.subheader("Who Connects to Whom (Camera ↔ Station ↔ Neighbors)")
-        view_links = cam_links_df if selected_comm is None else cam_links_df[cam_links_df["Community"] == selected_comm]
+        raw_links = cam_links_df if selected_comm is None else cam_links_df[cam_links_df["Community"] == selected_comm]
+        view_links, view_comms = localize_network_tables(raw_links, comm_summary_df, lang)
+
+        st.subheader(tr("net_links_hdr", lang))
         st.dataframe(view_links, width="stretch", height=320, hide_index=True)
 
         if not comm_summary_df.empty:
-            st.subheader("Detected Spatial Corridor Communities")
-            st.dataframe(comm_summary_df, width="stretch", height=260, hide_index=True)
+            st.subheader(tr("net_comms_hdr", lang))
+            st.dataframe(view_comms, width="stretch", height=260, hide_index=True)
 
         left_n, right_n = st.columns(2)
         with left_n:
-            st.subheader("Degree Distribution")
-            scale_mode = st.radio("Scale", ["Histogram", "Log-log (CCDF)"], horizontal=True)
-            fig_deg = nv.plot_degree_distribution(G, log_log=(scale_mode == "Log-log (CCDF)"))
+            st.subheader(tr("net_deg_hdr", lang))
+            scale_opts = UI[lang]["net_scale_opts"]
+            scale_mode = st.radio(tr("net_scale_radio", lang), scale_opts, horizontal=True)
+            fig_deg = nv.plot_degree_distribution(G, log_log=(scale_mode == scale_opts[1]))
             st.pyplot(fig_deg, width="stretch")
         with right_n:
-            st.subheader("Centrality Scores")
+            st.subheader(tr("net_cent_hdr", lang))
             st.dataframe(cent_df.sort_values("Betweenness", ascending=False), width="stretch", height=400, hide_index=True)
 
     # ---------------- TAB 5: SUPERVISED ML & CORRELATIONS ----------------
     with tabs[4]:
-        st.subheader("Supervised Traffic Prediction Models (Trained from PyDuckLake)")
+        st.subheader(tr("ml_subhdr", lang))
         ml_metrics = gold_table("ml_metrics")
         ml_imp = gold_table("ml_feature_importance")
         ml_preds = gold_table("ml_predictions")
         corr_df = gold_table("rain_correlations")
 
         if ml_metrics.empty:
-            st.warning("ML tables not found in PyDuckLake. Run `python DataAnalysis/rain/ml_model.py`.")
+            st.warning(tr("ml_missing", lang))
         else:
-            st.markdown(
-                "Supervised **Regression** (`HistGradientBoostingRegressor`, `RandomForestRegressor`, `Ridge`) predicts hourly vehicle counts per camera, while "
-                "**Classification** (`HistGradientBoostingClassifier`) flags `+25%` traffic surges vs matched dry baselines. Evaluated on **Chronological Split** (Train Aug 25–29 $\\to$ Test Aug 30–31) and **5-Fold Spatial GroupKFold** (unseen cameras)."
-            )
+            st.markdown(tr("ml_desc", lang))
             st.dataframe(ml_metrics, width="stretch", hide_index=True)
 
             m_left, m_right = st.columns(2)
             with m_left:
                 if not ml_imp.empty:
-                    imp_target = st.selectbox("Permutation Importance Target", sorted(ml_imp["target"].unique()))
+                    imp_target = st.selectbox(tr("ml_imp_sel", lang), sorted(ml_imp["target"].unique()))
                     sub_imp = ml_imp[ml_imp["target"] == imp_target].head(10).sort_values("importance_mean")
                     fig_imp = px.bar(
                         sub_imp, x="importance_mean", y="feature", orientation="h",
                         error_x="importance_std",
-                        labels={"importance_mean": "Mean Permutation Importance (R² drop)", "feature": "Feature"},
-                        title=f"Top Drivers: {imp_target}",
+                        labels={"importance_mean": tr("ml_imp_x", lang), "feature": tr("ml_imp_y", lang)},
+                        title=tr("ml_imp_title", lang, tgt=imp_target),
                     )
                     fig_imp.update_layout(height=380, margin=dict(l=15, r=20, t=58, b=36),
                                           paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
                     st.plotly_chart(fig_imp, width="stretch")
             with m_right:
                 if not ml_preds.empty:
-                    ml_preds["weather"] = np.where(ml_preds["rain_mm"] >= 1.0, "Rain (>=1 mm)", "Dry (<1 mm)")
+                    wet_tag = tr("ml_pred_wet", lang)
+                    dry_tag = tr("ml_pred_dry", lang)
+                    ml_preds["weather"] = np.where(ml_preds["rain_mm"] >= 1.0, wet_tag, dry_tag)
                     fig_pred = px.scatter(
                         ml_preds, x="actual", y="predicted", color="weather", opacity=0.65,
-                        color_discrete_map={"Dry (<1 mm)": "#5bd3dd", "Rain (>=1 mm)": "#f7aa58"},
+                        color_discrete_map={dry_tag: "#5bd3dd", wet_tag: "#f7aa58"},
                         hover_data=["camera_id", "hod", "rain_mm"],
-                        labels={"actual": "Actual Vehicles / Frame", "predicted": "Predicted Vehicles / Frame"},
-                        title="Held-Out Test Predictions (Aug 30–31): Actual vs Predicted",
+                        labels={"actual": tr("ml_pred_x", lang), "predicted": tr("ml_pred_y", lang)},
+                        title=tr("ml_pred_title", lang),
                     )
                     max_v = float(max(ml_preds["actual"].max(), ml_preds["predicted"].max(), 1.0))
                     fig_pred.add_shape(type="line", x0=0, y0=0, x1=max_v, y1=max_v, line=dict(dash="dash", color="#7993a9"))
@@ -784,7 +813,7 @@ def render_dashboard() -> None:
                                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
                     st.plotly_chart(fig_pred, width="stretch")
 
-            st.subheader("Interactive What-If Scenario Simulator (Sidebar Section 4)")
+            st.subheader(tr("sim_subhdr", lang))
             feat_df, sim_models = load_scenario_models()
             ratio_m = float(feat_df["motorcycle_base"].sum() / max(feat_df["total_base"].sum(), 1e-6))
             ratio_c = float(feat_df["car_base"].sum() / max(feat_df["total_base"].sum(), 1e-6))
@@ -817,21 +846,25 @@ def render_dashboard() -> None:
             dry_row = sim_row.copy()
             dry_row["rain_mm"], dry_row["wet"], dry_row["heavy"], dry_row["max_flood_cm"] = 0.0, 0, 0, 0.0
             sc1, sc2, sc3 = st.columns(3)
-            for col, tgt, label in zip((sc1, sc2, sc3), ("total", "car", "motorcycle"), ("Predicted Total", "Predicted Cars", "Predicted Motorcycles")):
+            for col, tgt, label in zip((sc1, sc2, sc3), ("total", "car", "motorcycle"), UI[lang]["sim_cards"]):
                 pw = float(sim_models[tgt].predict(sim_row)[0])
                 pdry = float(sim_models[tgt].predict(dry_row)[0])
                 delta = 100.0 * (pw / max(pdry, 0.01) - 1.0)
-                col.metric(label, f"{pw:.2f} veh/frame", f"{delta:+.1f}% vs 0 mm scenario")
+                col.metric(label, tr("sim_unit", lang, val=pw), tr("sim_delta", lang, delta=delta))
 
         if not corr_df.empty:
-            st.subheader("Empirical Pearson Correlations Across Lakehouse Features")
-            scope_choice = st.radio("Correlation Scope", ["hourly_camera", "camera_effect"], horizontal=True,
-                                    format_func=lambda s: "Hourly Observations (n ≈ 9,996)" if s == "hourly_camera" else "Camera Rain Effect (n = 94)")
+            st.subheader(tr("corr_subhdr", lang))
+            scope_choice = st.radio(
+                tr("corr_scope", lang),
+                ["hourly_camera", "camera_effect"],
+                horizontal=True,
+                format_func=lambda s: tr("corr_hourly", lang) if s == "hourly_camera" else tr("corr_cam", lang),
+            )
             sub_c = corr_df[corr_df["scope"] == scope_choice].copy()
             fig_corr = px.bar(
                 sub_c, x="pearson_r", y="feature_label", color="target", barmode="group", orientation="h",
-                labels={"pearson_r": "Pearson Correlation (r)", "feature_label": "Variable", "target": "Target"},
-                title="Measured Linear Correlations Across Traffic & Weather Variables",
+                labels={"pearson_r": tr("corr_x", lang), "feature_label": tr("corr_y", lang), "target": tr("corr_t", lang)},
+                title=tr("corr_title", lang),
             )
             fig_corr.add_vline(x=0, line_dash="dash", line_color="#7993a9")
             fig_corr.update_layout(height=450, margin=dict(l=20, r=20, t=58, b=48),
@@ -842,36 +875,43 @@ def render_dashboard() -> None:
     with tabs[5]:
         nat = gold_table("natural_experiment")
         if not nat.empty:
-            st.subheader("1) Same-Hour Natural Experiment: Rained-on vs Dry Neighbor Cameras (≤ 3 km)")
+            st.subheader(tr("hyp_1", lang))
             st.plotly_chart(
-                plot_ci_forest(nat, "cls", CLASS_NAMES, "Natural Experiment (15 Clock Hours · 172 Camera Pairs)", "Difference in % vs baseline (Percentage Points)"),
+                plot_ci_forest(nat, "cls", cls_names, tr("hyp_1_title", lang), tr("hyp_1_x", lang), lang=lang),
                 width="stretch",
             )
-            st.caption("Cars read +12.59 pts higher (CI +2.2 to +20.7) at wet cameras vs dry neighbors within 3 km in the exact same hour, though observed in only 15 hours without taxi/private splits.")
+            st.caption(tr("hyp_1_cap", lang))
 
         h1, h2 = st.columns(2)
         with h1:
-            st.subheader("2) Shelter & Transit Overlap vs Rain Density")
+            st.subheader(tr("hyp_2", lang))
             denser_share = gold_table("denser_share")
             if not denser_share.empty:
                 m = denser_share.melt(id_vars="feature", value_vars=["denser_share", "other_share"], var_name="group", value_name="share")
                 m["share_pct"] = m["share"] * 100.0
-                m["feature_label"] = m["feature"].map({
-                    "near_rail": "Near BTS/MRT (<=500 m)",
-                    "near_shelter": "Near Shelter (<=150 m)",
-                    "in_flood_area": "In Flood Cluster (<=100 m)",
-                }).fillna(m["feature"])
-                m["group_label"] = m["group"].map({"denser_share": "5 Denser Cameras", "other_share": "71 Other Cameras"})
+                feat_lbls = (
+                    {"near_rail": "ใกล้ BTS/MRT (<=500 ม.)", "near_shelter": "ใกล้จุดหลบฝน (<=150 ม.)", "in_flood_area": "ในกลุ่มจุดน้ำท่วม (<=100 ม.)"}
+                    if lang == "th"
+                    else {"near_rail": "Near BTS/MRT (<=500 m)", "near_shelter": "Near Shelter (<=150 m)", "in_flood_area": "In Flood Cluster (<=100 m)"}
+                )
+                grp_lbls = (
+                    {"denser_share": "5 กล้องที่รถแน่นขึ้น", "other_share": "71 กล้องที่เหลือ"}
+                    if lang == "th"
+                    else {"denser_share": "5 Denser Cameras", "other_share": "71 Other Cameras"}
+                )
+                m["feature_label"] = m["feature"].map(feat_lbls).fillna(m["feature"])
+                m["group_label"] = m["group"].map(grp_lbls)
+                y_pct_lbl = "% ของกล้อง" if lang == "th" else "% of Cameras"
                 fig_d = px.bar(m, x="feature_label", y="share_pct", color="group_label", barmode="group",
-                               color_discrete_map={"5 Denser Cameras": "#ff7887", "71 Other Cameras": "#5bd3dd"},
-                               labels={"feature_label": "", "share_pct": "% of Cameras", "group_label": ""})
+                               color_discrete_map={grp_lbls["denser_share"]: "#ff7887", grp_lbls["other_share"]: "#5bd3dd"},
+                               labels={"feature_label": "", "share_pct": y_pct_lbl, "group_label": ""})
                 fig_d.update_layout(height=340, margin=dict(l=15, r=15, t=24, b=64),
                                     legend=dict(orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5),
                                     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
                 st.plotly_chart(fig_d, width="stretch")
 
         with h2:
-            st.subheader("3) DDS Flood Sensor ≥ 5 cm Matched to Phetchaburi Cameras")
+            st.subheader(tr("hyp_3", lang))
             flood = gold_table("flood_sensor_hours")
             if not flood.empty:
                 flood_cp = flood.copy()
@@ -880,44 +920,63 @@ def render_dashboard() -> None:
                 if not phet.empty:
                     comp = phet.groupby("camera_id", as_index=False)[["car", "car_base", "motorcycle", "motorcycle_base"]].mean()
                     cm = comp.melt(id_vars="camera_id", var_name="series", value_name="avg_vehicles")
-                    cm["camera_label"] = cm["camera_id"].map({250: "Cam 250 (Phetchaburi 38)", 256: "Cam 256 (Phetchaburi 27)"})
-                    cm["series_name"] = cm["series"].map({
-                        "car": "Cars (Flood >= 5cm)", "car_base": "Cars (Dry Base)",
-                        "motorcycle": "Motorcycles (Flood >= 5cm)", "motorcycle_base": "Motorcycles (Dry Base)",
-                    })
+                    cm["camera_label"] = cm["camera_id"].map(
+                        {250: "กล้อง 250 (เพชรบุรี 38)", 256: "กล้อง 256 (เพชรบุรี 27)"}
+                        if lang == "th"
+                        else {250: "Cam 250 (Phetchaburi 38)", 256: "Cam 256 (Phetchaburi 27)"}
+                    )
+                    cm["series_name"] = cm["series"].map(
+                        {"car": "รถยนต์ (น้ำท่วม >=5 ซม.)", "car_base": "รถยนต์ (ค่าฐานแห้ง)",
+                         "motorcycle": "มอเตอร์ไซค์ (น้ำท่วม >=5 ซม.)", "motorcycle_base": "มอเตอร์ไซค์ (ค่าฐานแห้ง)"}
+                        if lang == "th"
+                        else {"car": "Cars (Flood >= 5cm)", "car_base": "Cars (Dry Base)",
+                              "motorcycle": "Motorcycles (Flood >= 5cm)", "motorcycle_base": "Motorcycles (Dry Base)"}
+                    )
+                    y_avg_lbl = "รถเฉลี่ย / เฟรม" if lang == "th" else "Mean vehicles/frame"
                     fig_p = px.bar(cm, x="camera_label", y="avg_vehicles", color="series_name", barmode="group",
-                                   labels={"camera_label": "", "avg_vehicles": "Mean vehicles/frame", "series_name": ""})
+                                   labels={"camera_label": "", "avg_vehicles": y_avg_lbl, "series_name": ""})
                     fig_p.update_layout(height=340, margin=dict(l=15, r=15, t=24, b=64),
                                         legend=dict(orientation="h", yanchor="top", y=-0.20, xanchor="center", x=0.5),
                                         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
                     st.plotly_chart(fig_p, width="stretch")
-                st.caption("`FL.RTW.02 Thanon Phetchaburi` recorded all 13 flood readings >= 5 cm (5.0–5.1 cm). Matched road cameras 250 & 256 did not show higher standing density.")
+                st.caption(tr("hyp_3_cap", lang))
 
         f1, f2 = st.columns(2)
         with f1:
-            st.subheader("4) Traffy Fondue Complaint Breakdown")
+            st.subheader(tr("hyp_4", lang))
             traffy_df = load_traffy()
             if not traffy_df.empty:
+                cats = (
+                    ["ถนน (is_road)", "รถติด (is_traffic)", "น้ำท่วม (is_flood)", "ทางเท้า (is_sidewalk)"]
+                    if lang == "th"
+                    else ["Road (is_road)", "Traffic (is_traffic)", "Flood (is_flood)", "Sidewalk (is_sidewalk)"]
+                )
+                cat_lbl = "หมวดหมู่" if lang == "th" else "Category"
+                cnt_lbl = "จำนวนเรื่อง" if lang == "th" else "Count"
                 t_counts = pd.DataFrame({
-                    "Category": ["Road (is_road)", "Traffic (is_traffic)", "Flood (is_flood)", "Sidewalk (is_sidewalk)"],
-                    "Count": [int(traffy_df[c].sum()) for c in ("is_road", "is_traffic", "is_flood", "is_sidewalk")],
+                    cat_lbl: cats,
+                    cnt_lbl: [int(traffy_df[c].sum()) for c in ("is_road", "is_traffic", "is_flood", "is_sidewalk")],
                 })
-                fig_t = px.bar(t_counts, x="Count", y="Category", orientation="h", color="Category", text_auto=True)
+                fig_t = px.bar(t_counts, x=cnt_lbl, y=cat_lbl, orientation="h", color=cat_lbl, text_auto=True)
                 fig_t.update_layout(height=300, showlegend=False, margin=dict(l=15, r=25, t=20, b=30),
                                     paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
                 st.plotly_chart(fig_t, width="stretch")
         with f2:
-            st.subheader("5) Daily FM91 Traffic News Mentions (Aug 25–31)")
+            st.subheader(tr("hyp_5", lang))
             fm_df = load_fm91()
             if not fm_df.empty:
                 daily = fm_df.groupby("date", as_index=False)[["mentions_rain", "mentions_flood", "mentions_congestion", "mentions_accident"]].sum()
                 dm = daily.melt(id_vars="date", var_name="topic", value_name="articles")
-                dm["Topic"] = dm["topic"].map({
-                    "mentions_rain": "Rain", "mentions_flood": "Flood",
-                    "mentions_congestion": "Congestion", "mentions_accident": "Accident",
-                })
-                fig_fm = px.line(dm, x="date", y="articles", color="Topic", markers=True,
-                                 labels={"date": "Date", "articles": "News Articles", "Topic": ""})
+                topic_lbls = (
+                    {"mentions_rain": "ฝนตก", "mentions_flood": "น้ำท่วม", "mentions_congestion": "รถติด", "mentions_accident": "อุบัติเหตุ"}
+                    if lang == "th"
+                    else {"mentions_rain": "Rain", "mentions_flood": "Flood", "mentions_congestion": "Congestion", "mentions_accident": "Accident"}
+                )
+                dm["Topic"] = dm["topic"].map(topic_lbls)
+                fig_fm = px.line(
+                    dm, x="date", y="articles", color="Topic", markers=True,
+                    labels={"date": "วันที่" if lang == "th" else "Date", "articles": "จำนวนข่าว" if lang == "th" else "News Articles", "Topic": ""},
+                )
                 fig_fm.update_layout(height=300, margin=dict(l=15, r=15, t=20, b=56),
                                      legend=dict(orientation="h", yanchor="top", y=-0.22, xanchor="center", x=0.5),
                                      paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
@@ -927,29 +986,21 @@ def render_dashboard() -> None:
     with tabs[6]:
         src_name, n_imgs = get_lake_counts_total()
         c_cols = st.columns(3)
-        c_cols[0].metric("DuckLake Frame Rows", f"{n_imgs:,}", help=f"Source: lake.{src_name}")
-        c_cols[1].metric("Analyzed Cameras", f"{int(overall.loc['total', 'n_cameras']):,} / 100")
-        c_cols[2].metric("Wet Camera-Hours", f"{int(overall.loc['total', 'n_wet_hours']):,}")
+        c_cols[0].metric(tr("audit_rows", lang), f"{n_imgs:,}", help=f"Source: lake.{src_name}")
+        c_cols[1].metric(tr("audit_cams", lang), f"{int(overall.loc['total', 'n_cameras']):,} / 100")
+        c_cols[2].metric(tr("audit_wet", lang), f"{int(overall.loc['total', 'n_wet_hours']):,}")
 
-        st.subheader("Conceptual Causal Model: Evidence & Data Coverage Audit")
-        scorecard = pd.DataFrame([
-            {"Causal Node": "Rain Telemetry (>= 1 mm)", "Data Status": "Present (DDS Rain, 129 gauges)", "Observed Evidence & Caveats": "293 wet camera-hours matched; motorcycles drop -21.0%."},
-            {"Causal Node": "Motorcycles Sheltering / Curb Block", "Data Status": "Tested (background-subtraction)", "Observed Evidence & Caveats": "Weak difference (2.5% dry vs 2.8% wet); mostly sidewalk parking, not 1–2 travel lanes blocked."},
-            {"Causal Node": "DDS Flood >= 5 cm", "Data Status": "No GPS coordinates in DDS table", "Observed Evidence & Caveats": "All 13 >=5 cm readings at FL.RTW.02 Thanon Phetchaburi; matched road cams 250/256 showed no volume rise."},
-            {"Causal Node": "Traffy Fondue (Flood / Road / Traffic)", "Data Status": "Present (7,247 geolocated tickets)", "Observed Evidence & Caveats": "Mostly inside soi/alleys (only 2 cameras within 100 m of DBSCAN flood clusters)."},
-            {"Causal Node": "Transit Shift & +25% Ride Surge", "Data Status": "Not directly measured", "Observed Evidence & Caveats": "Natural experiment shows +12.6 pts cars in 15 hrs, but no BTS/MRT ridership, taxi, or surge-pricing feeds."},
-            {"Causal Node": "Capacity Drop -> Road Gridlock", "Data Status": "Density only (no speed/flow)", "Observed Evidence & Caveats": "10-min still snapshots measure vehicle count in view, not km/h travel speed or queue delay."},
-        ])
-        st.dataframe(scorecard, width="stretch", hide_index=True)
+        st.subheader(tr("audit_hdr", lang))
+        st.dataframe(pd.DataFrame(UI[lang]["scorecard"]), width="stretch", hide_index=True)
 
-        with st.expander("View Original Static Verification Plots (DataAnalysis/figures/*.png)"):
+        with st.expander(tr("audit_exp", lang)):
             g1, g2 = st.columns(2)
             for idx, fname in enumerate(("city_effect", "camera_map", "rebound", "natural_experiment", "denser_share", "mealtime")):
                 fp = FIGURES / f"{fname}.png"
                 if fp.is_file():
                     (g1 if idx % 2 == 0 else g2).image(str(fp), caption=fp.name, width="stretch")
 
-        st.caption("All dashboard queries execute directly against PyDuckLake (`DataEngineering/lakehouse/bkk_cctv.ducklake`). Raw & Gold CSV files are only seed/export artifacts.")
+        st.caption(tr("audit_footer", lang))
 
 
 if __name__ == "__main__":
