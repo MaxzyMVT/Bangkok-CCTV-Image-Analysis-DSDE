@@ -37,16 +37,14 @@ table correlations
 		summarizeBy: average
 		sourceColumn: n_obs
 
-	partition correlations = m
+	partition correlations_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\correlations.csv"), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCpWXQW/bIBTH75P2HbhMSiW6gu04trQdtm7TdmgPWaQdEbFxYtWYCHCyfPsBbtStiwFfgv2S9/fj/fmBoypxYFBTuWMaNozqQbLLSDq6ZR08MCqV6ImEPRFb9fbNXgyyO5OKciYp1ELTDkra9oRz+N19B3Z02DFgg2DB+Q1E7xHKMSzLMr+erxk/mDv32ITDzcstWNzbfJxmhSdfso7q9sjIfuBt3eqzVVk/B8ElCBbvbuCtEUuS1CNWdWKoSSWOTMJ7ew3c9SUbJavSk31sVbttO1vDE4cPXzef1uAlBhZPfFTJUl9DTO86UrdKEw6/mIH2FQNagM+bn3cP641p6ziTskw8Ks6HazLOmtGlxeiPr7t7UTtngWhATc9j+UnuyTgx9sT6Gv4aR9D2dVtRLaQrOi997W8VkYPaw7X5uLU/+DcbpaWv/Zz+Jk0nhDGQw3vT8VNbM2CiwEWBYr0SxsvquYHY50LDS2wWQr9jSreih98eSgxe7gFnvR3V3V66Hk6YUVEZQUhS4MnsMB8JzqefPY8OlExPI8QGStPJ3FgycuxtYxQXU3RZjXgqMMqzSZnXVHg2OftzPxIpmn5QCIglns6diQMqsukZzKQhn6CBC1N4da46FoLC7TPlMqQShAOVq3ApMxnJi5BiCJVVsgpJxBBjlPBqGdHpGG6SZR4sKhYfO0c8AcRfclcOF5xkwTQ/TkUayvdBZTfjYAFzD5oEByVnAlYm120/VJocFdlSxbq2j6LMEBIlFUDNATsxz/+qigfOLqQiTjUEXWRxseClONaBGPrQxCHwWm4OgShykVx9x8vicr0soqmt8rVKiMg8SmXugZfhuJU/k83LeTOqEdY0rNJwHIjRjl4ShfUv8wjNeMc3/zn8Wr35r0dsZfDRXFmFDiw+fFwidHlbLsoIBbVnnTYAOpFGCL2Vbb1jd+z3QTKlTvRsVfHyooqWhV/V7F+jp1QyCn/0YCNp05yfLa26QWnLuNG8VIoSlAcqJSemiTVdwceBb5lb+iYGxphbuquVE/kDepN6tScPAAA=", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"scope", type text}, {"target", type text}, {"feature", type text}, {"feature_label", type text}, {"pearson_r", type number}, {"n_obs", Int64.Type}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

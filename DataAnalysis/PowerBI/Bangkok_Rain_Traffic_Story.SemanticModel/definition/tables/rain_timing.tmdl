@@ -31,16 +31,14 @@ table rain_timing
 		summarizeBy: average
 		sourceColumn: motorcycle_effect_pct
 
-	partition rain_timing = m
+	partition rain_timing_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\rain_timing.csv"), [Delimiter=",", Columns=5, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCk2P24rDMAxE3/stqrAutuWvMcFxKfSSks1S8ve7CgUXPc2Z0QjN0163/dXhuvyu8KxtevR1qq5+XN6Xdvuox7Ita9vbvdd+ufS21VfbTu/eb/O0AyVQAoYzJ8yF0jAy0P+chTGayuAG5nklVOavfIFy8Iwa8+AcgIIXJUIhy4fRnzMQg/gJFdRsMriAFl9QDGQDK6TjADEWjoNHb/J4wGKShpEg2ucDDcrDyCDiTYaZgp3+ACQ0nJpMAQAA", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=5, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"day_type", type text}, {"hour", Int64.Type}, {"n_camera_hours", Int64.Type}, {"n_clock_hours", Int64.Type}, {"motorcycle_effect_pct", type number}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

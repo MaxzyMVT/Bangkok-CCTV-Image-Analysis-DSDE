@@ -79,16 +79,14 @@ table city_effect
 		summarizeBy: average
 		sourceColumn: n_wet_hours
 
-	partition city_effect = m
+	partition city_effect_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\city_effect.csv"), [Delimiter=",", Columns=7, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCk2QWW6DQAyG33MWY+FlttMgNJ2USCRUMBHq7Wu2Kk8ejb5/sfO4wPp4fU0rlPu95Nr95Ar50Y32Y2N4fA/w6nL/LHO/2GsttRum97zc6lT7EfpxhMahREfQRPSBbRIGHxSSAie55X4+MEZWDdB41FYjMFIQf1HPqU5z/s1jOeEWUyQz44DK3kwVJbX/rkf8/F4GaBImCWyIR25JtiTxEkATeNrzD84jkTk0JEjsgzVIkU/qI/+ApUVNYrQGjKrbWozOp3gKjgJTHcpsDJqxlTRUgq1oWnJu7yq8NzhBQlK3XUydFbUeLfkL+6hw0RFl30cxsduOYHoncin+ABZ5TpW/AQAA", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=7, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"cls", type text}, {"window", type text}, {"effect_pct", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_cameras", Int64.Type}, {"n_wet_hours", Int64.Type}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

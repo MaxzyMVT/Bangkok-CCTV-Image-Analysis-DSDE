@@ -153,6 +153,11 @@ class NetworkAndPowerBITests(unittest.TestCase):
         self.assertNotIn("toTable:", rel_txt)
         model_txt = (sm_def / "model.tmdl").read_text(encoding="utf-8")
         self.assertIn("PBI_QueryOrder", model_txt)
+        self.assertIn("fastCombine", model_txt)
+        rebound_txt = (sm_def / "tables" / "rebound.tmdl").read_text(encoding="utf-8")
+        self.assertIn("partition rebound_src = m", rebound_txt)
+        self.assertIn("Compression.GZip", rebound_txt)
+        self.assertNotIn("File.Contents(", rebound_txt)
 
         rep_def = pb_dir / "Bangkok_Rain_Traffic_Story.Report" / "definition"
         pages = json.loads((rep_def / "pages" / "pages.json").read_text(encoding="utf-8"))

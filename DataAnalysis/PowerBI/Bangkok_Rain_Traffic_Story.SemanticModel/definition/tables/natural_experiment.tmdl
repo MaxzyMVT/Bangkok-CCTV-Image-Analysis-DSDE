@@ -37,16 +37,14 @@ table natural_experiment
 		summarizeBy: average
 		sourceColumn: n_pairs
 
-	partition natural_experiment = m
+	partition natural_experiment_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\natural_experiment.csv"), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCjXKUQ6DIBCE4XfPMm7YFRBOYwjRSkLFAE3T21fT9GHyP8wXc8O6bWvsy3mvpKM3xLTk8r6zp8eOY9nLq7arZ0i1Db30kGHJz9pgFOJ5suCJvPEObMCzDDFUsJBxDkLCzkMUWSv2D56llxo/Ma9Q5AxrjJfXWsl1kzVq+kk1fAEwGuVJpAAAAA==", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"cls", type text}, {"effect_pct_points", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_hours", Int64.Type}, {"n_pairs", Int64.Type}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

@@ -25,16 +25,14 @@ table ml_feature_importance
 		summarizeBy: average
 		sourceColumn: importance_std
 
-	partition ml_feature_importance = m
+	partition ml_feature_importance_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\ml_feature_importance.csv"), [Delimiter=",", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCpWX226jMBCG71fad8hlV6IRYxvbPA1yg5ugcqjASdu3X+MxSWhM7V5UqJE/ZjzzzwGjxqM22atW5jzqrOneh9Go/qCrTqv+/v/J1H//dIMZxsPXodW7p4/GnHYH1elR7V7UpNum1/+y24lq/jGDfSGEZFm+z0EySHnFqJq+6roZITSn8zMnQFPQj6avqzfjkFII9wSehF6aqXlp2sZ8VW/Ods4K98iLFPzQDue6OgwXPTqKCoLWiUzBT0ONGEGnc5FkddStMs1FV6dz19Sz7wR9JxKt5yQpbFq/6b72kUbUxj4Ffe1KsNfuj3oyzdCj1RIfkHR1o7t3+8usv8X7nInfBK/XaqysalqEgWRSP6el7UM7scx/SWnS6vL1G6BTn9VrOwxWGl32jO6VGU11zxYC0mrUyvOEZjyVd5GZTro1VpaIc59dlmR/qsbzdPJoyZClLFkZcy0jDZR6yylwaxXVmHOtPVywRRhJxWhv7boPwhxhSPN7FlJVN5OpuoX3jYAn8WYwqr03L33IedLFbT3f7k24D5pMgo/qfNQr3wuOlUQKqxfn2e6pH0L28j0RVhXutJyTFDx9TYs9DoxiYOZOETq9ciffAxXChQLyLW+wDYLtgt4RvvHq+yTNAGC35XOcQue/tWcQ1HeYfAO4a4lQoNsooNDhUBMU5TIARBgK9D0B3qtiw9CqnpHw4io37rFqQG7ClF5SbCPH9zP0On5zsZmHZVZbsdHb5AgdXroJmvdDooCNw6vWh+8tsxI7Xwh4HOBW9RnbBm4Nyo0LPzz4D5F3M0a4w3L7vauZElT5eooE4xoa7HNFEwCMMshblKONCPaCM3BXJAUhMfBRmWwpgQi6uZAwLq/b1I9vWMmP80UsEeox+bY9PWQ0bXUjixa4jJDB5YcTPyWjsbqrHSCeYrHwBMSVtKv8ePbbngFO4rCSeGz1eibJ0HWrcMWJBZViZ73I2PW8TCADG9iyxwBNye/dCnNtErEKmucYIuARGtPS9w8nxP03jP2ciOoC55XHfLGx2A0fNwYiRWLNrVcVyrxNGuXWux2VPh1FES+Y9Wa2LCDx8Kw3QiZLX+HW1/+TUGx3Aw8AAA==", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"target", type text}, {"feature", type text}, {"importance_mean", type number}, {"importance_std", type number}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

@@ -25,16 +25,14 @@ table rebound
 		summarizeBy: average
 		sourceColumn: n_events
 
-	partition rebound = m
+	partition rebound_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\rebound.csv"), [Delimiter=",", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCmWSwYrDMAxE7/st3mJZsiV/zVJCDoU2gTZd2L9fexTSJr3OkzzSyMP1EW6X6bmM4X5eLnOYfsbfcVoeX7d5me/D33Adw3eJIZ4q5xwo845kkCLyQaSTwtx70o5wJ5a1AdqB1IFy5Y/HCDbGcuyBLp/2rYFOMUkNJPUdwMOopgbsHWAq1WrHDvEO0iPA7ircgb6DAnOR7rFbXTsg1dLAbg2DRyUKxDuPihTN+NhB0efVfDQhhFViZpDhfMcB20RYruUEyS9nUV6SoCr3TfPayJBi9uAheYLN+dXo5ym6FXkAqWwlfg8hv0dX0vpywSG6ggvUjNi8xqM3bOIKpraSDJl3BauR5W1ZDzniLD6NuZUw0u1K9Q+tvNV4nr7W+pAH2cwKpH9BhV1pKwMAAA==", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"cls", type text}, {"minute", Int64.Type}, {"ratio", type number}, {"n_events", Int64.Type}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

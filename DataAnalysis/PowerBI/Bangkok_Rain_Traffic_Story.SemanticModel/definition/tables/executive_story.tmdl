@@ -52,16 +52,14 @@ table executive_story
 		summarizeBy: none
 		sourceColumn: evidence_th
 
-	partition executive_story = m
+	partition executive_story_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\executive_story.csv"), [Delimiter=",", Columns=7, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCoVWXU8bRxR951dcpSLCynprL5CkTfMAkZpWDWqb8B4t6zFesd6xdgYIfYopkmmaqg8xjSBKUrAsKqKoQEK7/jf7U3rvnZ31R4mQEN6duXPnzjlnzl2lRetxLB2Fv05D+LUojIUjNsKaiAPBw491o5ihZzuJz1NVp+rCvVBvbeIYfNts+YF2lqX2I9CJX6+HAdT9KFJQnnfnpiGMIfHD2Lm2JLVMgq0gEgpqiWxB2au6lWmYKc9W3HkTuK4a0JDriSqBHyRSKfC+mIVNoSHwmyLxyzzpQNNXa2G8Cj6OJ6AaYV2716iuLP0zS8+z9E2W9rL0OEsPs/Rllp5lg11+bfN4mqWdbPCUpzDybydLX/HER16A61/w6x9Zuscr33P0Wx7EgH6Wdvl/Jz8kT+PEv3l0+jpL92lx2nZ4wiTY47leNnieDXay9Ncs3aHnsXzjoGTpM1u6qbjHrx1akI/vl3D7n/GXsaIF6aHLJ+1ng194xw6f9IJXDCub8hzPhQcy8KPwJ1GDJVlDDh8RmM5wlMgzCCvid0NEUE9kE7zyZkOISCQ4LGGueHOuLRjmqvOGSggkaiQhuojIDWJ/K+dTwVd3Z9ea4GOAhpnqLQ9afoj0O0SsgiRUAm5UPfcmtEQSiFj7qwJaMoy1QsI9IrzNhPUYnVeMojnoER10sJ2l75gBBPgkSwc8Zag9ypEYPEeOdlkV3UuB4vUXvP4sT2Sx/38uruMNSYlicCFW8A8TsW8ld8HxB8NNB22qkmI6TKXljuJ3bHzHmVhPCOd0A9dxymc95o3PmfUJEYweqc2HOZiMmSxl32bGHU+JLYM4bslscX0EagkugYJwSI1gcxZHgO7ZTY+YtNOpWWfWRfmJSAtWy3V4pH0dyhiWhdLO11LqlSSsoQDUaJDKg1qJfBI20ZegJiGWGsSTVkTiDWS8igkwxskT+ijAlXANjSgW7B+cThmZo+ZlHG2BR/ePpIqK9dzb06zeGYWmt+lHa6jThCyodAc8vK+yDmiQSiQkbEwUapMab0/k0rkYdmNJu6yk92MKIOL6PMIcDdoGkxxTMou39EeInTu8/pTRPWew+zmOw2UnTIWZvbg0C78eEjn00LVye5UNOrzqhGOecmV7XKUp8Yz537aSsi5J1tl17LsxwS4n+pg71qiwP3Xu3G4L8Z7ZW/OmuAWGl5yTO/BpozNnbnOGXU4+chNz3bEdjBV2KVITBVSmp+acORd+SEQtDHS4IWDpASrxxwXnIQkuREtsCPisipLx8SmBOv6uJwLqMoFm0QdRsiYBKvObUOn7iV8L0eMWpUS5orgT4QcNVOlD727FvT0LM5rabAm3qri35mGGUqEAF5cWoHLry0rF9FW8CBsoYnTlFQFVdw6+W4SVyI/XQK6zf9YTNF/l0hEYoAMrxQ9WSh060IicdpiuFyPdddtCfkgopv1LW+hrS1+hqj3m9JhTm/j3HGxM/C9+ZdJJG2dscmB9yBo9UfyBR86ZkSva6+XQFqofglt8MpSGR8+BvnKT0p3RT49hz855wWrJAgptvrO179A3A2U2iuuza27z7HHO3dS8M+/C99j/jHdFsMCSUc49Gcci0KZF+9h8Nfdi7NIxGVBdiBpq7zrUI4HWVQtVy9dBw0HZllsSI8g188aNnbYmyg10KwLnBiwuP/p86eGyzaEa61rThxuuaISrDfa1Mjke+W0gE1wu0UB9+mgkM6zexGOXvQodnspz6Qz5bSRgXtpLjiL4nUVzwHwbI8mZNg3v2chn1aFtwr/xH6ssJ4VhpOyvrViK9lZ8HpyMKNQY1Vu+1l2e7Y4wO+a/MAeFxzh2v541hCtyFVBOmvpYo+zZcndzz8m91XSJCTcfNeL+8POQxvft8raFbH/sE3J4JY/MlRxjimQ69R+A79zMHwwAAA==", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=7, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"step_no", Int64.Type}, {"step", type text}, {"headline", type text}, {"evidence", type text}, {"step_th", type text}, {"headline_th", type text}, {"evidence_th", type text}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

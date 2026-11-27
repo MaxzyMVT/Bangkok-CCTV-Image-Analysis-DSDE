@@ -26,10 +26,10 @@ Install Power BI Desktop using **one** of these methods:
 3. After **Refresh** finishes loading all 16 tables, press **Ctrl + S** (Save) so Power BI caches the loaded data locally in `.pbi/cache.abf` (gitignored).
 4. Use the **`Language / ภาษา`** slicer at the top-right of any page to switch titles, headers, executive insights, and action cards between **English** and **ภาษาไทย** (synchronized across all 5 pages).
 
-### Step 3: Refresh / Update Data Path (If Opening on Another Laptop)
-All table partitions point directly to `DataAnalysis/output/*.csv` (avoiding Power Query `Formula.Firewall` blocks). When moving to another machine/folder:
-1. Run `python DataAnalysis/PowerBI/build_powerbi_project.py` (automatically rewrites every table path for your clone's location), **or** update paths under **Transform data $\to$ Data source settings** in Power BI Desktop.
-2. Click **Refresh** in the Home ribbon.
+### Step 3: Portable Self-Contained Data & Re-Syncing After Pipeline Updates
+All 16 table partitions are embedded directly inside the semantic model via compressed UTF-8 CSV payloads (`Binary.Decompress(..., Compression.GZip)`), so the `.pbip` requires **no hardcoded local paths** and **no external privacy firewall prompts** on any Windows machine:
+1. Open **`Bangkok_Rain_Traffic_Story.pbip`** directly on any PC and click **Refresh** in the Home ribbon.
+2. If you regenerate analysis/ML tables (`python -m DataAnalysis.rain.run_all`, `python DataAnalysis/rain/ml_model.py`), re-run `python DataAnalysis/PowerBI/build_powerbi_project.py` to sync the updated CSV snapshots into the semantic model, then click **Refresh** in Power BI Desktop.
 
 ### Step 4: Save as Standalone `.pbix` or Export PDF for Presentation
 - Once loaded, click **File $\to$ Save As $\to$ Power BI file (`.pbix`)** to create a single compiled binary package for sharing, or **File $\to$ Export $\to$ Export to PDF** for presentation slides.

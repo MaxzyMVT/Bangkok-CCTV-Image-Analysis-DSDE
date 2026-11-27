@@ -12,6 +12,8 @@ Usage:
 
 from __future__ import annotations
 
+import base64
+import gzip
 import json
 import shutil
 import uuid
@@ -93,19 +95,22 @@ def _build_table_tmdl(table_name: str, csv_name: str, csv_path: Path, extra_meas
 
     cols_count = len(df.columns)
     m_transform = ", ".join(type_pairs)
-    csv_abs = str(csv_path.resolve())
+    b64 = base64.b64encode(gzip.compress(csv_path.read_bytes(), compresslevel=9, mtime=0)).decode("ascii")
+    if len(b64) <= 4000:
+        b64_expr = f'Binary.FromText("{b64}", BinaryEncoding.Base64)'
+    else:
+        chunks = ", ".join(f'"{b64[i:i + 4000]}"' for i in range(0, len(b64), 4000))
+        b64_expr = f"Binary.FromText(Text.Combine({{{chunks}}}), BinaryEncoding.Base64)"
     lines.extend([
-        f"\tpartition {table_name} = m",
+        f"\tpartition {table_name}_src = m",
         "\t\tmode: import",
         "\t\tsource =",
         "\t\t\tlet",
-        f'\t\t\t\tSource = Csv.Document(File.Contents("{csv_abs}"), [Delimiter=",", Columns={cols_count}, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),',
+        f'\t\t\t\tSource = Csv.Document(Binary.Decompress({b64_expr}, Compression.GZip), [Delimiter=",", Columns={cols_count}, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),',
         '\t\t\t\t#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),',
         f'\t\t\t\t#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{{m_transform}}})',
         "\t\t\tin",
         '\t\t\t\t#"Changed Type"',
-        "",
-        "\t\tannotation PBI_NavigationStepName = Navigation",
         "",
         "\t\tannotation PBI_ResultType = Table",
         "",
@@ -518,6 +523,8 @@ def build_project() -> Path:
         "\tculture: en-US",
         "\tdefaultPowerBIDataSourceVersion: powerBI_V3",
         "\tsourceQueryCulture: en-US",
+        "\tdataAccessOptions",
+        "\t\tfastCombine",
         f"\tannotation PBI_QueryOrder = {query_order_json}",
         "\tannotation __PBI_TimeIntelligenceEnabled = 0",
         '\tannotation PBI_ProTooling = ["DevMode"]',

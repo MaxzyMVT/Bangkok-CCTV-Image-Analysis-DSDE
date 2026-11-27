@@ -49,16 +49,14 @@ table denser_share
 		summarizeBy: average
 		sourceColumn: n_other
 
-	partition denser_share = m
+	partition denser_share_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\denser_share.csv"), [Delimiter=",", Columns=8, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCj3O3QrDIAwF4Ps9Sxo0/vZpRFadguhoO/b6iy3s4pAT5AvmFM/PnmBL/Uh7OErkZZzl37eac3iP2s8DnjW08Z2j1FeBHm7F5RKPnuIe9lgbCCSOUh4WqdAL4qIJySgD5NAKY8GAkzc5Smon3xFoZ+TqmOHq5FQWeSfQAr028la1h9zG2AL/MDIRM+QJFkIv7QqLQ6FJXU+X+AFoV5/T6AAAAA==", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=8, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"feature", type text}, {"denser_share", type number}, {"other_share", type number}, {"diff_points", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_denser", Int64.Type}, {"n_other", Int64.Type}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

@@ -73,16 +73,14 @@ table ml_metrics
 		summarizeBy: average
 		sourceColumn: n_test
 
-	partition ml_metrics = m
+	partition ml_metrics_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\ml_metrics.csv"), [Delimiter=",", Columns=12, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCqWWTY/TMBCG70j8h1yQFuGNbI8/LxxAAs78gcikbrFI4sp2QfvvGWf3wEez2aQ52K1Uvc/MvDOTFpd/kOLSyRcyxoMfSD4PAT87T9KY8eDE9f0luf6BHBlJse/cpSdTV5ILU719Lq9fJX9KPucQJ1JicUNzN8Xmm8t+CJN/S76EXD4ndwh+Kh9izCVMJ1L8eI7JDSh4AtoBI7wFIxmBlinGCW0V5wQfzQQQbiSscr666RDHTxF/U67rU1P1qZZQ9QWHjYBwOPkrytAaTQURreGCoTJj1mxTvlqifHYlIEce43DoLlP2fup6N/rkMsLAgCWyNdRycl+hjM1QaxWxePwFHWOJqX/oB7/PHNpqTRlhLTWg8JsU6pniLdJWLEKKoYAURnWFcKX2QBZswuAtr5dQqjYAU3ZPDtu9wnyMqmkpyWtnU2tg2arepX0esdYKa7HPFYi5welz5fsfs2IOyqO21FLOw4nNt0V7cXS4RCXRUsVMLY0Sm2LebgZgW0EdViXxup/d0MtuPE3rr1C+N48Se4wRQnEsHuPUYpKGW7u6H64TVz2SwDSSOKtTaipgJ2hxiEAqW5uhlg0RwuzNZc8gcWnw1FbOdbRgXrbybrKPPnYMLidralXx9fHCtbTLQ8QpMZdW0XklMsFvwi04iRwJdZYNzNtWAyZ5A2e7nRgB8BqIofPwa6P/ncR+cMg/hh5lMIqQu3zB/yvN3fvmHZdvmp95JYKPTwI+XSkBPhUu55e2ni+Fmf9Zgt/97tslJAkAAA==", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=12, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"task", type text}, {"target", type text}, {"model", type text}, {"split", type text}, {"mae", type number}, {"rmse", type number}, {"r2", type number}, {"accuracy", type number}, {"f1", type number}, {"roc_auc", type number}, {"n_train", Int64.Type}, {"n_test", Int64.Type}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

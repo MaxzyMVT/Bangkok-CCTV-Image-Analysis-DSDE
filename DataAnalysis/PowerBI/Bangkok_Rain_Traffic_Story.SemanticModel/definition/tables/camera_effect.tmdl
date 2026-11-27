@@ -37,16 +37,14 @@ table camera_effect
 		summarizeBy: none
 		sourceColumn: label
 
-	partition camera_effect = m
+	partition camera_effect_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\camera_effect.csv"), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCnVXW1IjSQz85xRzgHJF6VVVOg3BgmdnIljYACa4/qTUBuwy7R+MW9YzMyXf3/13fLm7/f1Qjj9/Hu/fbv+/fyv3v28fn9/jz6/f//4qT7fvx7fbX89/Xl7L490/x8cbonIYdRpzOYhXdZtFWh3duWj583SXvo4PN9zLgXrVplYOTHgDy4NXb8pFyv3j8e7l9Ua4EFeBVTm06lO1sNThPEs/9ybwpnWyhletPG0UruZD4evMrs/0RyYIqrWTaaTXLq1Gg5dRaQ7kJlTZCoXRRQHxjLmyON4ojKYgSa5kzb4KmOiDjmqzIbNxKgUpjN4vY05UP6tZ9iVDHqw6o5/64YsIzsgqNx2lFCpvz88/fh7ff2AIP3IIMIEb6ZXw2jXxMqta2/XBrfCo3bzvWgi62yLh7tFpWztIjF6gzMbRJnK0HJ3A5Gy1wwfIVqMywQAdA/Jq3Xg17AUjcQZcYhTWrkOOBBIsowejNhnlOjGJadXeeBufGHsBDpuvAQEpfN57H1kAS0NqmAwAOlfTEfjgodt4CG9MK8VXF0OHRcMTYGantQoC8SnujomhfALHMMhRpU8t3uts0wCVh+PT6/EFNjPwwx0EOnD0ClQzWjCHPMoBsRrlsMiNgmbT0ZNPBFOyAYNWGItWnTw3zlzQgUZScHRkVQp/l/cYBaOd+89neJBB/azjBhq6r7ECwgm94KkOvAHoUe1YDGfPKY8+UJlIFbySZ2f1BfOgBZQVCOK1rqlNpi5ndh6fTvDbOfHFGhhqoDQ8fJHUI/uq8V0E8omH4OMwWvQvBIFnZVbZaUiSv84+JCEfELO+CBqHJqBAEG0HLkzBwOod3dyz8E3fdh4nl0PgOLAJloaYnUT2MhlOcrVuoeTGMiETMmm1msCBa+T1gScSXpmK8Rf0xwYhPB5Dgz94sdhJsXgcqTUsGggIfWcH2sScIQs9NXKkYnhtei6yHBwA6nrUkjCPafLsX0jAFII2TsEIdVAPHZpUpbW5DHmMdNZ4I7V3gEJqF4zxM6Ik/bAjJYCFDCeFTCoC0LI05URnoczOqhLKvJJCiTAgNBiP3inUbUAkoOmL+kpQG6I85IR8QfHoebLkMvBIZXCPXGMjQuRiE0N81hRjHYI8LmY7uI5+ByJZKMPOWNPUToi5yFBz5UFWJp+YzCc2LGaSZrobEQE2CdsxkG0BWUhf0BKnA7iPKhZFsda2xTZUct20DZ+x2T4naukksdMFM8JVcr0iDZ3jOkebaYvCJ7aQLe00zb3XUhFzLQ4oD7qwOAtIfqAWu9EVx4h9RxcDQZA2TqAML/jXNu6dVocNPiMATGZUgzKan9HEQKLALEUbLIw2gM2+7FGDeHeEayMnNAe8oRlAx3LC9SYlD4X4i05gT6AjGiT9XGs97kB0soWKxyFIGHxs7w5+XvQt1lDelyN0FsrfSDUlFMKzmEJovPYBEKbMYrPEgXVRhQfAgngc5SpWA9CNsdB60DhUjcET3DGxLCT74litiH5RrkuoIK7Hbd8nGSBKNm1ReMfR8BFxZ3G2MNlmkJtMsB/7t1dUgzJgoWPu6CDCQSnQuNbOAYBRtWgq5G0TJmx6vbqjgPtcztRlNy1gBBIViSegJvzF0ILCfXE2Ex3Wg+UwDd6BfaaLoFKgI34I8Ex1RnSUKuijyZJgiCf0whMIOBLiTgLwuauuPpP826YK7uPe6DE0kINW0zgWQlnxgi2uZKEkqKn4moBvdU8P7EM0cYzFGxwDZ1dFxPiE8kEbdo3l7a+uZ5ICOyxTPG24o7/ObpukZ5PTlr9vvKGiveNxeiodTu6gNZRO0PQOKk9dWziDbqGKQ0eePNjBoGZbf8vRzBuD6tCEIMUuo2uZ/gvN+D+UUw4AAA==", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"camera_id", Int64.Type}, {"effect_pct", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_wet_hours", Int64.Type}, {"label", type text}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

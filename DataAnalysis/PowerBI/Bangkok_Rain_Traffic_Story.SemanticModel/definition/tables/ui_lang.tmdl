@@ -121,16 +121,14 @@ table ui_lang
 		summarizeBy: none
 		sourceColumn: Language
 
-	partition ui_lang = m
+	partition ui_lang_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\ui_lang.csv"), [Delimiter=",", Columns=2, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCstJzEvX8QESpYnpqVypeTqueek5mcUZXCUZOg92LHiwY9ODHStB5M6WBzumP9ixiAsA3e7uuDIAAAA=", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=2, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"lang", type text}, {"Language", type text}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

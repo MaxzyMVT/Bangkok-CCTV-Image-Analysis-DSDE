@@ -49,16 +49,14 @@ table stratified_effects
 		summarizeBy: average
 		sourceColumn: n_clock_hours
 
-	partition stratified_effects = m
+	partition stratified_effects_src = m
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\stratified_effects.csv"), [Delimiter=",", Columns=8, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(Binary.Decompress(Binary.FromText("H4sIAAAAAAACCn2S0U7DMAxF3/kW10qc2Im/JqpCxhDtirbCtL/HKRoqIOhLHene+Pg6l/Y0t9MKdbpAOxxaXctrteNzmZZr/x2fn45wKnWc23m8WHVtazkub+de12mpL5+nh2trL4/jDdZlHScYvMccKVvBKCoBhoQcMoQIopC/5HU8w8DIzGRah8ElhcGhN+FP7bysy7ne6tRgCBFJSGCIASWKNSJvRaJvrnZ6vAMRamS7WlDZZ/BIpAwagCju1BuPR6cxdq5MdiGKfb+lexwfUD2njYJj4G0mSTvXZEGuxZd1KVzm+Y4lBq15y0uc9AxsrpQgE3gbw8sv40YY0RFZF0Vh6dNoDvSPac9KzhClsyomzbrlngLLzn9s4/ut8Ov0dtnBWhKu7zQjO9uXrZi8bi4bkX+aOqhDSin3NEI2TsGo6W/HN0oLMidbQrDHkIM9IE9Ift/vAzOHTJ69AgAA", BinaryEncoding.Base64), Compression.GZip), [Delimiter=",", Columns=8, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"segment", type text}, {"cls", type text}, {"effect_pct", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_cameras", Int64.Type}, {"n_wet_hours", Int64.Type}, {"n_clock_hours", Int64.Type}})
 			in
 				#"Changed Type"
-
-		annotation PBI_NavigationStepName = Navigation
 
 		annotation PBI_ResultType = Table

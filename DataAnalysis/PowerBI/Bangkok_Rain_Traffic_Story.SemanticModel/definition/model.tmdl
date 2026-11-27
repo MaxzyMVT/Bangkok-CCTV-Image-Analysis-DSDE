@@ -2,6 +2,8 @@ model Model
 	culture: en-US
 	defaultPowerBIDataSourceVersion: powerBI_V3
 	sourceQueryCulture: en-US
+	dataAccessOptions
+		fastCombine
 	annotation PBI_QueryOrder = ["ui_lang", "city_effect", "stratified_effects", "rain_timing", "natural_experiment", "rebound", "camera", "camera_effect", "camera_summary", "camera_hour", "denser_share", "flood_sensor_hours", "ml_metrics", "ml_feature_importance", "correlations", "executive_story"]
 	annotation __PBI_TimeIntelligenceEnabled = 0
 	annotation PBI_ProTooling = ["DevMode"]
