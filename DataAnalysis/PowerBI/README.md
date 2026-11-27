@@ -20,16 +20,15 @@ Power BI Desktop is **not currently installed** on this machine. Install it usin
   ```
 - **Or via Microsoft Store:** Open **Microsoft Store** on Windows $\to$ search **Power BI Desktop** $\to$ click **Get / Install** (auto-updates cleanly).
 
-### Step 2: Open the Power BI Project (`.pbip`)
+### Step 2: Open the Power BI Project (`.pbip`) & Load Data
 1. Double-click **`DataAnalysis/PowerBI/Bangkok_Rain_Traffic_Story.pbip`** (or open Power BI Desktop $\to$ **File $\to$ Open report $\to$ Browse** and select `Bangkok_Rain_Traffic_Story.pbip`).
-2. *(If prompted about PBIP / PBIR preview on an older build)* Go to **File $\to$ Options and settings $\to$ Options $\to$ Preview features** $\to$ enable **Power BI project (.pbip) save option** and **Store reports using enhanced metadata format (PBIR)**, click **OK**, and restart Power BI Desktop.
+2. **Important — Load Data on First Open:** `.pbip` files store schemas and visuals in plain text without committing a binary `.pbi/cache.abf` snapshot, so cards/charts open empty (`(Blank)`) until you click **Home $\to$ Refresh** in the top ribbon.
+3. After **Refresh** finishes loading all 14 tables, press **Ctrl + S** (Save) so Power BI caches the loaded data locally in `.pbi/cache.abf` (gitignored).
 
 ### Step 3: Refresh / Update Data Path (If Opening on Another Laptop)
-All Power Query imports read CSV exports in [`DataAnalysis/output/`](../output/) through a single Power Query parameter named **`DataFolder`**:
-1. In Power BI Desktop ribbon, click **Transform data $\to$ Edit parameters**.
-2. Set **`DataFolder`** to your local repo's output folder path (ending with `\`), e.g.:
-   `C:\...\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\`
-3. Click **OK**, then click **Refresh** in the Home ribbon.
+All table partitions point directly to `DataAnalysis/output/*.csv` (avoiding Power Query `Formula.Firewall` blocks). When moving to another machine/folder:
+1. Run `python DataAnalysis/PowerBI/build_powerbi_project.py` (automatically rewrites every table path for your clone's location), **or** update paths under **Transform data $\to$ Data source settings** in Power BI Desktop.
+2. Click **Refresh** in the Home ribbon.
 
 ### Step 4: Save as Standalone `.pbix` or Export PDF for Presentation
 - Once loaded, click **File $\to$ Save As $\to$ Power BI file (`.pbix`)** to create a single compiled binary package for sharing, or **File $\to$ Export $\to$ Export to PDF** for presentation slides.

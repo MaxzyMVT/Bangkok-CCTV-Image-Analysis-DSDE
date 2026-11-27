@@ -77,7 +77,7 @@ table ml_metrics
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents(DataFolder & "ml_metrics.csv"), [Delimiter=",", Columns=12, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\ml_metrics.csv"), [Delimiter=",", Columns=12, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"task", type text}, {"target", type text}, {"model", type text}, {"split", type text}, {"mae", type number}, {"rmse", type number}, {"r2", type number}, {"accuracy", type number}, {"f1", type number}, {"roc_auc", type number}, {"n_train", Int64.Type}, {"n_test", Int64.Type}})
 			in

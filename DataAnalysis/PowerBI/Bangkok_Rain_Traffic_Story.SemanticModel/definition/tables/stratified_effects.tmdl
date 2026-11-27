@@ -53,7 +53,7 @@ table stratified_effects
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents(DataFolder & "stratified_effects.csv"), [Delimiter=",", Columns=8, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\stratified_effects.csv"), [Delimiter=",", Columns=8, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"segment", type text}, {"cls", type text}, {"effect_pct", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_cameras", Int64.Type}, {"n_wet_hours", Int64.Type}, {"n_clock_hours", Int64.Type}})
 			in

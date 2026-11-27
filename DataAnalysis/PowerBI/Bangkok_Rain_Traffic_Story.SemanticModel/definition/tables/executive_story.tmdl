@@ -23,7 +23,7 @@ table executive_story
 		mode: import
 		source =
 			let
-				Source = Csv.Document(File.Contents(DataFolder & "executive_story.csv"), [Delimiter=",", Columns=3, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\executive_story.csv"), [Delimiter=",", Columns=3, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
 				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
 				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"step", type text}, {"headline", type text}, {"evidence", type text}})
 			in

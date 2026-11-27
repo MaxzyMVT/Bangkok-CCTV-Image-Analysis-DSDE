@@ -88,12 +88,13 @@ def _build_table_tmdl(table_name: str, csv_name: str, csv_path: Path, extra_meas
 
     cols_count = len(df.columns)
     m_transform = ", ".join(type_pairs)
+    csv_abs = str(csv_path.resolve())
     lines.extend([
         f"\tpartition {table_name} = m",
         "\t\tmode: import",
         "\t\tsource =",
         "\t\t\tlet",
-        f'\t\t\t\tSource = Csv.Document(File.Contents(DataFolder & "{csv_name}"), [Delimiter=",", Columns={cols_count}, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),',
+        f'\t\t\t\tSource = Csv.Document(File.Contents("{csv_abs}"), [Delimiter=",", Columns={cols_count}, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),',
         "\t\t\t\tPromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
         f"\t\t\t\tChangedType = Table.TransformColumnTypes(PromotedHeaders, {{{m_transform}}})",
         "\t\t\tin",
