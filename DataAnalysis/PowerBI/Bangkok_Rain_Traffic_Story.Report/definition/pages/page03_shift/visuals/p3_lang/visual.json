@@ -65,19 +65,6 @@
             }
           }
         }
-      ],
-      "general": [
-        {
-          "properties": {
-            "orientation": {
-              "expr": {
-                "Literal": {
-                  "Value": "1D"
-                }
-              }
-            }
-          }
-        }
       ]
     },
     "visualContainerObjects": {

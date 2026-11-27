@@ -1,3 +1,0 @@
-expression DataFolder = "D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
-	lineageTag: 2a588bb9-769b-5be0-8cdf-75f36cf2f526
-	annotation PBI_ResultType = Text

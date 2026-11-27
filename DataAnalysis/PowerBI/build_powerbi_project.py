@@ -100,10 +100,14 @@ def _build_table_tmdl(table_name: str, csv_name: str, csv_path: Path, extra_meas
         "\t\tsource =",
         "\t\t\tlet",
         f'\t\t\t\tSource = Csv.Document(File.Contents("{csv_abs}"), [Delimiter=",", Columns={cols_count}, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),',
-        "\t\t\t\tPromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),",
-        f"\t\t\t\tChangedType = Table.TransformColumnTypes(PromotedHeaders, {{{m_transform}}})",
+        '\t\t\t\t#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),',
+        f'\t\t\t\t#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{{m_transform}}})',
         "\t\t\tin",
-        "\t\t\t\tChangedType",
+        '\t\t\t\t#"Changed Type"',
+        "",
+        "\t\tannotation PBI_NavigationStepName = Navigation",
+        "",
+        "\t\tannotation PBI_ResultType = Table",
         "",
     ])
     return "\n".join(lines)
@@ -262,7 +266,6 @@ def _slicer_visual(vis_id: str, x: int, y: int, w: int, h: int, z: int) -> dict:
             "objects": {
                 "data": [{"properties": {"mode": {"expr": {"Literal": {"Value": "'Basic'"}}}}}],
                 "selection": [{"properties": {"singleSelect": {"expr": {"Literal": {"Value": "true"}}}}}],
-                "general": [{"properties": {"orientation": {"expr": {"Literal": {"Value": "1D"}}}}}],
             },
             "visualContainerObjects": _dynamic_title("T_Lang_Slicer", "Language / ภาษา"),
         },
@@ -456,6 +459,13 @@ def build_project() -> Path:
         },
     ]).to_csv(exec_csv, index=False, lineterminator="\n")
 
+    cam_df = pd.read_csv(OUT_DIR / "camera.csv", encoding="utf-8-sig")
+    eff_df = pd.read_csv(OUT_DIR / "camera_effect.csv", encoding="utf-8-sig")
+    cam_sum = cam_df.merge(eff_df, on="camera_id", how="left")
+    cam_sum["label"] = cam_sum["label"].fillna("no matched rainy hours")
+    cam_sum["n_wet_hours"] = cam_sum["n_wet_hours"].fillna(0).astype(int)
+    cam_sum.to_csv(OUT_DIR / "camera_summary.csv", index=False, lineterminator="\n")
+
     sm_dir = PBI_DIR / f"{PROJECT_NAME}.SemanticModel"
     rep_dir = PBI_DIR / f"{PROJECT_NAME}.Report"
     PBI_DIR.mkdir(parents=True, exist_ok=True)
@@ -476,17 +486,11 @@ def build_project() -> Path:
     def_sm = sm_dir / "definition"
     def_sm.mkdir(parents=True, exist_ok=True)
     (def_sm / "database.tmdl").write_text(
-        f"database {_uid('db')}\n\tcompatibilityLevel: 1702\n\tcompatibilityMode: powerBI\n\tlanguage: 1033\n",
+        f"database {_uid('db')}\n\tcompatibilityLevel: 1567\n",
         encoding="utf-8",
     )
 
-    out_folder_escaped = str(OUT_DIR.resolve()).rstrip("\\/") + "\\"
-    (def_sm / "expressions.tmdl").write_text(
-        f'expression DataFolder = "{out_folder_escaped}" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]\n'
-        f'\tlineageTag: {_uid("param-datafolder")}\n'
-        '\tannotation PBI_ResultType = Text\n',
-        encoding="utf-8",
-    )
+    (def_sm / "expressions.tmdl").write_text("", encoding="utf-8")
 
     tables_spec = [
         ("ui_lang", "ui_lang.csv", UI_LANG_MEASURES_TMDL),
@@ -497,6 +501,7 @@ def build_project() -> Path:
         ("rebound", "rebound.csv", ""),
         ("camera", "camera.csv", ""),
         ("camera_effect", "camera_effect.csv", ""),
+        ("camera_summary", "camera_summary.csv", ""),
         ("camera_hour", "camera_hour.csv", ""),
         ("denser_share", "denser_share.csv", ""),
         ("flood_sensor_hours", "flood_sensor_hours.csv", ""),
@@ -506,11 +511,15 @@ def build_project() -> Path:
         ("executive_story", "executive_story.csv", STORY_MEASURES_TMDL),
     ]
 
+    active_tables = [tbl for tbl, fname, _ in tables_spec if (OUT_DIR / fname).is_file()]
+    query_order_json = json.dumps(active_tables)
     model_lines = [
         "model Model",
         "\tculture: en-US",
         "\tdefaultPowerBIDataSourceVersion: powerBI_V3",
         "\tsourceQueryCulture: en-US",
+        f"\tannotation PBI_QueryOrder = {query_order_json}",
+        "\tannotation __PBI_TimeIntelligenceEnabled = 0",
         '\tannotation PBI_ProTooling = ["DevMode"]',
         "",
     ]
@@ -527,19 +536,7 @@ def build_project() -> Path:
         )
     (def_sm / "model.tmdl").write_text("\n".join(model_lines) + "\n", encoding="utf-8")
 
-    (def_sm / "relationships.tmdl").write_text(
-        "\n".join([
-            f"relationship {_uid('rel-cam-hour')}",
-            "\tfromColumn: camera_hour.camera_id",
-            "\ttoColumn: camera.camera_id",
-            "",
-            f"relationship {_uid('rel-cam-eff')}",
-            "\tfromColumn: camera_effect.camera_id",
-            "\ttoColumn: camera.camera_id",
-            "",
-        ]),
-        encoding="utf-8",
-    )
+    (def_sm / "relationships.tmdl").write_text("", encoding="utf-8")
 
     _write_json(rep_dir / "definition.pbir", {
         "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json",
@@ -606,13 +603,13 @@ def build_project() -> Path:
                           "T_P3_Den", "denser_share", "feature",
                           [("denser_share", "denser_share", False), ("denser_share", "other_share", False)]),
             _table_visual(_vid("p3-cams"), 24, 394, 740, 300, 4, "T_P3_Cams", [
-                ("camera", "camera_id", False),
-                ("camera", "location_th", False),
-                ("camera", "location_en", False),
-                ("camera_effect", "label", False),
-                ("camera_effect", "effect_pct", False),
-                ("camera_effect", "n_wet_hours", False),
-                ("camera", "rail_dist_m", False),
+                ("camera_summary", "camera_id", False),
+                ("camera_summary", "location_th", False),
+                ("camera_summary", "location_en", False),
+                ("camera_summary", "label", False),
+                ("camera_summary", "effect_pct", False),
+                ("camera_summary", "n_wet_hours", False),
+                ("camera_summary", "rail_dist_m", False),
             ]),
             _table_visual(_vid("p3-flood"), 780, 394, 476, 300, 5, "T_P3_Flood", [
                 ("flood_sensor_hours", "station", False),

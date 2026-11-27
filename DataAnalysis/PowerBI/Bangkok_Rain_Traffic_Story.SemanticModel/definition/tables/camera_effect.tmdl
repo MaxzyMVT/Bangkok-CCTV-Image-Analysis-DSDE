@@ -42,7 +42,11 @@ table camera_effect
 		source =
 			let
 				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\camera_effect.csv"), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
-				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
-				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"camera_id", Int64.Type}, {"effect_pct", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_wet_hours", Int64.Type}, {"label", type text}})
+				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"camera_id", Int64.Type}, {"effect_pct", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_wet_hours", Int64.Type}, {"label", type text}})
 			in
-				ChangedType
+				#"Changed Type"
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table

@@ -36,7 +36,11 @@ table rain_timing
 		source =
 			let
 				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\rain_timing.csv"), [Delimiter=",", Columns=5, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
-				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
-				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"day_type", type text}, {"hour", Int64.Type}, {"n_camera_hours", Int64.Type}, {"n_clock_hours", Int64.Type}, {"motorcycle_effect_pct", type number}})
+				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"day_type", type text}, {"hour", Int64.Type}, {"n_camera_hours", Int64.Type}, {"n_clock_hours", Int64.Type}, {"motorcycle_effect_pct", type number}})
 			in
-				ChangedType
+				#"Changed Type"
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table

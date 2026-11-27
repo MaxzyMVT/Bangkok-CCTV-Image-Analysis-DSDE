@@ -1,7 +1,0 @@
-relationship af6b239a-694c-5d4f-8873-9828d18d1c91
-	fromColumn: camera_hour.camera_id
-	toColumn: camera.camera_id
-
-relationship 832b70c6-d15b-53eb-b20c-4a06d5d2bca2
-	fromColumn: camera_effect.camera_id
-	toColumn: camera.camera_id

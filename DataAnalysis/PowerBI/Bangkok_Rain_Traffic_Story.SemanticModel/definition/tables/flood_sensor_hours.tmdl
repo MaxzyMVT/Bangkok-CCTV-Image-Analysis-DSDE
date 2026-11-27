@@ -36,7 +36,11 @@ table flood_sensor_hours
 		source =
 			let
 				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\flood_sensor_hours.csv"), [Delimiter=",", Columns=5, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
-				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
-				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"station_code", type text}, {"road", type text}, {"station", type text}, {"hour_ts", type datetime}, {"flood_cm", type number}})
+				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"station_code", type text}, {"road", type text}, {"station", type text}, {"hour_ts", type datetime}, {"flood_cm", type number}})
 			in
-				ChangedType
+				#"Changed Type"
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table

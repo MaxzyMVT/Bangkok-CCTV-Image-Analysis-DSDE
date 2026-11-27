@@ -23,7 +23,7 @@ Install Power BI Desktop using **one** of these methods:
 ### Step 2: Open the Power BI Project (`.pbip`) & Load Data
 1. Double-click **`DataAnalysis/PowerBI/Bangkok_Rain_Traffic_Story.pbip`** (or open Power BI Desktop $\to$ **File $\to$ Open report $\to$ Browse** and select `Bangkok_Rain_Traffic_Story.pbip`).
 2. **Important — Load Data on First Open:** `.pbip` files store schemas and visuals in plain text without committing a binary `.pbi/cache.abf` snapshot, so cards/charts open empty (`(Blank)`) until you click **Home $\to$ Refresh** in the top ribbon.
-3. After **Refresh** finishes loading all 15 tables, press **Ctrl + S** (Save) so Power BI caches the loaded data locally in `.pbi/cache.abf` (gitignored).
+3. After **Refresh** finishes loading all 16 tables, press **Ctrl + S** (Save) so Power BI caches the loaded data locally in `.pbi/cache.abf` (gitignored).
 4. Use the **`Language / ภาษา`** slicer at the top-right of any page to switch titles, headers, executive insights, and action cards between **English** and **ภาษาไทย** (synchronized across all 5 pages).
 
 ### Step 3: Refresh / Update Data Path (If Opening on Another Laptop)

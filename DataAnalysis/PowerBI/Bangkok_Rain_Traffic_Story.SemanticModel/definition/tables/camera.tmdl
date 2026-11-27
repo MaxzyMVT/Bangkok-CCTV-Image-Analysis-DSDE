@@ -72,7 +72,11 @@ table camera
 		source =
 			let
 				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\camera.csv"), [Delimiter=",", Columns=11, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
-				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
-				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"camera_id", Int64.Type}, {"latitude", type number}, {"longitude", type number}, {"gauge", type text}, {"gauge_dist_m", Int64.Type}, {"rail_dist_m", Int64.Type}, {"near_rail", type logical}, {"near_shelter", type logical}, {"in_flood_area", type logical}, {"location_th", type text}, {"location_en", type text}})
+				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"camera_id", Int64.Type}, {"latitude", type number}, {"longitude", type number}, {"gauge", type text}, {"gauge_dist_m", Int64.Type}, {"rail_dist_m", Int64.Type}, {"near_rail", type logical}, {"near_shelter", type logical}, {"in_flood_area", type logical}, {"location_th", type text}, {"location_en", type text}})
 			in
-				ChangedType
+				#"Changed Type"
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table

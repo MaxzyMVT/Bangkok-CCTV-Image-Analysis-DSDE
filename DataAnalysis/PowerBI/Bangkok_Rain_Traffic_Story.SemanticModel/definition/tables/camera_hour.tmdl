@@ -108,7 +108,11 @@ table camera_hour
 		source =
 			let
 				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\camera_hour.csv"), [Delimiter=",", Columns=17, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
-				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
-				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"camera_id", Int64.Type}, {"hour_ts", type datetime}, {"n_frames", Int64.Type}, {"car", type number}, {"motorcycle", type number}, {"bus", type number}, {"truck", type number}, {"total", type number}, {"hod", Int64.Type}, {"weekend", type logical}, {"gauge", type text}, {"rain_mm", type number}, {"wet", type logical}, {"heavy", type logical}, {"car_base", type number}, {"motorcycle_base", type number}, {"total_base", type number}})
+				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"camera_id", Int64.Type}, {"hour_ts", type datetime}, {"n_frames", Int64.Type}, {"car", type number}, {"motorcycle", type number}, {"bus", type number}, {"truck", type number}, {"total", type number}, {"hod", Int64.Type}, {"weekend", type logical}, {"gauge", type text}, {"rain_mm", type number}, {"wet", type logical}, {"heavy", type logical}, {"car_base", type number}, {"motorcycle_base", type number}, {"total_base", type number}})
 			in
-				ChangedType
+				#"Changed Type"
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table

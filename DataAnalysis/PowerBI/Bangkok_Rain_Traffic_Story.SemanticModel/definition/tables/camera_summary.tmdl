@@ -1,0 +1,112 @@
+table camera_summary
+	lineageTag: 4ba46731-c405-52b5-9d1f-b0a776b91e99
+
+	column camera_id
+		dataType: int64
+		lineageTag: e375aa60-2252-5f94-a1cc-ce515fa39981
+		summarizeBy: none
+		sourceColumn: camera_id
+
+	column latitude
+		dataType: double
+		lineageTag: 6b38373b-c043-54e9-89fc-f14ca57d865f
+		summarizeBy: none
+		sourceColumn: latitude
+
+	column longitude
+		dataType: double
+		lineageTag: 9d745f25-86bf-565c-87ee-c0cdd3b3f752
+		summarizeBy: none
+		sourceColumn: longitude
+
+	column gauge
+		dataType: string
+		lineageTag: 9055f1d4-0416-51a1-8e82-4f291bff9b91
+		summarizeBy: none
+		sourceColumn: gauge
+
+	column gauge_dist_m
+		dataType: int64
+		lineageTag: 9b60d6e8-5842-5f69-9245-8c3373c8bce9
+		summarizeBy: average
+		sourceColumn: gauge_dist_m
+
+	column rail_dist_m
+		dataType: int64
+		lineageTag: a33763ac-f411-5971-9742-3140e0f721f6
+		summarizeBy: average
+		sourceColumn: rail_dist_m
+
+	column near_rail
+		dataType: boolean
+		lineageTag: bc1170a2-5dae-5d49-a219-8b71022d8dcb
+		summarizeBy: none
+		sourceColumn: near_rail
+
+	column near_shelter
+		dataType: boolean
+		lineageTag: d94af808-bb48-53da-8ab9-28f88a4463d0
+		summarizeBy: none
+		sourceColumn: near_shelter
+
+	column in_flood_area
+		dataType: boolean
+		lineageTag: 21c2d31a-3299-59d5-97f5-69f7cc2950a1
+		summarizeBy: none
+		sourceColumn: in_flood_area
+
+	column location_th
+		dataType: string
+		lineageTag: 1970c770-6bb3-5750-abaf-d9c920beb519
+		summarizeBy: none
+		sourceColumn: location_th
+
+	column location_en
+		dataType: string
+		lineageTag: 9353c129-b0bc-5105-8d34-9b0abc6a337d
+		summarizeBy: none
+		sourceColumn: location_en
+
+	column effect_pct
+		dataType: double
+		lineageTag: 2ec8bacb-43af-5c2e-8ab0-a6f559003734
+		summarizeBy: average
+		sourceColumn: effect_pct
+
+	column ci_low
+		dataType: double
+		lineageTag: c1f1d29c-fa39-52ac-a409-f01521beb205
+		summarizeBy: average
+		sourceColumn: ci_low
+
+	column ci_high
+		dataType: double
+		lineageTag: 76b3dddc-f596-534f-943e-9c90a7ec16b0
+		summarizeBy: average
+		sourceColumn: ci_high
+
+	column n_wet_hours
+		dataType: int64
+		lineageTag: f6e9968b-5ec1-5dc0-a7a9-569f95b43194
+		summarizeBy: average
+		sourceColumn: n_wet_hours
+
+	column label
+		dataType: string
+		lineageTag: 8ed29d86-032e-5251-a910-02ba65c0c5b8
+		summarizeBy: none
+		sourceColumn: label
+
+	partition camera_summary = m
+		mode: import
+		source =
+			let
+				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\camera_summary.csv"), [Delimiter=",", Columns=16, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"camera_id", Int64.Type}, {"latitude", type number}, {"longitude", type number}, {"gauge", type text}, {"gauge_dist_m", Int64.Type}, {"rail_dist_m", Int64.Type}, {"near_rail", type logical}, {"near_shelter", type logical}, {"in_flood_area", type logical}, {"location_th", type text}, {"location_en", type text}, {"effect_pct", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_wet_hours", Int64.Type}, {"label", type text}})
+			in
+				#"Changed Type"
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table

@@ -54,7 +54,11 @@ table denser_share
 		source =
 			let
 				Source = Csv.Document(File.Contents("D:\MaxzyMVT\Work\Code\CEDT\CEDT_Courses_Codes\2110403_Introduction_to_Data_Science_and_Data_Engineering\Bangkok-CCTV-Image-Analysis-DSDE\DataAnalysis\output\denser_share.csv"), [Delimiter=",", Columns=8, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
-				PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
-				ChangedType = Table.TransformColumnTypes(PromotedHeaders, {{"feature", type text}, {"denser_share", type number}, {"other_share", type number}, {"diff_points", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_denser", Int64.Type}, {"n_other", Int64.Type}})
+				#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"feature", type text}, {"denser_share", type number}, {"other_share", type number}, {"diff_points", type number}, {"ci_low", type number}, {"ci_high", type number}, {"n_denser", Int64.Type}, {"n_other", Int64.Type}})
 			in
-				ChangedType
+				#"Changed Type"
+
+		annotation PBI_NavigationStepName = Navigation
+
+		annotation PBI_ResultType = Table

@@ -20,13 +20,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "camera"
+                      "Entity": "camera_summary"
                     }
                   },
                   "Property": "camera_id"
                 }
               },
-              "queryRef": "camera.camera_id",
+              "queryRef": "camera_summary.camera_id",
               "nativeQueryRef": "camera_id"
             },
             {
@@ -34,13 +34,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "camera"
+                      "Entity": "camera_summary"
                     }
                   },
                   "Property": "location_th"
                 }
               },
-              "queryRef": "camera.location_th",
+              "queryRef": "camera_summary.location_th",
               "nativeQueryRef": "location_th"
             },
             {
@@ -48,13 +48,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "camera"
+                      "Entity": "camera_summary"
                     }
                   },
                   "Property": "location_en"
                 }
               },
-              "queryRef": "camera.location_en",
+              "queryRef": "camera_summary.location_en",
               "nativeQueryRef": "location_en"
             },
             {
@@ -62,13 +62,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "camera_effect"
+                      "Entity": "camera_summary"
                     }
                   },
                   "Property": "label"
                 }
               },
-              "queryRef": "camera_effect.label",
+              "queryRef": "camera_summary.label",
               "nativeQueryRef": "label"
             },
             {
@@ -76,13 +76,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "camera_effect"
+                      "Entity": "camera_summary"
                     }
                   },
                   "Property": "effect_pct"
                 }
               },
-              "queryRef": "camera_effect.effect_pct",
+              "queryRef": "camera_summary.effect_pct",
               "nativeQueryRef": "effect_pct"
             },
             {
@@ -90,13 +90,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "camera_effect"
+                      "Entity": "camera_summary"
                     }
                   },
                   "Property": "n_wet_hours"
                 }
               },
-              "queryRef": "camera_effect.n_wet_hours",
+              "queryRef": "camera_summary.n_wet_hours",
               "nativeQueryRef": "n_wet_hours"
             },
             {
@@ -104,13 +104,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "camera"
+                      "Entity": "camera_summary"
                     }
                   },
                   "Property": "rail_dist_m"
                 }
               },
-              "queryRef": "camera.rail_dist_m",
+              "queryRef": "camera_summary.rail_dist_m",
               "nativeQueryRef": "rail_dist_m"
             }
           ]
